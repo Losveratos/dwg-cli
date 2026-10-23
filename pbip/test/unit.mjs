@@ -9,7 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { addPages, pageLabel } from "../lib/report.mjs";
-import { queryState, TILE_FRAME } from "../lib/pbir.mjs";
+import { queryState, TILE_FRAME, filterLit } from "../lib/pbir.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");
@@ -154,6 +154,32 @@ test("Kachelrahmen wie in der App: 8 px Innenabstand, 1 px Rand (statt Fluent2 1
         assert.equal(vco.border[0].properties.show.expr.Literal.Value, "true");
         assert.equal(vco.border[0].properties.width.expr.Literal.Value, "1D");
     }
+});
+
+test("Datum in Slicer-Startwert und Kachelfilter: datetime'…' wie Desktop, Werte gegen den Datentyp geprüft", () => {
+    const spec = structuredClone(SPEC);
+    spec.slicers.push({ column: "'fact-guv'[Datum]", label: "Datum", default: ["2026-03-01"], multi: true });
+    spec.pages[0].tiles[0].filters = [{ column: "'fact-guv'[Datum]", values: ["2026-03-01T00:00:00", "2026-04-01"] }];
+    const d3 = reportCopy();
+    const { created: c3 } = addPages(d3, spec);
+    const vis = pageVisuals(d3, c3[0].id);
+    const lit = v => [{ Literal: { Value: v } }];
+    const slicer = vis.find(v => v.visual.query?.queryState?.Values?.projections[0].displayName === "Datum");
+    assert.deepEqual(slicer.visual.objects.general[0].properties.filter.filter.Where[0].Condition.In.Values, [lit("datetime'2026-03-01T00:00:00'")]);
+    const tile = vis.find(v => v.visual.visualType !== "slicer" && v.filterConfig?.filters?.some(f => f.field.Column?.Property === "Datum"));
+    assert.deepEqual(tile.filterConfig.filters[0].filter.Where[0].Condition.In.Values,
+        [lit("datetime'2026-03-01T00:00:00'"), lit("datetime'2026-04-01T00:00:00'")]);
+    const r = spawnSync(process.execPath, [path.join(HERE, "validate.mjs"), d3], { encoding: "utf8" });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    // Werte vom falschen Typ träfen in Power BI still nichts: Fehler mit allen Fundstellen, nichts geschrieben
+    const bad = structuredClone(SPEC);
+    bad.slicers[1].default = [2026];
+    bad.pages[0].tiles[0].filters = [{ column: "'fact-guv'[Datum]", values: ["März"] }];
+    assert.throws(() => addPages(reportCopy(), bad), e => e.message.includes("Slicer „Land“, default, 'Sales Demo'[Country]: 2026 ist kein Text")
+        && e.message.includes(`Kachel monat, Filter, 'fact-guv'[Datum]: "März" ist kein Datum`));
+    assert.equal(filterLit("2026-03-01T10:30:00.000", "dateTime").Literal.Value, "datetime'2026-03-01T10:30:00'");
+    assert.equal(filterLit(2026, undefined).Literal.Value, "2026L");
+    assert.throws(() => filterLit(2.5, "int64"), /keine ganze Zahl/);
 });
 
 test("Ergebnis gilt gegen die offiziellen PBIR-Schemas", () => {

@@ -213,7 +213,30 @@ describe('dwg-page · Slicer', () => {
     expect(formatSlicerValue(2026)).toBe('2026');
     expect(formatSlicerValue(1234.5)).toBe('1.234,5');
     expect(formatSlicerValue('2026-03-01T00:00:00')).toBe('01.03.2026');
+    expect(formatSlicerValue(new Date(2026, 2, 1))).toBe('01.03.2026');
     expect(formatSlicerValue(null)).toBe('(leer)');
+  });
+
+  it('Datum aus Slicer (ISO-Text) und Klick (Date) ergeben dieselbe Schnittmenge und DATE-Literale', () => {
+    const datum = "'Kalender'[Datum]";
+    const types = { [datum]: 'dateTime', "'Kunde'[Code]": 'string' };
+    const table = { columns: [{ name: 'Kalender[Datum]' }], rows: [['2026-02-01T00:00:00'], ['2026-03-01T00:00:00']] };
+    const values = slicerValues(table, { column: datum, label: 'Monat' }, 'dateTime');
+    expect(values.every((v) => v instanceof Date)).toBe(true);
+    const slicer = slicerFilters([{ column: datum, label: 'Monat' }], { [datum]: values }, types);
+    const click = selectionFilters({ tile: 'a', keys: [{ 'Kalender[Datum]': new Date(2026, 2, 1) }] });
+    const both = combineFilters(slicer, click);
+    expect(both).toHaveLength(1);
+    expect(both[0].values).toHaveLength(1);
+    const q = daxQuery('chartkitchen', { category: "'Kunde'[Code]", actual: '[AC]' }, { filters: both });
+    expect(q.query).toContain(`TREATAS({DATE(2026, 3, 1)}, 'Kalender'[Datum])`);
+    // Startauswahl der Spec als ISO-Text wird Date, wie die Werteliste
+    expect(slicerDefaults([{ column: datum, label: 'Monat', default: ['2026-03-01'] }], types)[datum][0]).toBeInstanceOf(Date);
+    // Textspalte mit datumsähnlichen Werten bleibt Text
+    const page2: DwgPageSpec = { ...page, filters: [{ column: "'Kunde'[Code]", values: ['2026-01-01'] }], columnTypes: types };
+    expect(daxQuery('chartkitchen', { category: "'Kunde'[Code]", actual: '[AC]' }, { filters: tileFilters(page2, 'a', null) }).query).toContain(
+      `TREATAS({"2026-01-01"}, 'Kunde'[Code])`
+    );
   });
 });
 

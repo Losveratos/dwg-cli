@@ -94,7 +94,7 @@ export async function mountVisual(el: HTMLElement, options: MountOptions): Promi
         const t0 = performance.now();
         try {
             const dv = buildDataView(opts.visual, opts.table, opts.bindings, {
-                objects: state.objects, formats: opts.formats, displayNames: opts.displayNames,
+                objects: state.objects, formats: opts.formats, displayNames: opts.displayNames, columnTypes: opts.columnTypes,
             });
             visual.update({
                 viewport: { width: Math.floor(width), height: Math.floor(height) },

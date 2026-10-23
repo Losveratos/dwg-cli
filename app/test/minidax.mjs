@@ -85,8 +85,12 @@ function literal(s) {
     if (/^TRUE\s*\(\s*\)$/.test(t)) { return true; }
     if (/^FALSE\s*\(\s*\)$/.test(t)) { return false; }
     if (/^BLANK\s*\(\s*\)$/.test(t)) { return null; }
-    const d = /^DATE\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(t);
-    if (d) { return `${d[1]}-${d[2].padStart(2, "0")}-${d[3].padStart(2, "0")}T00:00:00`; }
+    // Datum wie daxLiteral() es schreibt: DATE(j, m, t) [+ TIME(h, m, s)] → ISO-Text wie im exportierten Datensatz
+    const d = /^DATE\((\d+),\s*(\d+),\s*(\d+)\)(?:\s*\+\s*TIME\((\d+),\s*(\d+),\s*(\d+)\))?$/.exec(t);
+    if (d) {
+        const p = i => (d[i] ?? "0").padStart(2, "0");
+        return `${d[1]}-${p(2)}-${p(3)}T${p(4)}:${p(5)}:${p(6)}`;
+    }
     if (/^-?\d+(\.\d+)?$/.test(t)) { return Number(t); }
     throw new Error(`Mini-DAX: Literal nicht unterstützt: ${t}`);
 }

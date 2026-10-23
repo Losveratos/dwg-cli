@@ -3,6 +3,7 @@
 // Kombination der gruppierenden Spalten, so wie Power BI sie an das Visual gibt.
 
 import { ROLES } from "./_generated";
+import { parseIsoDate, type DaxColumnType } from "./dax";
 import type { Bindings, QueryTable, VisualKind, VisualObjects } from "./types";
 
 /** `'Kalender'[Monat]` → `Kalender[Monat]` (so heißen die Spalten im Abfrageergebnis). */
@@ -35,14 +36,13 @@ export function columnIndex(table: QueryTable, ref: string): number {
 const EDGE_WS = /^[\s ]+|[\s ]+$/g;
 
 // Datums-/Zeitspalten liefert der Konnektor als ISO-Text („2021-06-07T00:00:00“), Power BI dagegen
-// als Date. Die Visuals formatieren und sortieren Date-Werte selbst, deshalb hier umwandeln (Ortszeit).
-const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?)?$/;
-
-function groupValue(v: unknown): unknown {
+// als Date. Die Visuals formatieren und sortieren Date-Werte selbst, deshalb hier umwandeln (Ortszeit, parseIsoDate
+// in dax.ts). Mit bekanntem Spaltentyp nur dateTime: eine Textspalte mit datumsähnlichen Werten bleibt Text.
+function groupValue(v: unknown, type?: DaxColumnType): unknown {
     if (v == null) { return null; }
     if (typeof v !== "string") { return v; }
-    const d = ISO_DATE.exec(v);
-    if (d) { return new Date(+d[1], +d[2] - 1, +d[3], +(d[4] ?? 0), +(d[5] ?? 0), +(d[6] ?? 0)); }
+    const d = type == null || type === "dateTime" ? parseIsoDate(v) : null;
+    if (d) { return d; }
     return v.replace(EDGE_WS, "");
 }
 
@@ -56,6 +56,8 @@ export interface DataViewOptions {
     objects?: VisualObjects;
     formats?: Record<string, string>;
     displayNames?: Record<string, string>;
+    /** Datentyp je Spalte (TMDL `dataType`); ohne Angabe gilt ISO-Text als Datum. */
+    columnTypes?: Record<string, DaxColumnType>;
 }
 
 interface Source {
@@ -110,7 +112,8 @@ export function buildDataView(kind: VisualKind, table: QueryTable, bindings: Bin
                 if (fmt) { source.format = fmt; }
                 values.push({ source, values: table.rows.map(r => measureValue(r[ci])) });
             } else {
-                categories.push({ source, values: table.rows.map(r => groupValue(r[ci])) });
+                const type = byKey(opts.columnTypes, ref, name);
+                categories.push({ source, values: table.rows.map(r => groupValue(r[ci], type)) });
             }
         }
     }

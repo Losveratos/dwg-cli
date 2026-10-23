@@ -46,6 +46,15 @@ Navigation `specs/showcase.json` (Abschnitt „App-Rahmen“ unten).
 | `tiles[].displayNames` | Anzeigename je Ergebnisspalte; Measure-Spalten heißen im Ergebnis wie die Rolle, z. B. `[actual]` |
 | `tiles[].objects` | Formatbereich-Objekte des Visuals, Namen wie in `capabilities.json` bzw. PBIR `visual.json` |
 
+**Werte in `filters[].values` und `slicers[].default`** haben den Typ der Spalte: Zahl (`2026`) für int64/double,
+Text (`"Germany"`) für string, `true`/`false` für boolean, `null` für leer. **Datum als ISO-Text**: `"2026-03-01"`
+oder `"2026-03-01T00:00:00"`. Die App filtert damit per `DATE(2026, 3, 1)` (mit Uhrzeit `+ TIME(…)`), Power BI
+bekommt `datetime'2026-03-01T00:00:00'` wie von Desktop geschrieben. Mit `--model` (App) bzw. immer (PBIP) prüft dwg
+die Werte gegen den `dataType` im TMDL und bricht bei falschem Typ ab (`[2026]` auf einer Textspalte träfe still
+nichts). `dwg app page --model` schreibt außerdem den Datentyp der benutzten Spalten als `columnTypes` in die
+erzeugte Seite: Abfrageergebnisse tragen keine Typen (Datum kommt als ISO-Text), so wird nur eine dateTime-Spalte
+zum Datum und eine Textspalte mit Werten wie `2026-01-01` bleibt Text. Ohne `--model` gilt ISO-Text als Datum.
+
 ## App-Rahmen: Filter-Panel, Navigation, Erklärtext, Auflösung
 
 Für Apps mit vielen Seiten (z. B. `specs/showcase.json`). Die App bindet dann `DwgShell` statt einzelner

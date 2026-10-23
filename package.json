@@ -18,7 +18,7 @@
   "scripts": {
     "build": "node visuals/build.mjs",
     "demo": "node visuals/build.mjs --demo",
-    "test": "node visuals/test/unit.mjs && node layout/test.mjs && node mockup/test/unit.mjs && node templates/test/unit.mjs && node app/test/unit.mjs && node app/test/guv.mjs && node app/test/showcase-data.mjs && node app/test/showcase-spec.mjs && node app/test/e2e.mjs --page dwg-spike && node app/test/e2e.mjs --page guv-statement && node app/test/e2e.mjs --page guv-baum && node app/test/shell.mjs && node pbip/test/unit.mjs && node pbip/test/validate.mjs && node pbip/test/parity.mjs --app && node pbip/test/parity.mjs",
+    "test": "node visuals/test/unit.mjs && node layout/test.mjs && node mockup/test/unit.mjs && node templates/test/unit.mjs && node app/test/unit.mjs && node app/test/guv.mjs && node app/test/showcase-data.mjs && node app/test/showcase-spec.mjs && node app/test/e2e.mjs --page dwg-spike && node app/test/e2e.mjs --page guv-statement && node app/test/e2e.mjs --page guv-baum && node app/test/shell.mjs && node app/test/dates.mjs && node pbip/test/unit.mjs && node pbip/test/validate.mjs && node pbip/test/parity.mjs --app && node pbip/test/parity.mjs",
     "test:showcase": "node app/test/showcase-e2e.mjs",
     "doctor": "node install.mjs --check",
     "test:all": "node visuals/build.mjs --demo && node visuals/test/spike.mjs && npm test"

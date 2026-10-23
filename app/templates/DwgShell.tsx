@@ -17,6 +17,7 @@ import { useSemanticModelQuery } from '@/hooks/use-semantic-model-query';
 import type { DaxValue } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
   RESOLUTION_WIDTH,
+  columnType,
   findPage,
   formatSlicerValue,
   isEmptyValue,
@@ -32,6 +33,7 @@ import {
   slicerValues,
   stageScale,
   toggleSlicerValue,
+  valueText,
   type DwgAppSpec,
   type DwgBox,
   type DwgPageSpec,
@@ -136,6 +138,8 @@ function pill(c: Palette, active: boolean, k = 1): CSSProperties {
 
 interface SlicerProps {
   slicer: DwgSlicerSpec;
+  /** Datentyp der Slicer-Spalte aus dem TMDL, wenn bekannt */
+  type?: string;
   value: DaxValue[];
   connection: string;
   c: Palette;
@@ -144,10 +148,10 @@ interface SlicerProps {
   onChange: (next: DaxValue[]) => void;
 }
 
-function DwgSlicer({ slicer, value, connection, c, k, showEmpty, onChange }: SlicerProps) {
+function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange }: SlicerProps) {
   const query = useMemo(() => slicerQuery(slicer), [slicer]);
   const { data, isLoading, error } = useSemanticModelQuery({ connection, query });
-  const all = useMemo(() => (data?.status === 'success' ? slicerValues(data.table, slicer) : []), [data, slicer]);
+  const all = useMemo(() => (data?.status === 'success' ? slicerValues(data.table, slicer, type) : []), [data, slicer, type]);
   // leere Werte („(leer)“ aus Zeilen ohne Kunde/Produkt) ausblenden, außer gewünscht oder gerade gewählt
   const values = useMemo(
     () => (showEmpty || slicer.showEmpty ? all : all.filter((v) => !isEmptyValue(v) || value.some(isEmptyValue))),
@@ -190,7 +194,7 @@ function DwgSlicer({ slicer, value, connection, c, k, showEmpty, onChange }: Sli
             <button
               key={`${typeof v}:${String(v)}`}
               type="button"
-              data-value={String(v)}
+              data-value={valueText(v)}
               aria-pressed={isOn(v)}
               style={pill(c, isOn(v), k)}
               onClick={() => onChange(toggleSlicerValue(slicer, value, v))}
@@ -241,7 +245,7 @@ function DwgSlicer({ slicer, value, connection, c, k, showEmpty, onChange }: Sli
             >
               <input
                 type="checkbox"
-                data-value={String(v)}
+                data-value={valueText(v)}
                 checked={isOn(v)}
                 onChange={() => onChange(toggleSlicerValue(slicer, value, v))}
                 style={{ accentColor: c.accent }}
@@ -268,7 +272,7 @@ interface PanelProps {
 /** Filter-Panel: Slicer, Zurücksetzen, leere Werte einblenden */
 function FilterPanel({ app, state, setState, connection, c, k, style }: PanelProps) {
   const [showEmpty, setShowEmpty] = useState(false);
-  const defaults = useMemo(() => slicerDefaults(app.slicers), [app.slicers]);
+  const defaults = useMemo(() => slicerDefaults(app.slicers, app.columnTypes), [app.slicers, app.columnTypes]);
   const changed = app.slicers.some((s) => !sameValues(state[s.column] ?? [], defaults[s.column] ?? []));
   return (
     <aside aria-label="Filter" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 * k, ...style }}>
@@ -279,7 +283,7 @@ function FilterPanel({ app, state, setState, connection, c, k, style }: PanelPro
         <button
           type="button"
           disabled={!changed}
-          onClick={() => setState(() => slicerDefaults(app.slicers))}
+          onClick={() => setState(() => slicerDefaults(app.slicers, app.columnTypes))}
           style={{
             font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
             padding: `${4 * k}px ${8 * k}px`,
@@ -298,6 +302,7 @@ function FilterPanel({ app, state, setState, connection, c, k, style }: PanelPro
         <DwgSlicer
           key={s.column}
           slicer={s}
+          type={columnType(app.columnTypes, s.column)}
           value={state[s.column] ?? []}
           connection={connection}
           c={c}
@@ -356,7 +361,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
   const c = palette(isDark);
   const { ref, width } = useWidth();
   const [page, setPage] = useState(() => findPage(app, typeof window === 'undefined' ? '' : window.location.hash));
-  const [state, setState] = useState<DwgSlicerState>(() => slicerDefaults(app.slicers));
+  const [state, setState] = useState<DwgSlicerState>(() => slicerDefaults(app.slicers, app.columnTypes));
   const [resolution, setResolution] = useState<DwgResolution>(
     () => stored('dwg-resolution', ['fullhd', 'hd', 'responsive'] as const) ?? app.resolution ?? 'fullhd'
   );
@@ -372,7 +377,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
   }, [app]);
 
   // eine Referenz je Auswahl: Theme, Fenstergröße, Auflösung und Kopfzeilen lösen keine neuen Abfragen aus
-  const filters = useMemo(() => slicerFilters(app.slicers, state), [app.slicers, state]);
+  const filters = useMemo(() => slicerFilters(app.slicers, state, app.columnTypes), [app.slicers, state, app.columnTypes]);
   const groups = navGroups(app.pages);
   const current = groups.find((g) => g.pages.includes(page)) ?? groups[0];
   const hasPanel = app.slicers.length > 0;
