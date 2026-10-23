@@ -31,10 +31,10 @@ hands data to the visual and the way the app does, and fails if they differ. Tha
 
 ```mermaid
 flowchart LR
+    SPEC["App spec (JSON)<br/>checked by dwg lint"]
     MK["MockupKitchen<br/>sketch in the browser"] -->|mockup import| SPEC
     CAT["Template catalog<br/>C01–C13 · T01A–12H"] -->|tile add + field suggestions| SPEC
     TMDL["Semantic model<br/>(TMDL)"] -.->|fields, sort columns| SPEC
-    SPEC["App spec<br/>(JSON)"] -->|lint| SPEC
     SPEC -->|app page| APP["Fabric App<br/>Rayfin · React"]
     SPEC -->|pbip pages| PBI["Power BI report<br/>PBIP / PBIR"]
     VIS["ChartKitchen + P#amp;L<br/>custom visuals"] --> APP
