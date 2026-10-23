@@ -19,12 +19,12 @@ Kachel aus einem Template an und schlägt die Felder aus dem Modell vor.
 
 ## Was du brauchst
 
-- Eine **Einladung** zum privaten GitHub-Repo `Losveratos/dwg-cli` und ein GitHub-Konto.
+- Das öffentliche GitHub-Repo `Losveratos/dwg-cli` (ein GitHub-Konto brauchst du nur für Issues).
 - **Node.js 22** (https://nodejs.org) und **git** (https://git-scm.com). Windows, macOS und Linux gehen.
 - Etwa **1 GB** freien Platz (Pakete und ein Chromium für die Browser-Tests, wird einmalig geladen).
 - Empfohlen: **Claude Code** (Terminal, VS Code oder Claude Desktop). Ohne geht es auch, dann nur Teil 1 und 3.
 
-dwg ist in einer privaten Vorschau. Bitte gib das Repo und diese Anleitung nicht weiter.
+dwg ist eine frühe Vorschau und wird öffentlich entwickelt. Rückmeldungen gern als Issue im Repo.
 
 ## Teil 1 · Einrichten (ca. 10 Minuten)
 

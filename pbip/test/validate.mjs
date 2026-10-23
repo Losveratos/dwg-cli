@@ -13,12 +13,15 @@ import { modelDirOf } from "../lib/report.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");
-const CACHE = path.join(HERE, ".schema-cache");
+const VENDORED = path.join(ROOT, "pbip", "schemas");   // im Repo, offline
+const CACHE = path.join(HERE, ".schema-cache");        // nachgeladene Versionen, nicht committet
 const MIRROR = "https://raw.githubusercontent.com/microsoft/json-schemas/main/";
 const ORIGIN = "https://developer.microsoft.com/json-schemas/";
 
 async function loadSchema(uri) {
     const rel = uri.replace(ORIGIN, "").split("#")[0];
+    const vendored = path.join(VENDORED, rel);
+    if (fs.existsSync(vendored)) { return JSON.parse(fs.readFileSync(vendored, "utf8")); }
     const file = path.join(CACHE, rel);
     if (fs.existsSync(file)) { return JSON.parse(fs.readFileSync(file, "utf8")); }
     const res = await fetch(MIRROR + rel);

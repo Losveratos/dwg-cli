@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 (2026-10-23) · public
+
+- The repository is public, developed in public.
+- PBIR schemas for `dwg validate` ship in `pbip/schemas/` (from microsoft/json-schemas, MIT); validation works
+  offline, unknown schema versions are still fetched once.
+- README: what is in the repo, contributing; tester guide for the public repo.
+
 ## 0.1.0 (2026-10-23) · first release as its own repo
 
 dwg moves out of the Fabric Apps demo repo into `dwg-cli`, with a fresh history.

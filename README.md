@@ -6,7 +6,8 @@
   **P&L Statement byDatenWG** with live DAX from your semantic model, cross filtering included, and
 - the **same report as a Power BI project** (PBIP/PBIR) with the same visuals, the same bindings and the same layout.
 
-`dwg` is a working title. Version **0.1.0**, private preview. Docs in English below; the detailed handbook and the
+`dwg` is a working title. Version **0.1.1**, an early preview, **developed in public**: expect changes, and
+feedback is welcome as an issue. Docs in English below; the detailed handbook and the
 skill for Claude are in German ([`docs/handbuch.md`](docs/handbuch.md), [`skill/dwg`](skill/dwg/SKILL.md)).
 
 ![A dwg page as a Fabric App, cross filtered on March](app/docs/app-filter.png)
@@ -111,14 +112,16 @@ Measures must be model measures for Power BI; free DAX expressions work in the a
 | `visuals/` | adapter `@dwg/visuals` (original ChartKitchen and P&L code outside Power BI, `daxQuery()`), committed `dist/` incl. `templates.json`, matching `.pbiviz` in `visuals/pbiviz/` |
 | `templates/` | template catalog, field suggestions, `tile add` |
 | `app/` | Fabric App generator and templates (`DwgPage`, `DwgShell`, `DwgVisual`), browser harness, Mini-DAX |
-| `pbip/` | PBIP/PBIR generator, schema validation, parity test (Power BI vs. app) |
+| `pbip/` | PBIP/PBIR generator, schema validation with the PBIR schemas in `pbip/schemas/` (from microsoft/json-schemas, MIT), parity test (Power BI vs. app) |
 | `layout/`, `mockup/` | pixel grid and MockupKitchen building blocks (generated from the Kitchen repo, do not edit) |
 | `specs/`, `examples/` | example specs, models (TMDL) and reports; the showcase has one page per template |
 | `skill/` | Claude skill `dwg` (Claude Code and as `dwg.zip` for Claude Desktop) |
 | `docs/` | German handbook |
 
-The visual sources live in [PowerBI-Kitchen-](https://github.com/Losveratos/PowerBI-Kitchen-) (needed only for
-`visuals build` and `mockup build`). Released `.pbiviz` files are also in
+Everything dwg needs at runtime is in this repo: the built visuals, their `.pbiviz`, the template catalog, the PBIR
+schemas, the MockupKitchen converter and the examples. The visual sources live in
+[PowerBI-Kitchen-](https://github.com/Losveratos/PowerBI-Kitchen-) and are needed only to rebuild (`visuals build`,
+`mockup build`). Released `.pbiviz` files are also in
 [Power-BI-Custom-Visuals-byDatenWG](https://github.com/Losveratos/Power-BI-Custom-Visuals-byDatenWG).
 
 ## Tests
@@ -140,7 +143,11 @@ npm run test:all       # also rebuilds the adapter from the Kitchen repo
 - Cross filtering in the app: one selection at a time, per column (TREATAS). No drill-through, no bookmarks.
 - Private custom visuals need the tenant setting for organizational or SDK visuals until they are listed in AppSource.
 
-Feedback and issues are welcome; see [`TESTEN.md`](TESTEN.md) (German) for a guided test.
+## Contributing
+
+Issues with a command, the spec you used and what you expected help most. For pull requests: run `npm test`
+first; generated files (`visuals/dist/`, `layout/pixelgrid.mjs`, `mockup/vendor/`) come from the Kitchen repo and are
+not edited by hand. A guided test in German is in [`TESTEN.md`](TESTEN.md).
 
 ## License
 

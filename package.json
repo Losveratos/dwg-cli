@@ -1,6 +1,6 @@
 {
   "name": "dwg-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "dwg cli (working title): one app spec for a Fabric App and a Power BI report, with the custom visuals ChartKitchen and P&L Statement byDatenWG.",
   "license": "MIT",
