@@ -4,7 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { generateAppPages, connectorsOf, slug } from "../lib/app.mjs";
+import { spawnSync } from "node:child_process";
+import { generateAppPages, connectorsOf, slug, checkSpec } from "../lib/app.mjs";
 import { layoutOf } from "../lib/app.mjs";
 import { place } from "../../layout/pixelgrid.mjs";
 
@@ -146,6 +147,96 @@ await test("prüft Slicer und Seitenkennungen", async () => {
     const s2 = structuredClone(RAHMEN);
     s2.slicers[1].column = "'Sales Demo'[Land]";
     await assert.rejects(generateAppPages({ appDir: fakeApp(), spec: s2, connector: "guv", model: MODEL }), /Slicer „Land“/);
+});
+
+// Spec-Prüfung: jede Lücke eine Meldung mit Seite und Kachel, nie ein TypeError
+const specMessage = spec => { try { checkSpec(spec); return ""; } catch (e) { return e.message; } };
+const tileSpec = () => structuredClone({ name: "S", pages: [{ name: "P", tiles: [
+    { id: "a", visual: "chartkitchen", rect: [0, 0, 100, 100], bindings: { category: "'T'[X]", actual: "'T'[Y]" } }] }] });
+
+await test("checkSpec: pages, Seitenname, tiles", () => {
+    assert.equal(specMessage(tileSpec()), "");
+    const noPages = tileSpec(); delete noPages.pages;
+    assert.match(specMessage(noPages), /pages fehlt oder ist keine Liste/);
+    assert.match(specMessage({ name: "S", pages: "nope" }), /pages fehlt oder ist keine Liste/);
+    const noName = tileSpec(); delete noName.pages[0].name;
+    assert.match(specMessage(noName), /Seite 1: name fehlt/);
+    const noTiles = tileSpec(); delete noTiles.pages[0].tiles;
+    assert.match(specMessage(noTiles), /Seite „P“: tiles fehlt oder ist keine Liste/);
+});
+
+await test("checkSpec: Kachel id, visual, bindings", () => {
+    const noId = tileSpec(); delete noId.pages[0].tiles[0].id;
+    assert.match(specMessage(noId), /Seite „P“, Kachel 1: id fehlt/);
+    const dup = tileSpec(); dup.pages[0].tiles.push(structuredClone(dup.pages[0].tiles[0]));
+    assert.match(specMessage(dup), /Seite „P“, Kachel a: id kommt auf der Seite mehrfach vor/);
+    const big = tileSpec(); big.pages[0].tiles[0].visual = "chartKitchen";
+    assert.match(specMessage(big), /Seite „P“, Kachel a: visual „chartKitchen“ gibt es nicht \(gültig: chartkitchen, pnl/);
+    const noBind = tileSpec(); delete noBind.pages[0].tiles[0].bindings;
+    assert.match(specMessage(noBind), /Seite „P“, Kachel a: bindings fehlt oder ist kein Objekt/);
+    // gleiche id auf zwei Seiten ist erlaubt
+    const two = tileSpec(); two.pages.push({ name: "Q", tiles: structuredClone(two.pages[0].tiles) });
+    assert.equal(specMessage(two), "");
+});
+
+await test("checkSpec: filters auf Seite und Kachel", () => {
+    const f1 = tileSpec(); f1.pages[0].filters = "nope";
+    assert.match(specMessage(f1), /Seite „P“: filters muss eine Liste sein/);
+    const f2 = tileSpec(); f2.pages[0].tiles[0].filters = [{ column: "'T'[Jahr]" }];
+    assert.match(specMessage(f2), /Seite „P“, Kachel a, Filter 1: values fehlt oder ist keine Liste/);
+    const f3 = tileSpec(); f3.pages[0].filters = [{ column: "'T'[Jahr]", values: [] }];
+    assert.match(specMessage(f3), /Seite „P“, Filter 1: values ist leer/);
+    const f4 = tileSpec(); f4.pages[0].filters = [{ column: "Jahr", values: [2026] }, "x"];
+    assert.match(specMessage(f4), /Filter 1: column muss eine Spalte mit Tabelle sein[^]*Filter 2: erwartet/);
+    const ok = tileSpec(); ok.pages[0].filters = [{ column: "'T'[Jahr]", values: [2026] }]; ok.pages[0].tiles[0].filters = [{ column: "'T'[Region]", values: ["Nord"] }];
+    assert.equal(specMessage(ok), "");
+});
+
+await test("app page zeigt die checkSpec-Meldung bei ungültiger Spec", async () => {
+    const bad = tileSpec(); bad.pages[0].tiles[0].filters = [{ column: "'T'[Jahr]" }];
+    await assert.rejects(generateAppPages({ appDir: fakeApp(), spec: bad, connector: "guv" }), /Spec passt nicht[^]*Kachel a, Filter 1: values fehlt/);
+});
+
+// dwg check über die Kommandozeile
+const DWG = path.join(ROOT, "dwg.mjs");
+const dwg = (...a) => spawnSync(process.execPath, [DWG, ...a], { encoding: "utf8", cwd: ROOT });
+const SHOWCASE = path.join(ROOT, "specs", "showcase.json");
+const SHOWCASE_MODEL = path.join(ROOT, "examples", "showcase", "ZlatyLev Showcase.SemanticModel");
+const checkTmp = fs.mkdtempSync(path.join(os.tmpdir(), "dwg-check-"));
+
+await test("dwg check: showcase.json gegen das Showcase-Modell ist grün", () => {
+    const r = dwg("check", "--spec", SHOWCASE, "--model", SHOWCASE_MODEL);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /^28 Seiten, 56 Kacheln, 0 Probleme$/m);
+    const j = JSON.parse(dwg("check", "--spec", SHOWCASE, "--json").stdout);
+    assert.deepEqual(j, { pages: 28, tiles: 56, problems: [] });
+});
+
+await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel", () => {
+    const spec = JSON.parse(fs.readFileSync(SHOWCASE, "utf8"));
+    const page = spec.pages[0], [t1, t2] = page.tiles;
+    t1.visual = "chartKitchen";
+    t2.bindings = { ...t2.bindings, gibtsnicht: "'Fakten'[Umsatz AC]" };
+    const firstRole = Object.keys(spec.pages[1].tiles[0].bindings)[0];
+    spec.pages[1].tiles[0].bindings[firstRole] = "'Fakten'[Gibt es nicht]";
+    const file = path.join(checkTmp, "kaputt.json");
+    fs.writeFileSync(file, JSON.stringify(spec));
+    let r = dwg("check", "--spec", file, "--model", SHOWCASE_MODEL);
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t1.id}: visual „chartKitchen“ gibt es nicht`), r.stdout);
+    assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t2.id}: `) && /gibtsnicht/.test(r.stdout), r.stdout);
+    assert.ok(r.stdout.includes(`Seite „${spec.pages[1].name}“, Kachel ${spec.pages[1].tiles[0].id}, Rolle ${firstRole}`), r.stdout);
+    assert.match(r.stdout, /^28 Seiten, 56 Kacheln, [3-9] Probleme$/m);
+    const j = JSON.parse(dwg("check", "--spec", file, "--model", SHOWCASE_MODEL, "--json").stdout);
+    assert.equal(j.pages, 28);
+    assert.ok(j.problems.length >= 3);
+    // Spec ohne pages: eine Meldung, kein TypeError
+    fs.writeFileSync(file, "{}");
+    r = dwg("check", "--spec", file);
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /pages fehlt oder ist keine Liste/);
+    assert.doesNotMatch(r.stdout + r.stderr, /TypeError|Cannot read/);
+    assert.equal(dwg("check").status, 1);
 });
 
 console.log(`app unit: ${n} Tests grün`);

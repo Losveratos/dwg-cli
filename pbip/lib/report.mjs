@@ -188,6 +188,7 @@ export function addPages(reportDir, spec) {
         page.tiles.forEach((tile, i) => {
             const prefix = VISUAL_KINDS[tile.visual];
             const guid = Object.keys(visuals).find(g => g.startsWith(prefix ?? "\0"));
+            if (!prefix) { throw new Error(`Kachel ${tile.id}: unbekanntes Visual "${tile.visual}" (${Object.keys(VISUAL_KINDS).join(", ")}).`); }
             if (!guid) { throw new Error(`Kachel ${tile.id}: Visual "${tile.visual}" ist im Report nicht eingetragen (erst dwg-pbip register).`); }
             const caps = visuals[guid];
             const roles = {};

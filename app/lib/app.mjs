@@ -59,9 +59,30 @@ export function slicerQuery(slicer) {
     return `EVALUATE\nSUMMARIZECOLUMNS(${slicer.column}${sort ? `, ${sort}` : ""})\nORDER BY ${sort ? `${sort}, ` : ""}${slicer.column}`;
 }
 
-/** Prüft die Spec-Felder für App-Rahmen und Layout (gemeinsam mit dwg pbip). Wirft mit allen Problemen. */
-export function checkSpec(spec) {
+/** Gültige Werte für tile.visual (genau so geschrieben) */
+export const VISUALS = ["chartkitchen", "pnl"];
+
+const isObject = v => v != null && typeof v === "object" && !Array.isArray(v);
+
+/** Filterliste einer Seite oder Kachel: Liste von { column: "'T'[Spalte]", values: [mindestens ein Wert] } */
+export function filterProblems(filters, where) {
+    if (filters == null) { return []; }
+    if (!Array.isArray(filters)) { return [`${where}: filters muss eine Liste sein ([{ "column": "'T'[Spalte]", "values": [...] }]).`]; }
     const problems = [];
+    filters.forEach((f, i) => {
+        const at = `${where}, Filter ${i + 1}`;
+        if (!isObject(f)) { problems.push(`${at}: erwartet { "column": "'T'[Spalte]", "values": [...] }.`); return; }
+        if (typeof f.column !== "string" || !COLUMN_RX.test(f.column)) { problems.push(`${at}: column muss eine Spalte mit Tabelle sein ('Tabelle'[Spalte]).`); }
+        if (!Array.isArray(f.values)) { problems.push(`${at}: values fehlt oder ist keine Liste (mindestens ein Wert, z. B. [2026]).`); }
+        else if (!f.values.length) { problems.push(`${at}: values ist leer (mindestens ein Wert, sonst ergibt sich ungültiges DAX).`); }
+    });
+    return problems;
+}
+
+/** Prüft die Spec-Felder für App-Rahmen, Seiten, Kacheln und Layout (gemeinsam mit dwg pbip). Liefert alle Probleme als Liste. */
+export function specProblems(spec) {
+    const problems = [];
+    if (!isObject(spec)) { return ["Die Spec muss ein JSON-Objekt sein."]; }
     const slicers = spec.slicers ?? [];
     if (!Array.isArray(slicers)) { problems.push("slicers muss eine Liste sein."); }
     const seen = new Set();
@@ -78,28 +99,56 @@ export function checkSpec(spec) {
     if (spec.resolution != null && !RESOLUTIONS.includes(spec.resolution)) {
         problems.push(`resolution „${spec.resolution}“ gibt es nicht (${RESOLUTIONS.join(", ")}).`);
     }
+    if (!Array.isArray(spec.pages)) { problems.push("pages fehlt oder ist keine Liste."); return problems; }
     const shell = isShellSpec(spec);
     const ids = new Map();
-    for (const page of spec.pages ?? []) {
-        const id = slug(page.id ?? page.template ?? page.name);
-        if (ids.has(id)) { problems.push(`Seite „${page.name}“: Kennung „${id}“ hat schon „${ids.get(id)}“ (id oder template ändern).`); }
-        ids.set(id, page.name);
-        const layout = shell ? layoutOf(spec, page) : null;
-        for (const t of page.tiles ?? []) {
+    for (const [pi, page] of spec.pages.entries()) {
+        if (!isObject(page)) { problems.push(`Seite ${pi + 1}: erwartet ein Objekt mit name und tiles.`); continue; }
+        const named = typeof page.name === "string" && page.name !== "";
+        const at = named ? `Seite „${page.name}“` : `Seite ${pi + 1}`;
+        if (!named) { problems.push(`${at}: name fehlt (Text).`); }
+        const key = [page.id, page.template, page.name].find(v => typeof v === "string" && v !== "");
+        if (key != null) {
+            const id = slug(key);
+            if (ids.has(id)) { problems.push(`${at}: Kennung „${id}“ hat schon „${ids.get(id)}“ (id oder template ändern).`); }
+            ids.set(id, page.name ?? at);
+        }
+        problems.push(...filterProblems(page.filters, at));
+        if (!Array.isArray(page.tiles)) { problems.push(`${at}: tiles fehlt oder ist keine Liste.`); continue; }
+        const layout = shell ? layoutOf(spec, { ...page, name: page.name ?? "" }) : null;
+        const tileIds = new Set();
+        for (const [ti, t] of page.tiles.entries()) {
+            if (!isObject(t)) { problems.push(`${at}, Kachel ${ti + 1}: erwartet ein Objekt mit id, visual, rect und bindings.`); continue; }
+            const hasId = typeof t.id === "string" && t.id !== "";
+            const tat = `${at}, Kachel ${hasId ? t.id : ti + 1}`;
+            if (!hasId) { problems.push(`${tat}: id fehlt (Text, je Seite eindeutig).`); }
+            else if (tileIds.has(t.id)) { problems.push(`${tat}: id kommt auf der Seite mehrfach vor (Querfilter und React-Keys brauchen eindeutige ids).`); }
+            else { tileIds.add(t.id); }
+            if (!VISUALS.includes(t.visual)) {
+                problems.push(`${tat}: visual ${t.visual == null ? "fehlt" : `„${t.visual}“ gibt es nicht`} (gültig: ${VISUALS.join(", ")}, genau so klein geschrieben).`);
+            }
+            if (!isObject(t.bindings)) { problems.push(`${tat}: bindings fehlt oder ist kein Objekt ({ "rolle": "'Tabelle'[Feld]" }).`); }
+            problems.push(...filterProblems(t.filters, tat));
             const [x, y, tw, th] = t.rect ?? [];
-            if (![x, y, tw, th].every(Number.isFinite)) { problems.push(`Seite „${page.name}“, Kachel ${t.id}: rect braucht [x, y, Breite, Höhe].`); continue; }
+            if (![x, y, tw, th].every(Number.isFinite)) { problems.push(`${tat}: rect braucht [x, y, Breite, Höhe].`); continue; }
             if (layout && !inside(layout, t.rect)) {
                 const c = layout.content;
-                problems.push(`Seite „${page.name}“, Kachel ${t.id}: [${t.rect.join(", ")}] liegt nicht im Inhaltsbereich ` +
+                problems.push(`${tat}: [${t.rect.join(", ")}] liegt nicht im Inhaltsbereich ` +
                     `(x ${c.x} bis ${c.x + c.w}, y ${c.y} bis ${c.y + c.h}; Kopf, Filter-Panel und Fußleiste gehören dem Rahmen).`);
             }
         }
     }
+    return problems;
+}
+
+/** Wie specProblems, wirft aber mit allen Problemen */
+export function checkSpec(spec) {
+    const problems = specProblems(spec);
     if (problems.length) { throw new Error(`Spec passt nicht:\n  ${problems.join("\n  ")}`); }
 }
 
 /** Felder der Spec gegen ein TMDL-Modell prüfen (optional, wenn das Modell als PBIP vorliegt) */
-function checkFields(tile, model, roles) {
+export function checkFields(tile, model, roles) {
     const problems = [];
     for (const [role, refs] of Object.entries(tile.bindings)) {
         for (const ref of [].concat(refs)) {

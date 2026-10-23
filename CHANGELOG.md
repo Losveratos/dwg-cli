@@ -16,6 +16,13 @@ Fixes from the first public review (fresh clone, full test run, code review):
   no container title; new specs start with `visualHeaders: true`. `--description` sets the page's explanatory text.
   Power BI containers no longer show `title`/`subtitle` (they stay as the visual's name), so both targets render the
   same.
+- **`dwg check --spec <file> [--model <X.SemanticModel>] [--json]`** checks a spec without a Rayfin app and without a
+  report: structure, filters, roles and bindings per tile (`daxQuery`), with `--model` also the fields. One line per
+  problem with page and tile, exit 1 on problems.
+- **`checkSpec` covers the gaps** that used to end in a `TypeError` or in invalid DAX: `pages`/`tiles` must be lists,
+  pages need a `name`, tiles a unique `id`, a `visual` spelled `chartkitchen` or `pnl` and `bindings` as an object;
+  `filters` on pages and tiles need `column` and at least one value. `dwg app page` shows these messages too. An unknown
+  visual in `pbip pages` is reported as unknown instead of "register first".
 - `visuals build` produces the same chunk hashes regardless of the checkout path.
 
 - README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a

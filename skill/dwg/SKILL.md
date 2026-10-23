@@ -46,7 +46,8 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
 3. **Kachel anlegen:** `node dwg.mjs tile add --spec <spec> --new-page "<Name>" --template <ID> --model <X>.SemanticModel
    [--measure <Stamm>] [--<rolle> <feld>] [--rect x,y,b,h] [--dry-run]`. Was nicht eindeutig ist, nennt dwg mit
    Kandidaten; dann mit `--<rolle>` angeben, nicht raten. Strukturtabellen (P&L T01/T02): Ebenen angeben (Region, Kunde).
-4. **Prüfen:** `node dwg.mjs lint --spec <spec>`.
+4. **Prüfen:** `node dwg.mjs lint --spec <spec>` (Raster, Barrierefreiheit) und
+   `node dwg.mjs check --spec <spec> --model <X>.SemanticModel` (Aufbau, Filter, Rollen, Felder; ohne App und Bericht, Exit 1 bei Problemen).
 
 ## Ablauf B · Fabric App
 
