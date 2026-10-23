@@ -17,7 +17,7 @@ Navigation `specs/showcase.json` (Abschnitt „App-Rahmen“ unten).
       "id": "umsatz",
       "visual": "chartkitchen",
       "rect": [24, 24, 1140, 560],
-      "title": "optional, Kachelüberschrift im Container",
+      "title": "optional, Name der Kachel (App: aria-label, Power BI: Titeltext, nicht sichtbar); sichtbare Titel über objects.ibcsTitle bzw. objects.titleBlock",
       "bindings": {
         "category": "'Calender'[Month Name Short]",
         "actual": "'Sales Demo'[AC]",

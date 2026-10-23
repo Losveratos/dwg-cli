@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+Fixes from the first public review (fresh clone, full test run, code review):
+
+- **Visual state survives app updates.** The adapter keeps the `persistProperties` packets a visual writes and replays
+  them on top of new spec objects; an `update()` with the same objects leaves the state alone. Before, ChartKitchen lost
+  the card sort chip on every theme switch or new query. The showcase run now checks this.
+- **`tile add` without `--model`** requires the mandatory roles (alternatives like `account` + `parent` instead of
+  `levels` count); unknown roles are an error. Before it wrote a tile without any field. The catalog lists `parent` for
+  the P&L statement templates.
+- **`displayNames` and `formats` per field** accept the spec key (`'T'[Field]`), the normalized key (`T[Field]`) or
+  the role key (`[actual]`) in the app and in Power BI alike.
+- **`tile add` writes the title into the visual** (`ibcsTitle.kpi`, `titleBlock.measureLine`, `--title` sets it) and
+  no container title; new specs start with `visualHeaders: true`. `--description` sets the page's explanatory text.
+  Power BI containers no longer show `title`/`subtitle` (they stay as the visual's name), so both targets render the
+  same.
+- `visuals build` produces the same chunk hashes regardless of the checkout path.
+
 - README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a
   MockupKitchen sketch next to the page dwg builds from it, the app frame) and the family of tools with links.
 - `app/test/showcase-e2e.mjs --spec <file> --name <folder>` renders any spec on the showcase model.

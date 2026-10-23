@@ -246,6 +246,23 @@ ok("tile add ohne --model: Pflichtrollen müssen angegeben sein, Ersatzrollen z�
     assert.equal(t.bindings.levels, undefined);
     assert.equal(t.bindings.account, "'Konto'[KontoID]");
 });
+ok("tile add: Titel im Visual statt im Container, --description als Erklärtext, Kopfzeilen an", () => {
+    const f = path.join(tmp, "titel.json");
+    let r = run("tile", "add", "--spec", f, "--new-page", "Umsatz", "--description", "Wo liegt der Umsatz gegen Vorjahr?",
+        "--template", "C03", "--model", MODEL_DIR, "--measure", "Umsatz");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    r = run("tile", "add", "--spec", f, "--new-page", "GuV", "--template", "T04B", "--model", MODEL_DIR, "--title", "GuV in Mio. EUR");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const spec = JSON.parse(fs.readFileSync(f, "utf8"));
+    assert.equal(spec.visualHeaders, true, "neue Spec zeigt die Kopfzeilen der Visuals");
+    const [c03, t04b] = spec.pages.map(p => p.tiles[0]);
+    assert.equal(spec.pages[0].description, "Wo liegt der Umsatz gegen Vorjahr?");
+    assert.equal(c03.title, undefined, "kein Containertitel (App und Power BI zeigen ihn verschieden)");
+    assert.deepEqual(c03.objects.ibcsTitle, { show: true, kpi: "Säulen mit Vorjahres-Abweichung" });
+    assert.equal(t04b.objects.titleBlock.show, true);
+    assert.equal(t04b.objects.titleBlock.measureLine, "GuV in Mio. EUR");
+    assert.equal(t04b.objects.titleBlock.headline, undefined, "Template-Einstellungen bleiben, nur Titelzeile ergänzt");
+});
 ok("templates: Liste und Detail", () => {
     let r = run("templates");
     assert.equal(r.status, 0);

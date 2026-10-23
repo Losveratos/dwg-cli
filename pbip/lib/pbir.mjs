@@ -111,14 +111,16 @@ export const TILE_FRAME = { padding: 8, border: "#E1DFD6", radius: 9, background
 export function visualContainer({ name, rect, z, tabOrder, visualType, state, objs, title, subtitle, filters }) {
     const [x, y, width, height] = rect;
     const f = TILE_FRAME;
+    // Containertitel nicht sichtbar, wie in der App (dort nur aria-label): sichtbare Titel stehen im Visual selbst
+    // (ibcsTitle, titleBlock) und sehen so in beiden Zielen gleich aus. Der Text bleibt als Name des Visuals erhalten.
     const container = {
-        title: [{ properties: { show: lit(Boolean(title)), ...(title ? { text: lit(title) } : {}) } }],
+        title: [{ properties: { show: lit(false), ...(title ? { text: lit(title) } : {}) } }],
         padding: [{ properties: { top: lit(f.padding), bottom: lit(f.padding), left: lit(f.padding), right: lit(f.padding) } }],
         border: [{ properties: { show: lit(true), color: { solid: { color: lit(f.border) } }, width: lit(1), radius: lit(f.radius) } }],
         background: [{ properties: { show: lit(true), color: { solid: { color: lit(f.background) } }, transparency: lit(0) } }],
         dropShadow: [{ properties: { show: lit(false) } }],
     };
-    if (subtitle) { container.subTitle = [{ properties: { show: lit(true), text: lit(subtitle) } }]; }
+    if (subtitle) { container.subTitle = [{ properties: { show: lit(false), text: lit(subtitle) } }]; }
     const visual = {
         $schema: SCHEMA.visual,
         name,

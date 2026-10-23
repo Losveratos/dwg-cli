@@ -41,15 +41,17 @@ const HELP = `dwg · eine App-Spec für Fabric App und Power BI
                                          MockupKitchen-Export in eine App-Spec übersetzen, Nicht-Abbildbares als Hinweis
   templates [<ID>] [--visual chartkitchen|pnl] [--lang en] [--json]
                                          Templates von ChartKitchen und P&L: Zweck, Pflicht- und Kannrollen, Einstellungen
-  tile add --spec <datei> (--page <Seite> | --new-page "<Name>" [--group "<Gruppe>"]) --template <ID>
+  tile add --spec <datei> (--page <Seite> | --new-page "<Name>" [--group "<Gruppe>"] [--description "…"]) --template <ID>
            [--model <Y.SemanticModel>] [--measure <Stamm>] [--<rolle> <feld> …] [--id <kachel>] [--rect x,y,b,h]
            [--title "…"] [--dry-run] [--json]
                                          Kachel aus einem Template anlegen; fehlende Felder schlägt dwg aus dem Modell
-                                         vor (Stamm „Umsatz“ → Umsatz AC/PY/PL/FC, Monatsname, L1..Ln, GuV-Logik)
+                                         vor (Stamm „Umsatz“ → Umsatz AC/PY/PL/FC, Monatsname, L1..Ln, GuV-Logik).
+                                         --title ist die Titelzeile im Visual (ibcsTitle bzw. titleBlock), --description
+                                         der Erklärtext der Seite
 `;
 
 /** Optionen von tile add, die keine Datenrolle sind */
-const TILE_OPTS = new Set(["_", "spec", "page", "new-page", "group", "template", "model", "measure", "id", "rect", "title", "dry-run", "json"]);
+const TILE_OPTS = new Set(["_", "spec", "page", "new-page", "group", "description", "template", "model", "measure", "id", "rect", "title", "dry-run", "json"]);
 
 function node(script, rest) {
     const r = spawnSync(process.execPath, [path.join(HERE, script), ...rest], { stdio: "inherit" });
@@ -115,7 +117,7 @@ try {
         const template = findTemplate(loadCatalog(), a.template);
         const val = k => (a[k] == null || a[k] === true ? undefined : a[k]);
         const given = Object.fromEntries(Object.entries(a).filter(([k, v]) => !TILE_OPTS.has(k) && v !== true));
-        const r = addTile({ specPath: a.spec, pageRef: val("page"), newPage: val("new-page"), group: val("group"), template,
+        const r = addTile({ specPath: a.spec, pageRef: val("page"), newPage: val("new-page"), group: val("group"), description: val("description"), template,
             modelDir: val("model"), given, measure: val("measure"), id: val("id"), rect: val("rect"), title: val("title"), dryRun: !!a["dry-run"] });
         console.log(a.json ? JSON.stringify({ written: r.written, tile: r.tile, rows: r.rows, problems: r.problems, stem: r.stem }, null, 2)
             : formatResult(r, template, a.spec));

@@ -159,7 +159,7 @@ clear (several measure families, a structure axis), it stops and lists candidate
 | `install`, `update`, `doctor` | set up, update (`git pull`), check |
 | `visuals build [--kitchen <path>]` | rebuild the visual adapter and the template catalog from the visual sources (Kitchen repo) |
 | `templates [<ID>] [--visual chartkitchen\|pnl] [--lang en] [--json]` | template catalog |
-| `tile add --spec … (--page … \| --new-page …) --template <ID> [--model …] [--measure …] [--<role> …] [--rect x,y,w,h] [--dry-run]` | add a tile from a template |
+| `tile add --spec … (--page … \| --new-page … [--description …]) --template <ID> [--model …] [--measure …] [--<role> …] [--title …] [--rect x,y,w,h] [--dry-run]` | add a tile from a template; `--title` is the title line inside the visual |
 | `app page --app … --spec … --connector … [--model …]` | write the pages into a Rayfin app |
 | `pbip new`, `pbip register`, `pbip pages` | create a PBIP report, register the `.pbiviz`, write the pages |
 | `validate [<X.Report>]` | validate a report against the PBIR schemas |

@@ -78,8 +78,6 @@ export function buildTile({ spec, page, template, model, given = {}, measure, id
         } else { box = contentOf(spec, page); }
     }
     const tile = { id: tileId, visual: template.visual, rect: box };
-    // Titel: angegeben oder der des Templates (Screenreader kündigen Visuals über ihren Titel an, dwg lint)
-    tile.title = title ? String(title) : template.title.de;
     tile.bindings = bindings;
     if (template.visual === "chartkitchen") {
         // Sortierspalte aus dem Modell (App: ORDER BY, Power BI: „Nach Spalte sortieren“) und Anzeigenamen der Kennzahlen
@@ -97,6 +95,11 @@ export function buildTile({ spec, page, template, model, given = {}, measure, id
     }
     if (template.visual === "pnl" && (bindings.rowType || bindings.formulaDef)) { tile.showItemsWithNoData = true; }
     tile.objects = clone(template.objects);
+    // Titel im Visual selbst (ibcsTitle bzw. titleBlock), nicht als Containertitel: so sieht er in der App und in
+    // Power BI gleich aus. Standard ist der Template-Titel; die Periode trägt der Autor nach (oder --title).
+    const line = title ? String(title) : template.title.de;
+    if (template.visual === "chartkitchen") { tile.objects.ibcsTitle = { ...(tile.objects.ibcsTitle ?? {}), show: true, kpi: line }; }
+    else { tile.objects.titleBlock = { ...(tile.objects.titleBlock ?? {}), show: true, measureLine: line }; }
     return { tile, rows: sug.rows, problems, stem: sug.stem };
 }
 
@@ -104,20 +107,23 @@ export function buildTile({ spec, page, template, model, given = {}, measure, id
  * Kachel in eine Spec-Datei schreiben. Ohne Spec-Datei entsteht eine neue Spec.
  * @returns {{ written: boolean, spec, page, tile, rows, problems, stem }}
  */
-export function addTile({ specPath, pageRef, newPage, group, template, modelDir, given, measure, id, rect, title, dryRun }) {
+export function addTile({ specPath, pageRef, newPage, group, description, template, modelDir, given, measure, id, rect, title, dryRun }) {
+    // neue Spec: App-Rahmen wie mockup import; Kopfzeilen der Visuals an, weil tile add den Titel ins Visual schreibt
     const spec = fs.existsSync(specPath) ? JSON.parse(fs.readFileSync(specPath, "utf8"))
-        : { name: path.basename(specPath, path.extname(specPath)), resolution: "fullhd", pages: [] };   // App-Rahmen wie mockup import
+        : { name: path.basename(specPath, path.extname(specPath)), resolution: "fullhd", visualHeaders: true, pages: [] };
     spec.pages ??= [];
     let page;
     if (newPage) {
         const key = slug(String(newPage));
         if (spec.pages.some(p => pageKey(p) === key)) { throw new Error(`Seite „${newPage}“ gibt es schon (--page "${newPage}" nimmt sie).`); }
         const first = spec.pages[0];
-        page = { id: key, name: String(newPage), ...(group ? { group: String(group) } : {}), width: first?.width ?? 1920, height: first?.height ?? 1080, tiles: [] };
+        page = { id: key, name: String(newPage), ...(group ? { group: String(group) } : {}), ...(description ? { description: String(description) } : {}),
+            width: first?.width ?? 1920, height: first?.height ?? 1080, tiles: [] };
         spec.pages.push(page);
     } else {
         if (!pageRef) { throw new Error("--page <Seite> oder --new-page \"<Name>\" fehlt."); }
         page = findPage(spec, pageRef);
+        if (description) { page.description = String(description); }
     }
     page.tiles ??= [];
     const model = modelDir ? readModel(modelDir) : null;
