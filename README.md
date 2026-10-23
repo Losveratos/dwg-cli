@@ -135,6 +135,7 @@ M="examples/showcase/ZlatyLev Showcase.SemanticModel"
 node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "Revenue" --template C03 --model "$M" --measure Umsatz
 node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "P&L" --template T04B --model "$M"
 node dwg.mjs lint --spec quickstart/app-spec.json
+node dwg.mjs check --spec quickstart/app-spec.json --model "$M"   # structure, roles and fields, no app and no report needed
 
 # 3 · the same pages as a Power BI project
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model "$M" \
@@ -164,6 +165,7 @@ clear (several measure families, a structure axis), it stops and lists candidate
 | `pbip new`, `pbip register`, `pbip pages` | create a PBIP report, register the `.pbiviz`, write the pages |
 | `validate [<X.Report>]` | validate a report against the PBIR schemas |
 | `lint --spec … [--strict] [--json]` | pixel grid and accessibility |
+| `check --spec … [--model …] [--json]` | check a spec without an app or a report: structure, filters, roles and bindings per tile, with `--model` also the fields; exit 1 on problems |
 | `mockup build`, `mockup import --in … --out …` | MockupKitchen building blocks and import |
 
 Run `node dwg.mjs` for the full help.

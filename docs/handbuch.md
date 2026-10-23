@@ -36,7 +36,7 @@ Einen fremden Skill gleichen Namens ersetzt er nur mit `--force`. Für Claude De
 
 | Ordner | Inhalt |
 | --- | --- |
-| [`dwg.mjs`](../dwg.mjs) | einziger Einstieg: `visuals build`, `app page`, `pbip …`, `validate`, `lint`, `mockup build`, `mockup import`, `templates`, `tile add` |
+| [`dwg.mjs`](../dwg.mjs) | einziger Einstieg: `visuals build`, `app page`, `pbip …`, `validate`, `lint`, `check`, `mockup build`, `mockup import`, `templates`, `tile add` |
 | [`visuals/`](../visuals) | Adapter `@visuals`: ChartKitchen und P&L außerhalb von Power BI, `daxQuery()`. `dist/` ist committet |
 | [`app/`](../app) | Generator für Rayfin-Apps und Vorlagen (`DwgPage`, `DwgVisual`, `dwg-page.ts`), Browser-Test mit Mock-Konnektor |
 | [`pbip/`](../pbip) | Generator für PBIP/PBIR und Schema-Prüfung |
@@ -74,6 +74,8 @@ node dwg.mjs tile add --spec specs/neu.json --new-page "Umsatz" --template C03 \
 
 # App-Spec auf Raster und Barrierefreiheit prüfen; MockupKitchen-Export übernehmen (siehe unten)
 node dwg.mjs lint --spec specs/showcase.json
+# Spec ohne App und Bericht prüfen: Aufbau, Filter, Rollen und Felder (siehe unten)
+node dwg.mjs check --spec specs/showcase.json --model "examples/showcase/ZlatyLev Showcase.SemanticModel"
 node dwg.mjs mockup import --in mockup-spec.json --out specs/neu.json --model "<Y>.SemanticModel"
 
 # alle Tests: Adapter, Generator, Templates, Mini-DAX, App-Seiten und App-Rahmen im Browser, PBIR-Schemas, Parität;
@@ -205,6 +207,19 @@ node dwg.mjs mockup import --in mockup-spec.json --out specs/vertrieb.json \
   der App-Farben hell und dunkel. Die Farben liest der Lint aus `app/templates/DwgShell.tsx` (`palette()`), es gibt keine
   zweite Farbtabelle.
 - Gleiche Befunde auf vielen Seiten stehen einmal mit Seitenliste.
+
+**`dwg check --spec <datei> [--model <X.SemanticModel>] [--json]`** prüft eine App-Spec, ohne dass eine Rayfin-App oder
+ein Bericht dafür nötig ist. Je Problem eine Zeile mit Seite und Kachel, am Ende „n Seiten, m Kacheln, k Probleme“,
+Exit 1 bei Problemen; `--json` liefert `{ pages, tiles, problems }`. Geprüft wird:
+- *Aufbau* (`checkSpec`): `pages` und `tiles` sind Listen, jede Seite hat einen `name`, jede Kachel eine `id` (je Seite
+  eindeutig), ein `visual` aus `chartkitchen` oder `pnl` (genau so klein geschrieben) und `bindings` als Objekt;
+  `filters` auf Seite und Kachel sind Listen von `{ "column": "'T'[Spalte]", "values": [mindestens ein Wert] }`; dazu
+  Slicer, Auflösung, Seitenkennungen und `rect` im Inhaltsbereich.
+- *Rollen und Bindungen* je Kachel mit `daxQuery` aus dem Adapter, derselbe Aufruf wie in `dwg app page`, nur ohne zu
+  schreiben: unbekannte Rollen, falsche Anzahl Felder, ungültige Spaltenreferenzen.
+- *Felder* (nur mit `--model`): Bindungen, Filter und Slicer müssen im Modell vorkommen.
+
+`dwg app page` ruft denselben Aufbau-Test und zeigt bei ungültigen Specs diese Meldungen.
 
 Stand der Beispiel-Specs: ohne Fehler. Showcase: die Kartenzeile (2/12, 1566 × 134 px) liegt 1 px unter der
 Warnschwelle für die Höhe (135 px bei Full HD). Alle Apps: weiße Schrift auf dem Akzent #C25A2D hat 4,4:1 statt 4,5:1
