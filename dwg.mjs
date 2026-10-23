@@ -3,7 +3,7 @@
 //
 //   node dwg.mjs install | update | doctor                         einrichten, aktualisieren, prüfen (install.mjs)
 //   node dwg.mjs visuals build [--kitchen <PowerBI-Kitchen-Klon>]   Adapter @visuals bauen
-//   node dwg.mjs app page --app apps/<x> --spec <app-spec.json> --connector <name> [--model <Y.SemanticModel>]
+//   node dwg.mjs app page --app <Rayfin-App> --spec <app-spec.json> --connector <name> [--model <Y.SemanticModel>]
 //   node dwg.mjs pbip new|register|pages …                         Power-BI-Projekt (siehe dwg pbip)
 //   node dwg.mjs validate [<X.Report> …]                           PBIR gegen die offiziellen Schemas prüfen
 //   node dwg.mjs lint --spec <app-spec.json> [--json] [--strict]     Raster und Barrierefreiheit prüfen
@@ -95,7 +95,7 @@ try {
             if (r.hints.length) { console.log(`\nHinweise (${r.hints.length}):\n  ${r.hints.join("\n  ")}`); }
             const l = lintSpec(r.spec);
             console.log(`\ndwg lint: ${l.counts.error} Fehler, ${l.counts.warn} Warnungen, ${l.counts.info} Hinweise (Details: node dwg.mjs lint --spec ${a.out})`);
-            console.log(`Weiter: node dwg.mjs app page --app apps/<x> --spec ${a.out} --connector <name>${a.model && a.model !== true ? ` --model "${a.model}"` : ""}`);
+            console.log(`Weiter: node dwg.mjs app page --app <Rayfin-App> --spec ${a.out} --connector <name>${a.model && a.model !== true ? ` --model "${a.model}"` : ""}`);
         }
     } else if (cmd === "templates") {
         const a = args([sub, ...rest].filter(Boolean));

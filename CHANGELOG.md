@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a
+  MockupKitchen sketch next to the page dwg builds from it, the app frame) and the family of tools with links.
+- `app/test/showcase-e2e.mjs --spec <file> --name <folder>` renders any spec on the showcase model.
+
 ## 0.1.1 (2026-10-23) · public
 
 - The repository is public, developed in public.

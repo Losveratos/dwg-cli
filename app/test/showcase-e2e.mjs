@@ -13,7 +13,10 @@ import { minimalApp } from "./minimal-app.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "../..");
-const OUT = path.join(HERE, "out", process.argv.includes("--width") ? `showcase-${process.argv[process.argv.indexOf("--width") + 1]}` : "showcase");
+// --spec: eine andere Spec auf dem Showcase-Modell (z. B. aus `dwg mockup import`), --name: Ordner unter out/
+const argOf = k => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : null; };
+const SPEC_FILE = path.resolve(argOf("spec") ?? path.join(ROOT, "specs", "showcase.json"));
+const OUT = path.join(HERE, "out", argOf("name") ?? (argOf("width") ? `showcase-${argOf("width")}` : "showcase"));
 const onlyArg = process.argv.indexOf("--only");
 const ONLY = onlyArg > 0 ? new Set(process.argv[onlyArg + 1].split(",")) : null;
 const num = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? Number(process.argv[i + 1]) : d; };
@@ -21,7 +24,7 @@ const VIEW = { width: num("width", 1920), height: num("height", 1200) };
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(path.join(OUT, "harness"), { recursive: true });
 
-const showcaseSpec = JSON.parse(fs.readFileSync(path.join(ROOT, "specs", "showcase.json"), "utf8"));
+const showcaseSpec = JSON.parse(fs.readFileSync(SPEC_FILE, "utf8"));
 const { app: APP, src: SRC } = await minimalApp(path.join(OUT, "app"), showcaseSpec,
     { connector: "showcase", model: path.join(ROOT, "examples", "showcase", "ZlatyLev Showcase.SemanticModel") });
 const appFile = fs.readdirSync(path.join(SRC, "dwg", "apps")).find(f => f.endsWith(".ts"));
