@@ -8,6 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { readSpec } from "../templates/lib/readspec.mjs";
 import { newReport, registerVisual, addPages, modelDirOf } from "./lib/report.mjs";
 
 function args(argv) {
@@ -46,7 +47,7 @@ export function main(argv) {
             console.log(`${r.replaced ? "aktualisiert" : "eingetragen"}: ${r.displayName} ${r.version} (${r.guid})`);
         }
     } else if (cmd === "pages") {
-        const spec = JSON.parse(fs.readFileSync(need(a, "spec"), "utf8"));
+        const spec = readSpec(need(a, "spec"));
         const { created, warnings } = addPages(need(a, "report"), spec);
         for (const p of created) { console.log(`Seite „${p.name}“: ${p.tiles} Kacheln (${p.id})`); }
         for (const w of warnings) { console.log(`Hinweis: ${w}`); }

@@ -21,6 +21,7 @@ import { lintSpec, formatFindings } from "./mockup/lib/lint.mjs";
 import { importMockup } from "./mockup/lib/import.mjs";
 import { findTemplate, formatList, formatTemplate, loadCatalog } from "./templates/lib/catalog.mjs";
 import { addTile, formatResult } from "./templates/lib/tile.mjs";
+import { readSpec } from "./templates/lib/readspec.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -51,6 +52,9 @@ const HELP = `dwg · eine App-Spec für Fabric App und Power BI
 `;
 
 /** Optionen von tile add, die keine Datenrolle sind */
+/** gültige Werte für templates --visual */
+const VISUALS = ["chartkitchen", "pnl"];
+
 const TILE_OPTS = new Set(["_", "spec", "page", "new-page", "group", "description", "template", "model", "measure", "id", "rect", "title", "dry-run", "json"]);
 
 function node(script, rest) {
@@ -68,7 +72,7 @@ try {
     } else if (cmd === "app" && sub === "page") {
         const a = args(rest);
         for (const k of ["app", "spec", "connector"]) { if (!a[k] || a[k] === true) { throw new Error(`--${k} fehlt.`); } }
-        const spec = JSON.parse(fs.readFileSync(a.spec, "utf8"));
+        const spec = readSpec(a.spec);
         const r = await generateAppPages({ appDir: a.app, spec, connector: a.connector, model: a.model === true ? undefined : a.model });
         for (const f of r.written) { console.log(`  ${f}`); }
         console.log(r.slicers
@@ -80,7 +84,7 @@ try {
     } else if (cmd === "lint") {
         const a = args([sub, ...rest].filter(Boolean));
         if (!a.spec || a.spec === true) { throw new Error("--spec fehlt."); }
-        const res = lintSpec(JSON.parse(fs.readFileSync(a.spec, "utf8")));
+        const res = lintSpec(readSpec(a.spec));
         console.log(a.json ? JSON.stringify(res, null, 2) : formatFindings(res, path.basename(a.spec)));
         process.exit(res.counts.error || (a.strict && res.counts.warn) ? 1 : 0);
     } else if (cmd === "mockup" && sub === "build") {
@@ -108,6 +112,7 @@ try {
             console.log(a.json ? JSON.stringify(t, null, 2) : formatTemplate(t, lang));
         } else {
             const visual = a.visual && a.visual !== true ? String(a.visual) : null;
+            if (visual && !VISUALS.includes(visual)) { throw new Error(`--visual „${visual}“ gibt es nicht. Gültig: ${VISUALS.join(", ")}.`); }
             console.log(a.json ? JSON.stringify(visual ? { ...cat, templates: cat.templates.filter(t => t.visual === visual) } : cat, null, 2)
                 : formatList(cat, lang, visual));
         }

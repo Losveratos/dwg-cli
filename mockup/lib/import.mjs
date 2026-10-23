@@ -16,6 +16,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { PG, SKILL_SCRIPTS } from "./shared.mjs";
+import { readJsonFile } from "../../templates/lib/readspec.mjs";
 import { chromeOf, checkSpec } from "../../app/lib/app.mjs";
 import { readModel, resolveField } from "../../pbip/lib/tmdl.mjs";
 
@@ -209,7 +210,7 @@ export function buildSpec(mockup, slots, { model, width, height } = {}) {
 
 /** CLI-Einstieg: liest, konvertiert, schreibt; liefert { spec, hints } */
 export function importMockup({ input, output, modelDir, width, height }) {
-    const mockup = JSON.parse(fs.readFileSync(input, "utf8"));
+    const mockup = readJsonFile(input, "Mockup");
     if (!mockup.pages || !mockup.meta) { throw new Error(`${input} ist kein MockupKitchen-Export (meta und pages fehlen).`); }
     const model = modelDir ? readModel(modelDir) : undefined;
     const result = buildSpec(mockup, runSkill(input), { model, width, height });

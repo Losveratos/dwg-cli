@@ -271,6 +271,45 @@ ok("templates: Liste und Detail", () => {
     assert.match(r.stdout, /T04B · P&L with Δ waterfall/);
     assert.equal(run("templates", "X99").status, 1);
 });
+ok("templates --visual foo: Meldung mit den gültigen Werten, Exit 1", () => {
+    let r = run("templates", "--visual", "foo");
+    assert.equal(r.status, 1, r.stdout);
+    assert.match(r.stderr, /--visual „foo“ gibt es nicht\. Gültig: chartkitchen, pnl/);
+    assert.equal(run("templates", "--visual", "pnl").status, 0);
+});
+ok("Spec-Fehler nennen die Datei: fehlend und kaputtes JSON (tile add, lint, pbip pages, mockup import)", () => {
+    const kaputt = path.join(tmp, "kaputt.json");
+    fs.writeFileSync(kaputt, '{ "pages": [');
+    let r = run("tile", "add", "--spec", kaputt, "--new-page", "X", "--template", "C03", "--model", MODEL_DIR, "--measure", "Umsatz");
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /Spec .*kaputt\.json: /);
+    r = run("lint", "--spec", kaputt);
+    assert.match(r.stderr, /Spec .*kaputt\.json: /);
+    const fehlt = path.join(tmp, "fehlt.json");
+    for (const args of [["lint", "--spec", fehlt], ["pbip", "pages", "--report", "x.Report", "--spec", fehlt],
+        ["app", "page", "--app", "x", "--spec", fehlt, "--connector", "c"]]) {
+        r = run(...args);
+        assert.equal(r.status, 1, args.join(" "));
+        assert.match(r.stderr, /Spec .*fehlt\.json nicht gefunden/, args.join(" "));
+    }
+    r = run("mockup", "import", "--in", fehlt, "--out", path.join(tmp, "o.json"));
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /Mockup .*fehlt\.json nicht gefunden/);
+});
+ok("pbip: fehlender Bericht, Vorlagenbericht und Modellordner mit klarer Meldung", () => {
+    const spec = path.join(tmp, "demo.json");
+    let r = run("pbip", "pages", "--report", path.join(tmp, "Nix.Report"), "--spec", spec);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /Bericht .*Nix\.Report nicht gefunden \(definition\.pbir fehlt\)/);
+    const tpl = path.join(ROOT, "examples", "showcase", "ZlatyLev Showcase.Report");
+    r = run("pbip", "new", "--out", path.join(tmp, "N.Report"), "--name", "N", "--model", path.join(tmp, "KeinModell"), "--template", tpl);
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /Modellordner .*KeinModell nicht gefunden/);
+    r = run("pbip", "new", "--out", path.join(tmp, "N.Report"), "--name", "N", "--model", MODEL_DIR, "--template", path.join(tmp, "KeineVorlage.Report"));
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /Vorlagenbericht .*KeineVorlage\.Report nicht gefunden/);
+    assert.ok(!fs.existsSync(path.join(tmp, "N.Report")), "nichts angelegt");
+});
 fs.rmSync(tmp, { recursive: true, force: true });
 
 console.log(process.exitCode ? "\nTemplates: Fehler" : `\nTemplates: ${n}/${n} grün`);

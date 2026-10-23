@@ -17,6 +17,15 @@ Fixes from the first public review (fresh clone, full test run, code review):
   Power BI containers no longer show `title`/`subtitle` (they stay as the visual's name), so both targets render the
   same.
 - `visuals build` produces the same chunk hashes regardless of the checkout path.
+- Error messages name the file: a missing or broken spec says `Spec <file> nicht gefunden` / `Spec <file>: <JSON error>`
+  (`app page`, `lint`, `tile add`, `pbip pages`); the same for `mockup import --in`, a missing report
+  (`pbip pages`, `pbip register`), template report or model folder (`pbip new`).
+- `templates --visual foo` lists the valid values (`chartkitchen`, `pnl`) and exits 1 instead of printing an empty list.
+- `install.mjs --no-skill` no longer claims Claude Code finds the skill in the repo; it says how to copy `skill/dwg` by hand.
+- README: Quickstart also as PowerShell block (checked by running it), `TESTEN.md` part 3 likewise; known limitations
+  mention German CLI output and the mini DAX behind the browser tests.
+- CI caches the Playwright browser (key from the Playwright version in `package-lock.json`) and cancels superseded
+  runs per branch.
 
 - README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a
   MockupKitchen sketch next to the page dwg builds from it, the app frame) and the family of tools with links.
