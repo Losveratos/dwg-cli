@@ -19,8 +19,14 @@ const writeJson = (f, data) => {
 };
 const reportJsonPath = dir => path.join(dir, "definition", "report.json");
 
+/** Bericht muss ein PBIR-Ordner sein (definition.pbir vorhanden) */
+function needReport(dir) {
+    if (!fs.existsSync(path.join(dir, "definition.pbir"))) { throw new Error(`Bericht ${dir} nicht gefunden (definition.pbir fehlt).`); }
+}
+
 /** Pfad zum Semantikmodell aus definition.pbir (byPath) */
 export function modelDirOf(reportDir) {
+    needReport(reportDir);
     const pbir = readJson(path.join(reportDir, "definition.pbir"));
     const rel = pbir.datasetReference?.byPath?.path;
     if (!rel) { throw new Error("definition.pbir verweist nicht per byPath auf ein Modell (byConnection wird nicht unterstützt)."); }
@@ -33,6 +39,8 @@ export function modelDirOf(reportDir) {
  */
 export function newReport({ out, name, modelDir, template }) {
     if (fs.existsSync(out)) { throw new Error(`${out} gibt es schon.`); }
+    if (!fs.existsSync(path.join(modelDir, "definition"))) { throw new Error(`Modellordner ${modelDir} nicht gefunden (definition fehlt, erwartet wird ein TMDL-Modell).`); }
+    if (!fs.existsSync(reportJsonPath(template))) { throw new Error(`Vorlagenbericht ${template} nicht gefunden (definition/report.json fehlt).`); }
     const tpl = readJson(reportJsonPath(template));
     writeJson(path.join(out, ".platform"), {
         $schema: "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
@@ -69,6 +77,8 @@ export function newReport({ out, name, modelDir, template }) {
 
 /** Trägt ein Custom Visual aus einer .pbiviz in den Report ein (ersetzt eine ältere Version). */
 export function registerVisual(reportDir, pbivizFile) {
+    needReport(reportDir);
+    if (!fs.existsSync(pbivizFile)) { throw new Error(`Datei ${pbivizFile} nicht gefunden.`); }
     const files = readZip(fs.readFileSync(pbivizFile));
     const pkgName = Object.keys(files).find(f => /^resources\/.+\.pbiviz\.json$/.test(f));
     if (!files["package.json"] || !pkgName) { throw new Error(`${pbivizFile} ist keine gültige .pbiviz (package.json oder resources/*.pbiviz.json fehlt).`); }
@@ -179,6 +189,7 @@ export function valueProblems(spec, model) {
  * damit der Lauf wiederholbar ist. Gibt Hinweise (warnings) zurück.
  */
 export function addPages(reportDir, spec) {
+    needReport(reportDir);
     checkSpec(spec);
     const model = readModel(modelDirOf(reportDir));
     const typeProblems = valueProblems(spec, model);

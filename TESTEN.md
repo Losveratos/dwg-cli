@@ -78,6 +78,15 @@ node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "Umsatz" --temp
 node dwg.mjs lint --spec quickstart/app-spec.json
 ```
 
+In PowerShell (Windows) dieselben Schritte, nur die Fortsetzungszeile endet mit einem Backtick statt `\`:
+
+```powershell
+node dwg.mjs templates
+node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "Umsatz" --template C03 `
+  --model "examples/showcase/ZlatyLev Showcase.SemanticModel" --measure Umsatz
+node dwg.mjs lint --spec quickstart/app-spec.json
+```
+
 `tile add` zeigt, welche Felder es gewählt hat und welche Alternativen es gibt. Probier auch ein Template ohne
 `--measure` oder mit einer Rolle von Hand, z. B. `--category Kunde.Region`.
 

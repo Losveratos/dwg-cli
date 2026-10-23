@@ -7,6 +7,7 @@ import path from "node:path";
 import { checkSpec, isShellSpec, layoutOf, slug } from "../../app/lib/app.mjs";
 import { parseRef, readModel } from "../../pbip/lib/tmdl.mjs";
 import { suggestBindings } from "./suggest.mjs";
+import { readSpec } from "./readspec.mjs";
 
 /** Rollen, die mehrere Felder tragen (Liste in der Spec) */
 const MULTI = new Set(["levels", "colgroup"]);
@@ -109,7 +110,7 @@ export function buildTile({ spec, page, template, model, given = {}, measure, id
  */
 export function addTile({ specPath, pageRef, newPage, group, description, template, modelDir, given, measure, id, rect, title, dryRun }) {
     // neue Spec: App-Rahmen wie mockup import; Kopfzeilen der Visuals an, weil tile add den Titel ins Visual schreibt
-    const spec = fs.existsSync(specPath) ? JSON.parse(fs.readFileSync(specPath, "utf8"))
+    const spec = fs.existsSync(specPath) ? readSpec(specPath)
         : { name: path.basename(specPath, path.extname(specPath)), resolution: "fullhd", visualHeaders: true, pages: [] };
     spec.pages ??= [];
     let page;

@@ -149,6 +149,31 @@ node dwg.mjs validate quickstart/Quickstart.Report
 node dwg.mjs app page --app <path to your Rayfin app> --spec quickstart/app-spec.json --connector <name> --model "$M"
 ```
 
+The same steps in PowerShell (Windows):
+
+```powershell
+# 1 · see the templates
+node dwg.mjs templates
+node dwg.mjs templates T04B --lang en
+
+# 2 · build a spec from two templates on the example model (synthetic brewery data)
+$M = "examples/showcase/ZlatyLev Showcase.SemanticModel"
+node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "Revenue" --template C03 --model $M --measure Umsatz
+node dwg.mjs tile add --spec quickstart/app-spec.json --new-page "P&L" --template T04B --model $M
+node dwg.mjs lint --spec quickstart/app-spec.json
+
+# 3 · the same pages as a Power BI project
+node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model $M `
+  --template "examples/showcase/ZlatyLev Showcase.Report"
+node dwg.mjs pbip register --report quickstart/Quickstart.Report `
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.52.3.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.5.3.0.pbiviz
+node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
+node dwg.mjs validate quickstart/Quickstart.Report
+
+# 4 · into a Fabric App (needs a Rayfin app with a fabric-semanticmodel connector)
+node dwg.mjs app page --app <path to your Rayfin app> --spec quickstart/app-spec.json --connector <name> --model $M
+```
+
 `tile add` prints which field it chose for each role, where it came from and the alternatives. If a suggestion is not
 clear (several measure families, a structure axis), it stops and lists candidates instead of guessing; pass
 `--measure <stem>` or `--<role> <field>` (`'Table'[Column]`, `Table.Column` or a unique name).
@@ -219,6 +244,9 @@ npm run test:all       # also rebuilds the adapter from the Kitchen repo
   Format strings (percent vs. amount), RLS/OLS roles and scenario semantics beyond names are not read yet.
 - The app does not use the model's format strings yet; Power BI does.
 - Cross filtering in the app: one selection at a time, per column (TREATAS). No drill-through, no bookmarks.
+- CLI output is German, the documentation is English.
+- The browser tests run against a mini DAX engine on exported data. The response shape of the Fabric connector is
+  assumed, not checked against a live workspace.
 - Private custom visuals need the tenant setting for organizational or SDK visuals until they are listed in AppSource.
 
 ## Contributing

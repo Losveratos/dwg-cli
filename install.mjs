@@ -132,7 +132,7 @@ if (CHECK) {
     else if (!fs.readFileSync(path.join(skillDst, "SKILL.md"), "utf8").startsWith(srcSkill)) { warn("installiert, aber älter als im Repo (node install.mjs)"); }
     else { ok(`aktuell in ${skillDst}`); }
 } else if (has("--no-skill")) {
-    warn("übersprungen (--no-skill). Im Repo selbst lädt Claude Code den Skill trotzdem.");
+    warn(`übersprungen (--no-skill). Ohne Installer kennt Claude Code den Skill nicht; von Hand: ${path.join(ROOT, "skill", "dwg")} nach ${skillDst} kopieren.`);
 } else if (fs.existsSync(skillDst) && !fs.existsSync(path.join(skillDst, MARKER)) && !has("--force")) {
     warn(`${skillDst} gibt es schon und stammt nicht von diesem Installer. Nicht ersetzt (--force zum Ersetzen).`);
 } else {

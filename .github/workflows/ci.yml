@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,7 +23,19 @@ jobs:
         with:
           python-version: "3.12"
       - run: npm ci --no-audit --no-fund
+      - id: playwright
+        run: |
+          v=$(node -p "require('./package-lock.json').packages['node_modules/playwright'].version")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
       - run: npx playwright install --with-deps chromium
+        if: steps.browsers.outputs.cache-hit != 'true'
+      - run: npx playwright install-deps chromium
+        if: steps.browsers.outputs.cache-hit == 'true'
       - run: npm test
       - run: npm run test:showcase
       - uses: actions/upload-artifact@v4
