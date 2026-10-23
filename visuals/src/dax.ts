@@ -14,10 +14,15 @@ export function col(table: string, column: string): string {
 
 export type DaxValue = string | number | boolean | Date | null;
 
+/** Datentyp einer Spalte wie im TMDL (`dataType`): `dateTime`, `string`, `int64`, `double`, `decimal`, `boolean`. */
+export type DaxColumnType = string;
+
 export interface DaxFilter {
     column: string;
     /** Werteliste (TREATAS). */
     values: DaxValue[];
+    /** Datentyp der Spalte, wenn bekannt (aus dem TMDL); entscheidet, ob ISO-Text ein Datum ist. */
+    type?: DaxColumnType;
 }
 
 export interface DaxOptions {
@@ -39,15 +44,63 @@ export interface DaxQuery {
 
 const COLUMN_REF = /^\s*(?:'(?:[^']|'')+'|[A-Za-z_][\w ]*)?\s*\[(?:[^\]]|\]\])+\]\s*$/;
 
-export function daxLiteral(v: DaxValue): string {
-    if (v == null) { return "BLANK()"; }
-    if (typeof v === "number") {
-        if (!Number.isFinite(v)) { throw new Error(`Ungültige Zahl im Filter: ${v}`); }
-        return String(v);
+// Datumswerte an einer Stelle: Der Konnektor liefert Datums-/Zeitspalten als ISO-Text ohne Zone
+// („2026-03-01T00:00:00“), Power BI gibt sie dem Visual als Date. Visuals, Slicer und Querfilter rechnen mit Date
+// (Ortszeit), Vergleiche laufen über isoDate(), DAX bekommt DATE(…) bzw. DATE(…) + TIME(…). Ist der Spaltentyp
+// bekannt (TMDL `dataType`, von `dwg app page --model` in die Spec geschrieben), wird nur eine dateTime-Spalte zum
+// Datum; ohne Typ gilt das Aussehen (ISO-Text = Datum).
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?)?$/;
+
+/** `2026-03-01` oder `2026-03-01T10:30:00` → Date in Ortszeit, sonst null. */
+export function parseIsoDate(s: string): Date | null {
+    const m = ISO_DATE.exec(s);
+    if (!m) { return null; }
+    const d = new Date(+m[1], +m[2] - 1, +m[3], +(m[4] ?? 0), +(m[5] ?? 0), +(m[6] ?? 0));
+    return d.getMonth() === +m[2] - 1 && d.getDate() === +m[3] ? d : null;
+}
+
+const pad = (n: number, w = 2) => String(n).padStart(w, "0");
+
+/** Date → `2026-03-01T00:00:00` (Ortszeit, wie der Konnektor schreibt): ein Schlüssel je Zeitpunkt. */
+export function isoDate(d: Date): string {
+    return `${pad(d.getFullYear(), 4)}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/** ISO-Text als Datum lesen: Spalte dateTime oder Typ unbekannt. */
+const readsDate = (type?: DaxColumnType) => type == null || type === "dateTime";
+
+/**
+ * Filterwert in die gemeinsame Form bringen: Datum als Date. Auf einer Spalte mit anderem bekanntem Typ bleibt
+ * ISO-Text Text (und ein Date wird ISO-Text). Slicer-Werte, Querfilter und Spec-Filter laufen hier durch.
+ */
+export function filterValue(v: unknown, type?: DaxColumnType): DaxValue {
+    if (v == null) { return null; }
+    if (v instanceof Date) { return readsDate(type) ? v : isoDate(v); }
+    if (typeof v === "string" && readsDate(type)) { return parseIsoDate(v) ?? v; }
+    return v as DaxValue;
+}
+
+/** Schlüssel zum Vergleichen (Schnittmenge, Slicer-Auswahl): Datum über isoDate(), sonst Typ und Text. */
+export function valueKey(v: unknown, type?: DaxColumnType): string {
+    const x = filterValue(v, type);
+    return x instanceof Date ? `d:${isoDate(x)}` : `${typeof x}:${String(x)}`;
+}
+
+/** DAX-Literal für einen Filterwert; `type` ist der Datentyp der Spalte, wenn bekannt. */
+export function daxLiteral(v: DaxValue, type?: DaxColumnType): string {
+    const x = filterValue(v, type);
+    if (x == null) { return "BLANK()"; }
+    if (typeof x === "number") {
+        if (!Number.isFinite(x)) { throw new Error(`Ungültige Zahl im Filter: ${x}`); }
+        return String(x);
     }
-    if (typeof v === "boolean") { return v ? "TRUE()" : "FALSE()"; }
-    if (v instanceof Date) { return `DATE(${v.getFullYear()}, ${v.getMonth() + 1}, ${v.getDate()})`; }
-    return `"${String(v).replace(/"/g, '""')}"`;
+    if (typeof x === "boolean") { return x ? "TRUE()" : "FALSE()"; }
+    if (x instanceof Date) {
+        const day = `DATE(${x.getFullYear()}, ${x.getMonth() + 1}, ${x.getDate()})`;
+        const [h, m, s] = [x.getHours(), x.getMinutes(), x.getSeconds()];
+        return h || m || s ? `${day} + TIME(${h}, ${m}, ${s})` : day;
+    }
+    return `"${String(x).replace(/"/g, '""')}"`;
 }
 
 function isColumnRef(ref: string): boolean {
@@ -104,7 +157,7 @@ export function daxQuery(kind: VisualKind, bindings: Bindings, opts: DaxOptions 
 
     const filters = (opts.filters ?? []).map(f => {
         if (!isColumnRef(f.column)) { throw new Error(`Filterspalte "${f.column}" ist keine Spaltenreferenz.`); }
-        return `TREATAS({${f.values.map(daxLiteral).join(", ")}}, ${f.column})`;
+        return `TREATAS({${f.values.map(v => daxLiteral(v, f.type)).join(", ")}}, ${f.column})`;
     });
 
     const indent = "        ";

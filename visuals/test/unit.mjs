@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist, rebaseObjects } =
+const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist, rebaseObjects, filterValue, valueKey, isoDate } =
     await import(pathToFileURL(path.join(HERE, "../dist/dwg-visuals.js")).href);
 
 let n = 0;
@@ -30,6 +30,23 @@ test("daxLiteral", () => {
     assert.equal(daxLiteral(new Date(2026, 2, 5)), "DATE(2026, 3, 5)");
 });
 
+test("Datumswerte: ein Format für Slicer (ISO-Text), Klick (Date) und Spec, Spaltentyp entscheidet", () => {
+    // ISO-Text aus dem Konnektor oder der Spec und Date aus dem Visual ergeben dasselbe Literal und denselben Schlüssel
+    assert.equal(daxLiteral("2026-03-01T00:00:00", "dateTime"), "DATE(2026, 3, 1)");
+    assert.equal(daxLiteral("2026-03-01"), "DATE(2026, 3, 1)");
+    assert.equal(valueKey("2026-03-01T00:00:00", "dateTime"), valueKey(new Date(2026, 2, 1)));
+    assert.equal(isoDate(new Date(2026, 2, 1, 7, 5, 9)), "2026-03-01T07:05:09");
+    // Uhrzeit bleibt erhalten
+    assert.equal(daxLiteral("2026-03-01T10:30:00", "dateTime"), "DATE(2026, 3, 1) + TIME(10, 30, 0)");
+    assert.equal(daxLiteral(new Date(2026, 2, 1, 10, 30)), "DATE(2026, 3, 1) + TIME(10, 30, 0)");
+    // Textspalte, die nur wie ein Datum aussieht: bleibt Text, auch ein Date wird Text
+    assert.equal(daxLiteral("2026-01-01", "string"), '"2026-01-01"');
+    assert.equal(filterValue(new Date(2026, 0, 1), "string"), "2026-01-01T00:00:00");
+    assert.notEqual(valueKey("2026-01-01", "string"), valueKey(new Date(2026, 0, 1)));
+    // kein gültiges Datum: Text
+    assert.equal(filterValue("2026-02-30"), "2026-02-30");
+});
+
 test("daxQuery ChartKitchen: Gruppen, Measures, Sortierung, Filter", () => {
     const q = daxQuery("chartkitchen", {
         category: "'Kalender'[Monat]", actual: "[Umsatz AC]", previousYear: "[Umsatz PY]",
@@ -38,6 +55,10 @@ test("daxQuery ChartKitchen: Gruppen, Measures, Sortierung, Filter", () => {
         filters: [{ column: "'Pipeline Status'[Sort Order]", values: [0] }],
     });
     assert.match(q.query, /^EVALUATE\n {4}SUMMARIZECOLUMNS\(/);
+    const d = daxQuery("chartkitchen", { category: "'Kalender'[Monat]", actual: "[Umsatz AC]" }, {
+        filters: [{ column: "'Kalender'[Datum]", values: ["2026-03-01T00:00:00"], type: "dateTime" }, { column: "'K'[Code]", values: ["2026-01-01"], type: "string" }],
+    });
+    assert.ok(d.query.includes("TREATAS({DATE(2026, 3, 1)}, 'Kalender'[Datum])") && d.query.includes(`TREATAS({"2026-01-01"}, 'K'[Code])`), d.query);
     assert.match(q.query, /'Kalender'\[Monat\],\n {8}'Kalender'\[MonatNr\],/);
     assert.match(q.query, /TREATAS\(\{0\}, 'Pipeline Status'\[Sort Order\]\)/);
     assert.match(q.query, /"actual", \[Umsatz AC\],\n {8}"previousYear", \[Umsatz PY\]/);
@@ -105,6 +126,12 @@ test("buildDataView: ISO-Datum aus dem Konnektor wird Date (wie in Power BI), Te
     assert.equal(v[0].getFullYear(), 2021); assert.equal(v[0].getMonth(), 5); assert.equal(v[0].getDate(), 7);
     const t2 = { columns: [{ name: "K[Name]" }, { name: "[actual]" }], rows: [["2021 Plan", 1]] };
     assert.equal(buildDataView("chartkitchen", t2, { category: "K[Name]", actual: "[actual]" }).categorical.categories[0].values[0], "2021 Plan");
+    // mit bekanntem Spaltentyp: Textspalte bleibt Text, auch wenn die Werte wie Daten aussehen
+    const t3 = { columns: [{ name: "K[Code]" }, { name: "[actual]" }], rows: [["2026-01-01", 1]] };
+    const asText = buildDataView("chartkitchen", t3, { category: "'K'[Code]", actual: "[actual]" }, { columnTypes: { "'K'[Code]": "string" } });
+    assert.equal(asText.categorical.categories[0].values[0], "2026-01-01");
+    const asDate = buildDataView("chartkitchen", t3, { category: "'K'[Code]", actual: "[actual]" }, { columnTypes: { "K[Code]": "dateTime" } });
+    assert.ok(asDate.categorical.categories[0].values[0] instanceof Date);
 });
 
 test("buildDataView prüft Rollen und Höchstzahl", () => {

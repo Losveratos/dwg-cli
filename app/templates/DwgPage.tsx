@@ -84,6 +84,7 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
           bindings={q.bindings}
           displayNames={displayNames}
           formats={tile.formats}
+          columnTypes={page.columnTypes}
           objects={objects}
           isDark={isDark}
           clearToken={clearToken}

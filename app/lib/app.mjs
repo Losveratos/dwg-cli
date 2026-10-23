@@ -9,6 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readModel, resolveField, parseRef } from "../../pbip/lib/tmdl.mjs";
+import { valueProblem } from "../../pbip/lib/pbir.mjs";
 import { zones as gridZones, inside, DWG_CHROME } from "../../layout/pixelgrid.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -98,6 +99,31 @@ export function checkSpec(spec) {
     if (problems.length) { throw new Error(`Spec passt nicht:\n  ${problems.join("\n  ")}`); }
 }
 
+/** Filterwerte gegen den Datentyp der Spalte prüfen (Text auf einer Zahlenspalte träfe still nichts) */
+function checkValues(where, model, column, values) {
+    let col;
+    try { col = resolveField(model, column, "Grouping"); } catch (e) { return [`${where}: ${e.message}`]; }
+    return (values ?? []).map(v => valueProblem(v, col.dataType)).filter(Boolean).map(p => `${where}, ${column}: ${p}`);
+}
+
+/** `'Tabelle'[Spalte]`, wie normColumn() in dwg-page.ts (Schlüssel für columnTypes) */
+const columnKey = (table, name) => `'${table.replace(/'/g, "''")}'[${name.replace(/]/g, "]]")}]`;
+
+/**
+ * Datentyp je Spalte aus dem TMDL für die App: Abfrageergebnisse des Konnektors tragen keine Typen (nur Namen,
+ * Datum als ISO-Text). Mit dem Typ wird nur eine dateTime-Spalte zum Datum, eine Textspalte bleibt Text.
+ */
+function columnTypesOf(model, refs) {
+    const out = {};
+    for (const ref of refs) {
+        try {
+            const c = resolveField(model, ref, "Grouping");
+            if (c.dataType) { out[columnKey(c.table, c.name)] = c.dataType; }
+        } catch { /* fehlende Spalten meldet checkFields */ }
+    }
+    return out;
+}
+
 /** Felder der Spec gegen ein TMDL-Modell prüfen (optional, wenn das Modell als PBIP vorliegt) */
 function checkFields(tile, model, roles) {
     const problems = [];
@@ -111,10 +137,7 @@ function checkFields(tile, model, roles) {
             catch (e) { problems.push(`Kachel ${tile.id}, Rolle ${role}: ${e.message}`); }
         }
     }
-    for (const f of tile.filters ?? []) {
-        try { resolveField(model, f.column, "Grouping"); }
-        catch (e) { problems.push(`Kachel ${tile.id}, Filter: ${e.message}`); }
-    }
+    for (const f of tile.filters ?? []) { problems.push(...checkValues(`Kachel ${tile.id}, Filter`, model, f.column, f.values)); }
     return problems;
 }
 
@@ -155,15 +178,31 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
 
     const pageModules = [];
     for (const page of spec.pages) {
+        // Datentyp je Spalte der Seite (gruppierende Rollen, Filter, Slicer), damit Datumswerte in der App stimmen
+        const columnTypes = model ? columnTypesOf(model, [
+            ...(page.filters ?? []).map(f => f.column),
+            ...page.tiles.flatMap(t => [
+                ...Object.entries(t.bindings ?? {}).filter(([role]) => ROLES[t.visual]?.kind[role] !== "Measure").flatMap(([, refs]) => [].concat(refs)),
+                ...(t.filters ?? []).map(f => f.column),
+            ]),
+            ...(spec.slicers ?? []).map(s => s.column),
+        ]) : {};
+        const typeOf = column => {
+            try { const { table, name } = parseRef(column); return table ? columnTypes[columnKey(table, name)] : undefined; } catch { return undefined; }
+        };
+        const typed = filters => (filters ?? []).map(f => (typeOf(f.column) ? { ...f, type: typeOf(f.column) } : f));
         const daxParts = [];
         for (const tile of page.tiles) {
             if (!ROLES[tile.visual]) { throw new Error(`Kachel ${tile.id}: unbekanntes Visual "${tile.visual}" (chartkitchen, pnl).`); }
             // wirft bei unbekannten Rollen und ungültigen Spalten, wie später in der App
             const q = daxQuery(tile.visual, tile.bindings, {
-                filters: [...(page.filters ?? []), ...(tile.filters ?? [])], sortBy: tile.sortBy, showItemsWithNoData: tile.showItemsWithNoData,
+                filters: [...typed(page.filters), ...typed(tile.filters)], sortBy: tile.sortBy, showItemsWithNoData: tile.showItemsWithNoData,
             });
             daxParts.push(`// Kachel ${tile.id} (${tile.visual})\n${q.query}\n`);
             if (model) { problems.push(...checkFields(tile, model, ROLES[tile.visual])); }
+        }
+        if (model) {
+            for (const f of page.filters ?? []) { problems.push(...checkValues(`Seite „${page.name}“, Filter`, model, f.column, f.values)); }
         }
         const name = slug(page.name);
         const pagesDir = path.join(src, "dwg", "pages");
@@ -176,6 +215,7 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
             ...(page.background ? { background: page.background } : {}),
             ...(isShellSpec(spec) ? { zones: zonesOf(layoutOf(spec, page)) } : {}),
             filters: page.filters ?? [],
+            ...(Object.keys(columnTypes).length ? { columnTypes } : {}),
             tiles: page.tiles.map(t => {
                 const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats } = t;
                 return Object.fromEntries(Object.entries({ id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats })
@@ -200,6 +240,7 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
             for (const ref of [s.column, s.sortBy].filter(Boolean)) {
                 try { resolveField(model, ref, "Grouping"); } catch (e) { problems.push(`Slicer „${s.label}“: ${e.message}`); }
             }
+            if (s.default?.length) { problems.push(...checkValues(`Slicer „${s.label}“, default`, model, s.column, s.default)); }
         }
     }
     const appName = slug(spec.name ?? "app");
@@ -210,6 +251,8 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
         name: spec.name ?? appName, ...(spec.about ? { about: spec.about } : {}), ...(spec.footer ? { footer: spec.footer } : {}),
         resolution: spec.resolution ?? "fullhd", visualHeaders: spec.visualHeaders ?? false, chrome: chromeOf(spec), slicers,
     };
+    const slicerTypes = model ? columnTypesOf(model, slicers.map(s => s.column)) : {};
+    if (Object.keys(slicerTypes).length) { appSpec.columnTypes = slicerTypes; }
     const appJson = JSON.stringify(appSpec, null, 2)
         .replace(/\n}$/, `,\n  "pages": [${pageModules.map((_, i) => `p${i}`).join(", ")}]\n}`);
     fs.writeFileSync(path.join(appsDir, `${appName}.ts`),

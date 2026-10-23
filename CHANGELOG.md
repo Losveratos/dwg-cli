@@ -17,6 +17,19 @@ Fixes from the first public review (fresh clone, full test run, code review):
   Power BI containers no longer show `title`/`subtitle` (they stay as the visual's name), so both targets render the
   same.
 - `visuals build` produces the same chunk hashes regardless of the checkout path.
+- **Dates in filters are handled the same everywhere.** One format in `visuals/src/dax.ts`: slicer values (ISO text
+  from the connector), clicks (a `Date` from the visual) and spec values all go through `filterValue`, compare by the
+  ISO timestamp (`valueKey`) and become `DATE(y, m, d)` in DAX, `+ TIME(h, m, s)` when there is a time. Before, the
+  slicer sent `TREATAS({"2026-03-01T00:00:00"}, …)` as text, the click `DATE(…)` without the time, and a slicer plus a
+  click on the same date column never intersected, so the tile filtered on BLANK. In PBIP, filter and slicer values
+  on a `dateTime` column are written as `datetime'2026-03-01T00:00:00'` like Desktop does (was a text literal).
+- **Column types from the TMDL.** `dwg app page --model` writes `columnTypes` (TMDL `dataType` of the columns a page
+  uses) into the page and app spec; query results carry no types. With a known type only `dateTime` columns turn ISO
+  text into dates, a text column with values like `2026-01-01` stays text. Without `--model` ISO text still counts as
+  a date.
+- **Filter and slicer values are checked against the column's `dataType`** (`dwg app page --model`, `dwg pbip pages`):
+  `default: [2026]` on a text column, a non-ISO date or `2.5` on an int64 column is an error instead of silently
+  matching nothing (`filterLit(2.5, "int64")` wrote `2L`). New browser test `app/test/dates.mjs`.
 
 - README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a
   MockupKitchen sketch next to the page dwg builds from it, the app frame) and the family of tools with links.

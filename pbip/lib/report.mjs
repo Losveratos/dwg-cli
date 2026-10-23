@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { readZip } from "./zip.mjs";
 import { readModel, resolveField, parseRef } from "./tmdl.mjs";
-import { SCHEMA, newName, objects, queryState, categoricalFilter, visualContainer, pageJson, textbox, slicerVisual } from "./pbir.mjs";
+import { SCHEMA, newName, objects, queryState, categoricalFilter, visualContainer, pageJson, textbox, slicerVisual, valueProblem } from "./pbir.mjs";
 import { checkSpec, slug, isShellSpec, layoutOf } from "../../app/lib/app.mjs";
 import { slicerStack } from "../../layout/pixelgrid.mjs";
 
@@ -151,12 +151,38 @@ export function registeredVisuals(reportDir) {
 }
 
 /**
+ * Slicer-Startwerte, Seiten- und Kachelfilter gegen den Datentyp ihrer Spalte prüfen (Spalten, die fehlen, meldet
+ * resolveField später mit eigener Meldung). Ein Wert vom falschen Typ träfe in Power BI still nichts.
+ */
+export function valueProblems(spec, model) {
+    const problems = [];
+    const check = (where, column, values) => {
+        let col;
+        try { col = resolveField(model, column, "Grouping"); } catch { return; }
+        for (const v of values ?? []) {
+            const p = valueProblem(v, col.dataType);
+            if (p) { problems.push(`${where}, ${column}: ${p}`); }
+        }
+    };
+    for (const s of spec.slicers ?? []) { check(`Slicer „${s.label}“, default`, s.column, s.default); }
+    for (const page of spec.pages ?? []) {
+        for (const f of page.filters ?? []) { check(`Seite „${page.name}“, Filter`, f.column, f.values); }
+        for (const t of page.tiles ?? []) {
+            for (const f of t.filters ?? []) { check(`Seite „${page.name}“, Kachel ${t.id}, Filter`, f.column, f.values); }
+        }
+    }
+    return problems;
+}
+
+/**
  * Erzeugt Seiten aus einer App-Spec. Eine Seite mit gleichem Anzeigenamen wird ersetzt,
  * damit der Lauf wiederholbar ist. Gibt Hinweise (warnings) zurück.
  */
 export function addPages(reportDir, spec) {
     checkSpec(spec);
     const model = readModel(modelDirOf(reportDir));
+    const typeProblems = valueProblems(spec, model);
+    if (typeProblems.length) { throw new Error(`Werte passen nicht zum Datentyp der Spalte:\n  ${typeProblems.join("\n  ")}`); }
     const visuals = registeredVisuals(reportDir);
     const warnings = [];
     const slicers = spec.slicers ?? [];

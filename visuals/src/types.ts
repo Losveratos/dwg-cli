@@ -35,6 +35,11 @@ export interface MountOptions {
     formats?: Record<string, string>;
     /** Anzeigename je Spalte, sonst der Spaltenname ohne Tabelle. */
     displayNames?: Record<string, string>;
+    /**
+     * Datentyp je Spalte (TMDL `dataType`, z. B. `{ "'Kalender'[Datum]": "dateTime" }`). Abfrageergebnisse tragen
+     * keine Typen: ohne Angabe wird ISO-Text zum Date, mit Angabe nur in dateTime-Spalten.
+     */
+    columnTypes?: Record<string, string>;
     /** `de-DE` (Standard), `en-US`, `es-ES`, `ja-JP`. */
     locale?: string;
     /** Hell oder dunkel. Dunkel übergibt dem Visual einen dunklen Berichtshintergrund. */

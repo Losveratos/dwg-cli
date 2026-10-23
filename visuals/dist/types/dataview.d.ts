@@ -1,3 +1,4 @@
+import { type DaxColumnType } from "./dax";
 import type { Bindings, QueryTable, VisualKind, VisualObjects } from "./types";
 /** `'Kalender'[Monat]` → `Kalender[Monat]` (so heißen die Spalten im Abfrageergebnis). */
 export declare function normalizeRef(ref: string): string;
@@ -8,6 +9,8 @@ export interface DataViewOptions {
     objects?: VisualObjects;
     formats?: Record<string, string>;
     displayNames?: Record<string, string>;
+    /** Datentyp je Spalte (TMDL `dataType`); ohne Angabe gilt ISO-Text als Datum. */
+    columnTypes?: Record<string, DaxColumnType>;
 }
 interface Source {
     displayName: string;

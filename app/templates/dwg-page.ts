@@ -3,7 +3,11 @@
 
 import {
   col,
+  filterValue,
+  isoDate,
+  valueKey,
   type Bindings,
+  type DaxColumnType,
   type DaxFilter,
   type DaxValue,
   type SelectionKey,
@@ -44,6 +48,11 @@ export interface DwgPageSpec {
   description?: string;
   background?: string;
   filters?: DaxFilter[];
+  /**
+   * Datentyp je Spalte der Seite aus dem TMDL (`dwg app page --model`), Schlüssel `'Tabelle'[Spalte]`. Abfrage-
+   * ergebnisse tragen keine Typen; ohne Eintrag gilt ISO-Text als Datum.
+   */
+  columnTypes?: Record<string, DaxColumnType>;
   /** Rahmen-Zonen in Seitenpixeln (Pixelraster wie MockupKitchen, vom Generator gerechnet) */
   zones?: DwgZones;
   tiles: DwgTileSpec[];
@@ -95,6 +104,8 @@ export interface DwgAppSpec {
   /** Chrome-Zonen für das Pixelraster (layout/pixelgrid.mjs); damit rechnet die Shell andere Auflösungen exakt */
   chrome?: Chrome;
   slicers: DwgSlicerSpec[];
+  /** Datentyp je Slicer-Spalte aus dem TMDL (`--model`), wie `DwgPageSpec.columnTypes` */
+  columnTypes?: Record<string, DaxColumnType>;
   pages: DwgPageSpec[];
 }
 
@@ -120,29 +131,45 @@ export function normColumn(ref: string): string {
   return col(table, m[3].replace(/\]\]/g, ']'));
 }
 
-const valueKey = (v: DaxValue) => (v instanceof Date ? `d:${v.toISOString()}` : `${typeof v}:${String(v)}`);
+/** Datentyp einer Spalte aus `columnTypes` (Schlüssel in beliebiger Schreibweise der Spalte). */
+export function columnType(types: Record<string, DaxColumnType> | undefined, ref: string): DaxColumnType | undefined {
+  if (!types) return undefined;
+  const want = normColumn(ref);
+  return types[want] ?? Object.entries(types).find(([k]) => normColumn(k) === want)?.[1];
+}
+
+/** Filter mit dem Datentyp ihrer Spalte versehen (sofern bekannt) */
+function withTypes(list: DaxFilter[] | undefined, types: Record<string, DaxColumnType> | undefined): DaxFilter[] {
+  return (list ?? []).map((f) => {
+    const type = f.type ?? columnType(types, f.column);
+    return type ? { ...f, type } : f;
+  });
+}
 
 /**
  * Filterlisten zusammenführen: eine TREATAS-Liste je Spalte, mehrere Filter auf dieselbe Spalte
  * ergeben die Schnittmenge (wie in Power BI: Slicer und Querfilter gelten gemeinsam). Bleibt nichts
- * übrig, filtert die Spalte auf BLANK, die Kachel zeigt dann keine Daten.
+ * übrig, filtert die Spalte auf BLANK, die Kachel zeigt dann keine Daten. Werte laufen durch filterValue:
+ * ein Datum aus dem Slicer (ISO-Text) und eines aus dem Klick (Date) sind derselbe Wert.
  */
 export function combineFilters(...lists: (DaxFilter[] | undefined)[]): DaxFilter[] {
-  const byColumn = new Map<string, DaxValue[]>();
+  const byColumn = new Map<string, { values: DaxValue[]; type?: DaxColumnType }>();
   for (const list of lists) {
     for (const f of list ?? []) {
       const column = normColumn(f.column);
       const prev = byColumn.get(column);
+      const type = prev?.type ?? f.type;
+      const values = f.values.map((v) => filterValue(v, type));
       if (!prev) {
-        byColumn.set(column, [...f.values]);
+        byColumn.set(column, { values, type });
         continue;
       }
-      const keep = new Set(f.values.map(valueKey));
-      const both = prev.filter((v) => keep.has(valueKey(v)));
-      byColumn.set(column, both.length ? both : [null]);
+      const keep = new Set(values.map((v) => valueKey(v, type)));
+      const both = prev.values.map((v) => filterValue(v, type)).filter((v) => keep.has(valueKey(v, type)));
+      byColumn.set(column, { values: both.length ? both : [null], type });
     }
   }
-  return [...byColumn].map(([column, values]) => ({ column, values }));
+  return [...byColumn].map(([column, { values, type }]) => (type ? { column, values, type } : { column, values }));
 }
 
 /** Auswahl in einer Kachel → TREATAS-Filter für die anderen Kacheln (eine Liste je Spalte). */
@@ -155,7 +182,8 @@ export function selectionFilters(sel: DwgSelection | null): DaxFilter[] {
       if (!parts) continue;
       const ref = col(parts[0], parts[1]);
       const list = byColumn.get(ref) ?? [];
-      if (!list.includes(value as DaxValue)) list.push(value as DaxValue);
+      // Date-Werte sind je Zeile eigene Objekte: über den Schlüssel vergleichen
+      if (!list.some((v) => valueKey(v) === valueKey(value))) list.push(value as DaxValue);
       byColumn.set(ref, list);
     }
   }
@@ -168,7 +196,7 @@ export function selectionLabel(sel: DwgSelection | null): string {
   const [name] = Object.keys(sel.keys[0]);
   const parts = name ? splitColumn(name) : null;
   if (!parts) return '';
-  const values = [...new Set(sel.keys.map((k) => String(k[name] ?? '(leer)')))];
+  const values = [...new Set(sel.keys.map((k) => (k[name] == null ? '(leer)' : formatSlicerValue(k[name] as DaxValue))))];
   const more = values.length > 3 ? ` +${values.length - 3}` : '';
   return `${parts[1]}: ${values.slice(0, 3).join(', ')}${more}`;
 }
@@ -185,7 +213,8 @@ export function tileFilters(
 ): DaxFilter[] {
   const own = page.tiles.find((t) => t.id === tileId)?.filters;
   const cross = sel && sel.tile !== tileId ? selectionFilters(sel) : [];
-  return combineFilters(page.filters, own, extra, cross);
+  const t = page.columnTypes;
+  return combineFilters(withTypes(page.filters, t), withTypes(own, t), withTypes(extra, t), withTypes(cross, t));
 }
 
 /** Sichtbarer Seitenbereich (Standard: ganze Seite), z. B. ohne Kopf, Filter-Panel und Fußleiste */
@@ -312,17 +341,29 @@ export function navGroups(pages: DwgPageSpec[]): { group: string; pages: DwgPage
   return out;
 }
 
-/** Startauswahl aller Slicer. */
-export function slicerDefaults(slicers: DwgSlicerSpec[]): DwgSlicerState {
-  return Object.fromEntries(slicers.map((s) => [s.column, [...(s.default ?? [])]]));
+/** Startauswahl aller Slicer; Datumswerte der Spec (ISO-Text) als Date wie die Werteliste. */
+export function slicerDefaults(slicers: DwgSlicerSpec[], types?: Record<string, DaxColumnType>): DwgSlicerState {
+  return Object.fromEntries(
+    slicers.map((s) => [s.column, (s.default ?? []).map((v) => filterValue(v, columnType(types, s.column)))])
+  );
 }
 
 /** Slicer-Auswahl → TREATAS-Filter für alle Kacheln; „alle“ (leere Auswahl) filtert nicht. */
-export function slicerFilters(slicers: DwgSlicerSpec[], state: DwgSlicerState): DaxFilter[] {
+export function slicerFilters(
+  slicers: DwgSlicerSpec[],
+  state: DwgSlicerState,
+  types?: Record<string, DaxColumnType>
+): DaxFilter[] {
   return slicers
-    .map((s) => ({ column: normColumn(s.column), values: state[s.column] ?? [] }))
+    .map((s) => {
+      const type = columnType(types, s.column);
+      return { column: normColumn(s.column), values: state[s.column] ?? [], ...(type ? { type } : {}) };
+    })
     .filter((f) => f.values.length > 0);
 }
+
+/** Wert als Text für `data-value` und Tests: Datum als ISO-Text (`2026-03-01T00:00:00`). */
+export const valueText = (v: DaxValue) => (v instanceof Date ? isoDate(v) : String(v));
 
 /** Wert an- oder abwählen. Einfachauswahl: genau ein Wert, erneuter Klick hebt ihn auf (alle). */
 export function toggleSlicerValue(slicer: DwgSlicerSpec, current: DaxValue[], value: DaxValue): DaxValue[] {
@@ -333,7 +374,7 @@ export function toggleSlicerValue(slicer: DwgSlicerSpec, current: DaxValue[], va
 
 export function sameValues(a: DaxValue[], b: DaxValue[]): boolean {
   if (a.length !== b.length) return false;
-  const keys = new Set(a.map(valueKey));
+  const keys = new Set(a.map((v) => valueKey(v)));
   return b.every((v) => keys.has(valueKey(v)));
 }
 
@@ -348,10 +389,14 @@ export function slicerQuery(slicer: DwgSlicerSpec): string {
   return `EVALUATE\nSUMMARIZECOLUMNS(${cols})\nORDER BY ${sort && sort !== c ? `${sort}, ` : ''}${c}`;
 }
 
-/** Werte aus dem Abfrageergebnis (Spalte `Tabelle[Spalte]`, sonst die erste), ohne Doppelte. */
+/**
+ * Werte aus dem Abfrageergebnis (Spalte `Tabelle[Spalte]`, sonst die erste), ohne Doppelte. Datumswerte
+ * (ISO-Text vom Konnektor) werden Date, wie im Visual; `type` ist der Datentyp der Spalte, wenn bekannt.
+ */
 export function slicerValues(
   table: { columns: { name: string }[]; rows: unknown[][] },
-  slicer: DwgSlicerSpec
+  slicer: DwgSlicerSpec,
+  type?: DaxColumnType
 ): DaxValue[] {
   const m = /^'((?:[^']|'')+)'\[(.+)\]$/.exec(normColumn(slicer.column));
   const want = m ? `${m[1].replace(/''/g, "'")}[${m[2]}]` : '';
@@ -359,7 +404,7 @@ export function slicerValues(
   const seen = new Set<string>();
   const out: DaxValue[] = [];
   for (const r of table.rows) {
-    const v = (r[i] ?? null) as DaxValue;
+    const v = filterValue(r[i], type);
     if (seen.has(valueKey(v))) continue;
     seen.add(valueKey(v));
     out.push(v);
@@ -371,7 +416,7 @@ export function slicerValues(
 export function formatSlicerValue(v: DaxValue): string {
   if (v === null || v === '') return '(leer)';
   if (typeof v === 'boolean') return v ? 'Ja' : 'Nein';
-  if (v instanceof Date) return v.toLocaleDateString('de-DE');
+  if (v instanceof Date) return v.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
   if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toLocaleString('de-DE');
   const d = /^(\d{4})-(\d{2})-(\d{2})(T00:00:00(\.0+)?Z?)?$/.exec(v);
   return d ? `${d[3]}.${d[2]}.${d[1]}` : v;

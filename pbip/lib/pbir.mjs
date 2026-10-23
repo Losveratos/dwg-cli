@@ -20,15 +20,47 @@ export function lit(value) {
     return { expr: { Literal: { Value: text } } };
 }
 
+// Datum in der Spec: ISO-Text „2026-03-01“ oder „2026-03-01T00:00:00“ (wie der Konnektor ihn liefert)
+const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.\d+)?)?$/;
+
 /**
- * Literal für Filterwerte, passend zum Datentyp der Spalte (int64 → L, double → D). Ohne Datentyp im TMDL
- * (z. B. Spalten berechneter Tabellen wie 'Calender'[Year]) gelten ganze Zahlen als int64.
+ * Passt ein Filter- oder Slicer-Wert der Spec zum Datentyp der Spalte (TMDL `dataType`)? Gibt den Grund zurück,
+ * sonst null. Ohne Datentyp (Spalten berechneter Tabellen) wird nicht geprüft; null (leer) passt immer.
+ */
+export function valueProblem(value, dataType) {
+    if (value === null || dataType == null) { return null; }
+    const show = JSON.stringify(value);
+    switch (dataType) {
+        case "dateTime": {
+            const m = typeof value === "string" ? ISO_DATE.exec(value) : null;
+            const ok = m && +m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1 && +m[3] <= new Date(Date.UTC(+m[1], +m[2], 0)).getUTCDate();
+            return ok ? null : `${show} ist kein Datum (Spalte dateTime, Wert als ISO-Text wie "2026-03-01").`;
+        }
+        case "int64": return Number.isInteger(value) ? null : `${show} ist keine ganze Zahl (Spalte int64).`;
+        case "double":
+        case "decimal": return typeof value === "number" && Number.isFinite(value) ? null : `${show} ist keine Zahl (Spalte ${dataType}).`;
+        case "string": return typeof value === "string" ? null : `${show} ist kein Text (Spalte string, Wert in Anführungszeichen: "${value}").`;
+        case "boolean": return typeof value === "boolean" ? null : `${show} ist kein Wahrheitswert (Spalte boolean: true oder false).`;
+        default: return null;
+    }
+}
+
+/**
+ * Literal für Filterwerte, passend zum Datentyp der Spalte (int64 → L, double → D, dateTime → datetime'…' wie
+ * Desktop). Ohne Datentyp im TMDL (z. B. Spalten berechneter Tabellen wie 'Calender'[Year]) gelten ganze Zahlen als
+ * int64. Ein Wert, der nicht zum Datentyp passt, wirft (valueProblem).
  */
 export function filterLit(value, dataType) {
+    const problem = valueProblem(value, dataType);
+    if (problem) { throw new Error(problem); }
     if (value === null) { return { Literal: { Value: "null" } }; }
     if (typeof value === "boolean") { return { Literal: { Value: String(value) } }; }
     if (typeof value === "number") {
-        return { Literal: { Value: dataType === "int64" || (dataType == null && Number.isInteger(value)) ? `${Math.trunc(value)}L` : `${value}D` } };
+        return { Literal: { Value: dataType === "int64" || (dataType == null && Number.isInteger(value)) ? `${value}L` : `${value}D` } };
+    }
+    if (dataType === "dateTime") {
+        const m = ISO_DATE.exec(value);
+        return { Literal: { Value: `datetime'${m[1]}-${m[2]}-${m[3]}T${m[4] ?? "00"}:${m[5] ?? "00"}:${m[6] ?? "00"}'` } };
     }
     return { Literal: { Value: `'${String(value).replace(/'/g, "''")}'` } };
 }

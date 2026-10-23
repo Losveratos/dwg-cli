@@ -49,6 +49,7 @@ export function DwgVisual({ isDark, clearToken = 0, className, ...opts }: Props)
       objects: p.objects,
       formats: p.formats,
       displayNames: p.displayNames,
+      columnTypes: p.columnTypes,
       locale: p.locale ?? 'de-DE',
       theme: p.isDark ? 'dark' : 'light',
       interactive: p.interactive,
@@ -75,10 +76,10 @@ export function DwgVisual({ isDark, clearToken = 0, className, ...opts }: Props)
     };
   }, [visual]);
 
-  const { table, bindings, objects, displayNames, formats } = opts;
+  const { table, bindings, objects, displayNames, formats, columnTypes } = opts;
   useEffect(() => {
-    handle.current?.update({ table, bindings, objects, displayNames, formats, theme: isDark ? 'dark' : 'light' });
-  }, [table, bindings, objects, displayNames, formats, isDark]);
+    handle.current?.update({ table, bindings, objects, displayNames, formats, columnTypes, theme: isDark ? 'dark' : 'light' });
+  }, [table, bindings, objects, displayNames, formats, columnTypes, isDark]);
 
   useEffect(() => {
     if (clearToken > 0) handle.current?.clearSelection();

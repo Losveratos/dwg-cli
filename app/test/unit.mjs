@@ -148,4 +148,29 @@ await test("prüft Slicer und Seitenkennungen", async () => {
     await assert.rejects(generateAppPages({ appDir: fakeApp(), spec: s2, connector: "guv", model: MODEL }), /Slicer „Land“/);
 });
 
+await test("Datumswerte: Spaltentyp aus dem TMDL in die Spec, Filterwerte gegen den Datentyp geprüft", async () => {
+    const bad = structuredClone(RAHMEN);
+    bad.slicers[1].default = [2026];
+    bad.pages[0].tiles[0].filters = [{ column: "'fact-guv'[Datum]", values: ["März"] }];
+    bad.pages[1].filters = [{ column: "'fact-guv'[Datum]", values: [20260301] }];
+    await assert.rejects(generateAppPages({ appDir: fakeApp(), spec: bad, connector: "guv", model: MODEL }), e =>
+        e.message.includes("Slicer „Land“, default, 'Sales Demo'[Country]: 2026 ist kein Text")
+        && e.message.includes(`Kachel monat, Filter, 'fact-guv'[Datum]: "März" ist kein Datum`)
+        && e.message.includes("Seite „Brücke über die Monate“, Filter, 'fact-guv'[Datum]: 20260301 ist kein Datum"));
+    const ok = structuredClone(RAHMEN);
+    ok.pages[0].tiles[0].filters = [{ column: "'fact-guv'[Datum]", values: ["2026-03-01"] }];
+    const app = fakeApp();
+    await generateAppPages({ appDir: app, spec: ok, connector: "guv", model: MODEL });
+    const dir = path.join(app, "packages/frontend/src/dwg");
+    const page = fs.readFileSync(path.join(dir, "pages/saulen-im-zeitverlauf.ts"), "utf8");
+    assert.match(page, /"columnTypes": \{[^}]*"'fact-guv'\[Datum\]": "dateTime"/);
+    assert.match(page, /"'Sales Demo'\[Country\]": "string"/);
+    assert.match(fs.readFileSync(path.join(dir, "pages/saulen-im-zeitverlauf.dax"), "utf8"), /TREATAS\(\{DATE\(2026, 3, 1\)\}, 'fact-guv'\[Datum\]\)/);
+    assert.match(fs.readFileSync(path.join(dir, "apps/dwg-rahmen-test.ts"), "utf8"), /"columnTypes": \{\s*"'Sales Demo'\[Country\]": "string"\s*\}/);
+    // ohne Modell keine Typen: die App liest ISO-Text als Datum (bisheriges Verhalten)
+    const app2 = fakeApp();
+    await generateAppPages({ appDir: app2, spec: ok, connector: "guv" });
+    assert.ok(!fs.readFileSync(path.join(app2, "packages/frontend/src/dwg/pages/saulen-im-zeitverlauf.ts"), "utf8").includes("columnTypes"));
+});
+
 console.log(`app unit: ${n} Tests grün`);
