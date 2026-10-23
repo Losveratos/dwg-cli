@@ -66,7 +66,9 @@ export function queryState(roles, { showAll = false, displayNames = {}, drillRol
     for (const [role, entry] of Object.entries(roles)) {
         const projections = entry.fields.map((f, i) => {
             const p = { field: fieldExpr(f), queryRef: `${f.table}.${f.name}`, nativeQueryRef: f.name };
-            const name = displayNames[f.ref] ?? (entry.fields.length === 1 ? displayNames[`[${role}]`] : undefined);
+            // Schlüssel wie in der Spec ('T'[Feld]) oder normalisiert (T[Feld], wie die App sie liest), sonst je Rolle
+            const name = displayNames[f.ref] ?? displayNames[`${f.table}[${f.name}]`]
+                ?? (entry.fields.length === 1 ? displayNames[`[${role}]`] : undefined);
             if (name) { p.displayName = name; }
             if (drillRoles.includes(role) && i === 0) { p.active = true; }
             return p;

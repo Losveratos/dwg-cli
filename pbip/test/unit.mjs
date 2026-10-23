@@ -140,6 +140,9 @@ test("Anzeigenamen je Rolle ([actual]) wie in der App, je Feld vorrangig", () =>
         { displayNames: { "[actual]": "DB-Marge %", "'Fakten'[Absatz hl AC]": "Absatz hl", "[xValue]": "nicht dieser" } });
     assert.equal(st.actual.projections[0].displayName, "DB-Marge %");
     assert.equal(st.xValue.projections[0].displayName, "Absatz hl");
+    // normalisierter Schlüssel (Fakten[Absatz hl AC], wie die App ihn liest) gilt ebenso
+    const st2 = queryState({ xValue: { kind: "Measure", fields: [m("Absatz hl AC")] } }, { displayNames: { "Fakten[Absatz hl AC]": "Absatz" } });
+    assert.equal(st2.xValue.projections[0].displayName, "Absatz");
 });
 
 test("Kachelrahmen wie in der App: 8 px Innenabstand, 1 px Rand (statt Fluent2 16/14/16/16)", () => {

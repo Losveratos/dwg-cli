@@ -34,16 +34,30 @@ export function contentOf(spec, page) {
 }
 
 /**
+ * Ohne Modell: nur die angegebenen Felder, keine Vorschläge. Eine Pflichtrolle gilt als erfüllt, wenn sie selbst oder
+ * ihre Ersatzrollen (`alt`, z. B. account + parent statt levels) angegeben sind; unbekannte Rollen sind ein Fehler.
+ */
+function withoutModel(template, given) {
+    const roles = new Set(template.roles.map(r => r.role));
+    const has = role => [].concat(given[role] ?? []).length > 0;
+    const problems = Object.keys(given).filter(r => !roles.has(r))
+        .map(r => `Rolle „${r}“ gehört nicht zu ${template.id} (${template.roles.map(x => x.role).join(", ")}).`);
+    for (const r of template.roles.filter(x => x.need === "required")) {
+        if (has(r.role) || (r.alt?.length && r.alt.every(has))) { continue; }
+        problems.push(`Pflichtrolle ${r.role} (${r.label.de}) ohne Feld. Mit --${r.role} angeben oder --model für Vorschläge.`);
+    }
+    return {
+        rows: template.roles.map(r => ({ ...r, value: has(r.role) ? [].concat(given[r.role]) : null, source: has(r.role) ? "angegeben" : null, alternatives: [] })),
+        problems, stem: null,
+    };
+}
+
+/**
  * Kachel bauen (ohne zu schreiben).
  * @returns {{ tile, rows, problems, stem }}
  */
 export function buildTile({ spec, page, template, model, given = {}, measure, id, rect, title }) {
-    const sug = model ? suggestBindings(model, template, given, measure) : {
-        rows: template.roles.map(r => ({ ...r, value: given[r.role] ? [].concat(given[r.role]) : null, source: given[r.role] ? "angegeben" : null, alternatives: [] })),
-        problems: template.roles.filter(r => r.need === "required" && !given[r.role] && !(r.alt ?? []).every(a => given[a]))
-            .map(r => `Pflichtrolle ${r.role} (${r.label.de}) ohne Feld. Mit --${r.role} angeben oder --model für Vorschläge.`),
-        stem: null,
-    };
+    const sug = model ? suggestBindings(model, template, given, measure) : withoutModel(template, given);
     const problems = [...sug.problems];
     const bindings = {};
     for (const r of sug.rows) {

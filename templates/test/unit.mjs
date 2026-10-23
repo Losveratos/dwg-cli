@@ -222,6 +222,30 @@ ok("tile add: GuV-Seite mit T04B ohne weitere Angaben", () => {
     assert.equal(t.showItemsWithNoData, true);
     assert.equal(t.objects.columns.dPlWaterfall, true);
 });
+ok("tile add ohne --model: Pflichtrollen müssen angegeben sein, Ersatzrollen zählen", () => {
+    const before = fs.readFileSync(specFile, "utf8");
+    // nichts angegeben: nichts geschrieben, alle Pflichtrollen genannt
+    let r = run("tile", "add", "--spec", specFile, "--new-page", "Leer", "--template", "C03");
+    assert.equal(r.status, 1, r.stdout);
+    assert.match(r.stdout, /Pflichtrolle category/);
+    assert.match(r.stdout, /Pflichtrolle actual/);
+    assert.equal(fs.readFileSync(specFile, "utf8"), before);
+    // unbekannte Rolle ist ein Fehler
+    r = run("tile", "add", "--spec", specFile, "--new-page", "Leer", "--template", "C03", "--category", "'Kalender'[Monatsname]",
+        "--actual", "'Fakten'[Umsatz AC]", "--previousYear", "'Fakten'[Umsatz PY]", "--mesure", "x");
+    assert.equal(r.status, 1, r.stdout);
+    assert.match(r.stdout, /Rolle „mesure“ gehört nicht/);
+    // alle Pflichtrollen angegeben: geschrieben; P&L mit account + parent statt levels ebenfalls
+    r = run("tile", "add", "--spec", specFile, "--new-page", "Leer", "--template", "C03", "--category", "'Kalender'[Monatsname]",
+        "--actual", "'Fakten'[Umsatz AC]", "--previousYear", "'Fakten'[Umsatz PY]");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    r = run("tile", "add", "--spec", specFile, "--new-page", "Konten", "--template", "T04B", "--account", "'Konto'[KontoID]",
+        "--parent", "'Konto'[ParentID]", "--ac", "'Fakten'[GuV AC]", "--pl", "'Fakten'[GuV PL]");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const t = JSON.parse(fs.readFileSync(specFile, "utf8")).pages.find(p => p.name === "Konten").tiles[0];
+    assert.equal(t.bindings.levels, undefined);
+    assert.equal(t.bindings.account, "'Konto'[KontoID]");
+});
 ok("templates: Liste und Detail", () => {
     let r = run("templates");
     assert.equal(r.status, 0);

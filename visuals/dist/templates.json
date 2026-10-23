@@ -1183,6 +1183,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -1386,6 +1395,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -1595,6 +1613,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -1798,6 +1825,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -2007,6 +2043,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -2210,6 +2255,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -2419,6 +2473,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -2622,6 +2685,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -2831,6 +2903,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -3034,6 +3115,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -3243,6 +3333,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -3446,6 +3545,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -3655,6 +3763,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -3861,6 +3978,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -4064,6 +4190,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {
@@ -4294,6 +4429,15 @@
           }
         },
         {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
           "role": "comment",
           "need": "optional",
           "kind": "Grouping",
@@ -4500,6 +4644,15 @@
           "label": {
             "de": "Abweichungsfarbe drehen",
             "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
           }
         },
         {

@@ -2,7 +2,7 @@
 // und DataView, rendert bei Daten- und Größenänderung neu.
 
 import { buildDataView } from "./dataview";
-import { createHost, type HostState, type SelectionId } from "./host";
+import { createHost, rebaseObjects, type HostState, type SelectionId } from "./host";
 import type { MountOptions, VisualHandle, VisualKind, VisualObjects } from "./types";
 
 // Power-BI-Updatetypen: Data | Resize | ViewMode | Style | ResizeEnd
@@ -73,10 +73,14 @@ export async function mountVisual(el: HTMLElement, options: MountOptions): Promi
     let pending: number | null = null;
     const keys = (ids: SelectionId[]) => ids.map(id => id.toRecord());
 
+    // Objekte der Spec (base) und alles, was das Visual seither gespeichert hat (persistLog): ein update() mit
+    // denselben Spec-Objekten lässt den Zustand in Ruhe, geänderte Spec-Objekte bekommen den Zustand wieder aufgesetzt
+    let base: VisualObjects = JSON.parse(JSON.stringify(opts.objects ?? {}));
+    const persistLog: unknown[] = [];
     const { host, selection } = createHost(state, {
         onSelect: ids => opts.onSelect?.(keys(ids)),
         // Power BI ruft nach persistProperties update() mit den neuen Objekten auf
-        onPersist: objects => { opts.onPersist?.(objects); schedule(UPDATE_ALL); },
+        onPersist: (objects, changes) => { persistLog.push(changes); opts.onPersist?.(objects); schedule(UPDATE_ALL); },
         onContextMenu: (ids, pos) => opts.onContextMenu?.(keys(ids), pos),
         onRenderingFailed: err => opts.onError?.(err),
     });
@@ -138,7 +142,10 @@ export async function mountVisual(el: HTMLElement, options: MountOptions): Promi
             if (next.theme) { state.dark = next.theme === "dark"; }
             if (next.darkBackground) { state.darkBackground = next.darkBackground; }
             if (next.interactive != null) { state.interactive = next.interactive; }
-            if (next.objects) { state.objects = JSON.parse(JSON.stringify(next.objects)); }
+            if (next.objects && JSON.stringify(next.objects) !== JSON.stringify(base)) {
+                base = JSON.parse(JSON.stringify(next.objects));
+                state.objects = rebaseObjects(base, persistLog);
+            }
             schedule(UPDATE_ALL);
         },
         clearSelection() {

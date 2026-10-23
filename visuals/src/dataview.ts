@@ -83,6 +83,14 @@ export function buildDataView(kind: VisualKind, table: QueryTable, bindings: Bin
 
     const categories: { source: Source; values: unknown[] }[] = [];
     const values: { source: Source; values: (number | null)[] }[] = [];
+    // Anzeigenamen und Formate je Feld: Schlüssel wie in der Spec ('Kalender'[Monat]), normalisiert (Kalender[Monat])
+    // oder je Rolle ([actual]) gelten gleich, in der App wie in Power BI (pbip/lib/pbir.mjs queryState)
+    const byKey = (map: Record<string, string> | undefined, ref: string, name: string): string | undefined => {
+        if (!map) { return undefined; }
+        const want = new Set([ref, name, normalizeRef(ref), normalizeRef(name)]);
+        for (const [k, v] of Object.entries(map)) { if (want.has(k) || want.has(normalizeRef(k))) { return v; } }
+        return undefined;
+    };
     let index = 0;
     for (const role of spec.order) {
         const refs = bindings[role];
@@ -91,14 +99,14 @@ export function buildDataView(kind: VisualKind, table: QueryTable, bindings: Bin
             const ci = columnIndex(table, ref);
             const name = table.columns[ci].name;
             const source: Source = {
-                displayName: opts.displayNames?.[ref] ?? opts.displayNames?.[name] ?? bareName(name),
+                displayName: byKey(opts.displayNames, ref, name) ?? bareName(name),
                 queryName: name,
                 roles: { [role]: true },
                 index: index++,
             };
             if (kinds[role] === "Measure") {
                 source.isMeasure = true;
-                const fmt = opts.formats?.[ref] ?? opts.formats?.[name];
+                const fmt = byKey(opts.formats, ref, name);
                 if (fmt) { source.format = fmt; }
                 values.push({ source, values: table.rows.map(r => measureValue(r[ci])) });
             } else {

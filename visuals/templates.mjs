@@ -157,6 +157,8 @@ function pnlRoles(id, sw, preset, info) {
     for (const r of ["account", "accountName", "sortOrder", "rowType", "formulaDef", "signConvention", "displayInvert", "varianceInvert"]) {
         out.push(role(info, r, statement ? "recommended" : "optional"));
     }
+    // Eltern-ID: nur mit Konto-ID zusammen als Ersatz für die Ebenen (alt von levels)
+    out.push(role(info, "parent", "optional"));
     out.push(role(info, "comment", "optional"), role(info, "colCategory", "optional"));
     return out;
 }

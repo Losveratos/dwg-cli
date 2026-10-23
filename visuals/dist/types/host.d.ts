@@ -34,7 +34,8 @@ declare class SelectionIdBuilder {
 }
 export interface HostEvents {
     onSelect(ids: SelectionId[]): void;
-    onPersist(objects: VisualObjects): void;
+    /** nach persistProperties: die neuen Objekte und das Änderungspaket ({merge, replace, remove}) */
+    onPersist(objects: VisualObjects, changes: unknown): void;
     onContextMenu(ids: SelectionId[], pos: {
         x: number;
         y: number;
@@ -69,6 +70,12 @@ declare class SelectionManager {
 }
 /** wendet ein persistProperties-Paket ({merge, replace, remove}) auf die Objekte an */
 export declare function applyPersist(objects: VisualObjects, changes: unknown): VisualObjects;
+/**
+ * Objekte aus der Spec (base) mit dem, was das Visual seither per persistProperties gespeichert hat (log, in
+ * Reihenfolge), zusammengeführt. Damit überlebt der Zustand des Visuals (aufgeklappte Knoten, Ansicht, Sortierung)
+ * eine neue Abfrage oder einen Theme-Wechsel, wie in Power BI, wo persistierte Eigenschaften im Bericht bleiben.
+ */
+export declare function rebaseObjects(base: VisualObjects, log: unknown[]): VisualObjects;
 export declare function createHost(state: HostState, events: HostEvents): {
     host: {
         readonly locale: string;

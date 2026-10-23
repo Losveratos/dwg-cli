@@ -41,7 +41,8 @@ class SelectionIdBuilder {
 
 export interface HostEvents {
     onSelect(ids: SelectionId[]): void;
-    onPersist(objects: VisualObjects): void;
+    /** nach persistProperties: die neuen Objekte und das Änderungspaket ({merge, replace, remove}) */
+    onPersist(objects: VisualObjects, changes: unknown): void;
     onContextMenu(ids: SelectionId[], pos: { x: number; y: number }): void;
     onRenderingFailed(err: unknown): void;
 }
@@ -163,6 +164,15 @@ export function applyPersist(objects: VisualObjects, changes: unknown): VisualOb
     return next;
 }
 
+/**
+ * Objekte aus der Spec (base) mit dem, was das Visual seither per persistProperties gespeichert hat (log, in
+ * Reihenfolge), zusammengeführt. Damit überlebt der Zustand des Visuals (aufgeklappte Knoten, Ansicht, Sortierung)
+ * eine neue Abfrage oder einen Theme-Wechsel, wie in Power BI, wo persistierte Eigenschaften im Bericht bleiben.
+ */
+export function rebaseObjects(base: VisualObjects, log: unknown[]): VisualObjects {
+    return log.reduce<VisualObjects>((o, c) => applyPersist(o, c), JSON.parse(JSON.stringify(base ?? {})));
+}
+
 export function createHost(state: HostState, events: HostEvents) {
     const selection = new SelectionManager(events);
     const host = {
@@ -189,7 +199,7 @@ export function createHost(state: HostState, events: HostEvents) {
             const next = applyPersist(state.objects, changes);
             if (JSON.stringify(next) === JSON.stringify(state.objects)) { return; }
             state.objects = next;
-            events.onPersist(next);
+            events.onPersist(next, changes);
         },
         fetchMoreData: () => false,
         drill: () => { /* Drill-down übernimmt die App über onContextMenu */ },

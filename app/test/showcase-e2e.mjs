@@ -95,6 +95,7 @@ for (let g = 0; g < groupCount; g++) {
 
 const results = [];
 let n = 0;
+let persistChecked = false;
 for (const p of pages) {
     const tpl = (/^(C\d\d|T\d\d[A-Z]|12[A-Z])/.exec(p.label) ?? [p.label.split(/\s+/)[0]])[0];
     if (ONLY && !ONLY.has(tpl)) { continue; }
@@ -149,6 +150,29 @@ for (const p of pages) {
     const file = `${String(n).padStart(2, "0")}-${tpl}.png`;
     await page.screenshot({ path: path.join(OUT, file), fullPage: true });
     results.push({ tpl, label: p.label, ok, tiles: tiles.length, queries, problems: [detail, ...problems].filter(Boolean), file });
+    // einmal je Lauf, auf der ersten Seite mit ChartKitchen-Karten: der Zustand des Visuals überlebt ein update() der
+    // App. Der Sortier-Chip der Karten schreibt chart.cardSortSel per persistProperties, und ChartKitchen liest den
+    // Wert bei jedem Update aus den Objekten; setzte der Adapter die Spec-Objekte neu auf (Theme-Wechsel, neue
+    // Abfrage), sprang die Reihenfolge zurück.
+    const chip = '[data-dwg-tile] button:has-text("Sortieren"), [data-dwg-tile] [role=button]:has-text("Sortieren")';
+    if (ok && !persistChecked && await page.$(chip)) {
+        persistChecked = true;
+        // Kartentitel: Texte ohne Ziffern und ohne Kennzeichen von Werten (Δ, %, ±, Σ)
+        const cards = () => page.$$eval('[data-dwg-tile] svg text', els => els.map(e => e.textContent.trim()).filter(t => /^[^\d%+\-−Δ·Σ]{3,}$/.test(t)).slice(0, 6).join(","));
+        const before = await cards();
+        await page.click(chip);
+        await page.waitForTimeout(600);
+        const sorted = await cards();
+        await page.click("text=Hell / Dunkel");
+        await page.waitForTimeout(800);
+        const after = await cards();
+        await page.click("text=Hell / Dunkel");
+        await page.waitForTimeout(400);
+        const good = sorted !== before && after === sorted;
+        console.log(`  ${good ? "ok  " : "FAIL"} Zustand des Visuals bleibt nach update(): Karten ${before} → Chip ${sorted} → Theme ${after}`);
+        results.push({ tpl: "persist", label: `Zustand nach update() (${p.label})`, ok: good, tiles: 0, queries: 0,
+            problems: good ? [] : [`Karten ${before} → ${sorted} → ${after}`], file: "" });
+    }
     const measured = scale.filter((s) => s.n > 0).map((s) => `${s.id} Δ-Skala geprüft (${s.n} Kat.${s.zoom !== 1 ? `, Lupe ×${s.zoom}` : ""})`);
     console.log(`  ${ok ? "ok  " : "FAIL"} ${p.label} · ${tiles.length} Kacheln, ${queries} Abfragen${measured.length ? ` · ${measured.join(", ")}` : ""}${problems.length ? ` · ${problems.join(" | ")}` : ""}`);
 }

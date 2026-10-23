@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist } =
+const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist, rebaseObjects } =
     await import(pathToFileURL(path.join(HERE, "../dist/dwg-visuals.js")).href);
 
 let n = 0;
@@ -86,8 +86,10 @@ test("columnIndex: exakt, ohne Tabelle, mehrdeutig, fehlend", () => {
 test("buildDataView: Rollen, Typen, Trim, Reihenfolge der Mapping-Definition", () => {
     const dv = buildDataView("chartkitchen", table,
         { plan: "[plan]", actual: "[actual]", category: "Kalender[Monat]" },
-        { formats: { "[actual]": "#,0 €" }, displayNames: { "[actual]": "Umsatz" }, objects: { chart: { orientation: "columns" } } });
+        // Schlüssel je Rolle ([actual]) und je Feld wie in der Spec ('Kalender'[Monat]) gelten beide, wie in Power BI
+        { formats: { "[actual]": "#,0 €" }, displayNames: { "[actual]": "Umsatz", "'Kalender'[Monat]": "Monat (Spec-Schlüssel)" }, objects: { chart: { orientation: "columns" } } });
     assert.deepEqual(dv.categorical.categories[0].values, ["Jan", "Feb"]);
+    assert.equal(dv.categorical.categories[0].source.displayName, "Monat (Spec-Schlüssel)");
     assert.deepEqual(dv.categorical.categories[0].source.roles, { category: true });
     assert.deepEqual(dv.categorical.values.map(v => Object.keys(v.source.roles)[0]), ["actual", "plan"]);
     assert.deepEqual(dv.categorical.values[0].values, [100, null]);
@@ -119,6 +121,24 @@ test("applyPersist: merge, replace, remove", () => {
     const c = applyPersist(b, { remove: [{ objectName: "chart", properties: { tableSort: null } }], replace: [{ objectName: "colors", properties: { appearance: "dark" } }] });
     assert.equal(c.chart.tableSort, undefined);
     assert.deepEqual(c.colors, { appearance: "dark" });
+});
+
+test("rebaseObjects: gespeicherter Zustand überlebt neue Spec-Objekte (Abfrage, Theme, Kopfzeilen-Schalter)", () => {
+    const spec = { columns: { template: "T04B", showPL: true }, hierarchy: { defaultLevel: 2 }, toolbar: { show: true } };
+    // das Visual klappt zu (hierarchy.collapsed) und wechselt die Ebene, wie P&L es per persistProperties tut
+    const log = [
+        { merge: [{ objectName: "hierarchy", selector: null, properties: { collapsed: "[\"N-WE\"]" } }] },
+        { merge: [{ objectName: "hierarchy", selector: null, properties: { defaultLevel: 1 } }] },
+    ];
+    const kept = rebaseObjects(spec, log);
+    assert.equal(kept.hierarchy.collapsed, "[\"N-WE\"]");
+    assert.equal(kept.hierarchy.defaultLevel, 1, "persistierter Wert gewinnt über die Spec");
+    assert.equal(kept.columns.showPL, true, "Spec-Werte ohne Persist bleiben");
+    // die App blendet die Bedienleiste aus (neue Spec-Objekte): Zustand bleibt, Schalter wirkt
+    const next = rebaseObjects({ ...spec, toolbar: { show: false } }, log);
+    assert.equal(next.toolbar.show, false);
+    assert.equal(next.hierarchy.collapsed, "[\"N-WE\"]");
+    assert.equal(rebaseObjects(spec, []).hierarchy.defaultLevel, 2, "ohne Log unverändert");
 });
 
 console.log(`unit: ${n} Tests grün`);

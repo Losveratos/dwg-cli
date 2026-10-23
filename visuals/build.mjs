@@ -82,6 +82,8 @@ const slimGlobalize = {
 
 const common = {
     plugins: [slimGlobalize],
+    // Chunk-Hashes hängen sonst am absoluten Pfad des Checkouts (Sourcemap-Quellen): fest auf visuals/ beziehen
+    absWorkingDir: HERE,
     bundle: true,
     format: "esm",
     splitting: true,
@@ -111,7 +113,7 @@ const result = await esbuild.build({
 
 const sizes = Object.entries(result.metafile.outputs)
     .filter(([f]) => f.endsWith(".js"))
-    .map(([f, o]) => `${path.relative(HERE, f)}  ${(o.bytes / 1024).toFixed(0)} KB`);
+    .map(([f, o]) => `${f}  ${(o.bytes / 1024).toFixed(0)} KB`);   // Pfade relativ zu absWorkingDir
 // Typdeklarationen für Apps (dist/dwg-visuals.d.ts → dist/types/index.d.ts)
 execSync(`node "${path.join(HERE, "..", "node_modules", "typescript", "bin", "tsc")}" -p tsconfig.types.json`, { cwd: HERE, stdio: "inherit" });
 fs.writeFileSync(path.join(HERE, "dist", "dwg-visuals.d.ts"), 'export * from "./types/index";\n');
