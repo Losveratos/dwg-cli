@@ -1,0 +1,182 @@
+{
+  "name": "dwg Rahmen Test",
+  "about": "Test des App-Rahmens: Filter-Panel mit zwei Slicern, Navigation mit zwei Gruppen und drei Seiten. Felder aus dem Modell ChartKitchen byDatenWG Demo, im Browser-Test mit synthetischen Daten (datasets/rahmen.mjs).",
+  "resolution": "fullhd",
+  "visualHeaders": false,
+  "footer": "Demodaten. IBCS® ist eine eingetragene Marke des IBCS Institute.",
+  "slicers": [
+    {
+      "column": "'Calender'[Year]",
+      "label": "Jahr",
+      "default": [
+        2026
+      ],
+      "multi": false
+    },
+    {
+      "column": "'Sales Demo'[Country]",
+      "label": "Land",
+      "multi": true
+    }
+  ],
+  "pages": [
+    {
+      "name": "Säulen im Zeitverlauf",
+      "template": "C03",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Wie entwickelt sich der Umsatz über die Monate, und wo liegt er über oder unter dem Vorjahr? Ein Klick auf einen Monat filtert die Kacheln darunter.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "monat",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            438
+          ],
+          "bindings": {
+            "category": "'Calender'[Month Name Short]",
+            "actual": "'Sales Demo'[AC]",
+            "previousYear": "'Sales Demo'[PY]"
+          },
+          "sortBy": {
+            "'Calender'[Month Name Short]": "'Calender'[Month]"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "columns",
+              "comparisonMode": "py"
+            },
+            "ibcsTitle": {
+              "kpi": "Umsatz"
+            }
+          }
+        },
+        {
+          "id": "land",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            579,
+            774,
+            438
+          ],
+          "bindings": {
+            "category": "'Sales Demo'[Country]",
+            "actual": "'Sales Demo'[AC]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "bars",
+              "comparisonMode": "plan"
+            },
+            "ibcsTitle": {
+              "kpi": "Umsatz nach Land"
+            }
+          }
+        },
+        {
+          "id": "abweichung",
+          "visual": "chartkitchen",
+          "rect": [
+            1119,
+            579,
+            774,
+            438
+          ],
+          "bindings": {
+            "category": "'Sales Demo'[Country]",
+            "actual": "'Sales Demo'[AC]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "catbridge",
+              "comparisonMode": "plan"
+            },
+            "ibcsTitle": {
+              "kpi": "Abweichung zum Plan"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brücke über die Monate",
+      "template": "C05",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Wie setzt sich die Abweichung zum Plan über das Jahr zusammen? Die Brücke zeigt je Monat den Beitrag.",
+      "width": 1920,
+      "height": 1080,
+      "tiles": [
+        {
+          "id": "bruecke",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            894
+          ],
+          "bindings": {
+            "category": "'Calender'[Month Name Short]",
+            "actual": "'Sales Demo'[AC]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "sortBy": {
+            "'Calender'[Month Name Short]": "'Calender'[Month]"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "intwaterfall",
+              "comparisonMode": "plan"
+            },
+            "ibcsTitle": {
+              "kpi": "Umsatz"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Abweichung nach Land",
+      "template": "C07",
+      "group": "ChartKitchen · Struktur",
+      "description": "Welche Länder treiben die Abweichung zum Plan? Sortiert nach Wirkung.",
+      "width": 1920,
+      "height": 1080,
+      "tiles": [
+        {
+          "id": "laender",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            894
+          ],
+          "bindings": {
+            "category": "'Sales Demo'[Country]",
+            "actual": "'Sales Demo'[AC]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "catbridge",
+              "comparisonMode": "plan",
+              "sortByImpact": true
+            },
+            "ibcsTitle": {
+              "kpi": "Umsatz nach Land"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

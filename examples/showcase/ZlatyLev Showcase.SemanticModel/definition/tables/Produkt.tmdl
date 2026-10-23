@@ -1,0 +1,59 @@
+table Produkt
+	lineageTag: 2df5189e-5262-58d3-8adb-e1fbb8bb9805
+	sourceLineageTag: [dbo].[produkt]
+
+	column ProduktID
+		dataType: string
+		isKey
+		lineageTag: e7c7862a-6c08-5c91-827d-6716608fd440
+		sourceLineageTag: ProduktID
+		summarizeBy: none
+		sourceColumn: ProduktID
+
+	column Produkt
+		dataType: string
+		lineageTag: 7cdc906d-8c51-5474-a7c4-89fa454fffc6
+		sourceLineageTag: Produkt
+		summarizeBy: none
+		sourceColumn: Produkt
+		sortByColumn: 'Produkt Sort'
+
+	column 'Produkt Sort'
+		dataType: int64
+		isHidden
+		lineageTag: 8058f318-b8fe-5964-ad6c-f931337b71ab
+		sourceLineageTag: ProduktSort
+		summarizeBy: none
+		sourceColumn: ProduktSort
+
+	column Sorte
+		dataType: string
+		lineageTag: 907c2dfa-7f61-5735-bdf5-22f92b6fd3aa
+		sourceLineageTag: Sorte
+		summarizeBy: none
+		sourceColumn: Sorte
+		sortByColumn: 'Sorte Sort'
+
+	column 'Sorte Sort'
+		dataType: int64
+		isHidden
+		lineageTag: 0fe42e99-63fc-52a0-abd2-849c17eb75c6
+		sourceLineageTag: SorteSort
+		summarizeBy: none
+		sourceColumn: SorteSort
+
+	column 'Alkohol %'
+		dataType: double
+		formatString: 0.0
+		lineageTag: f2399de2-1972-547a-a845-319953028ee6
+		sourceLineageTag: AlkoholProzent
+		summarizeBy: none
+		sourceColumn: AlkoholProzent
+
+	partition Produkt = entity
+		mode: directLake
+		source
+			entityName: produkt
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

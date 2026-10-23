@@ -1,0 +1,84 @@
+/// Ortsdimension der Waermestreifen (60 Messorte).
+table dim-ort
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000140
+
+	column OrtID
+		dataType: string
+		isKey
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000141
+		summarizeBy: none
+		sourceColumn: OrtID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ort
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000142
+		summarizeBy: none
+		sourceColumn: Ort
+
+		annotation SummarizationSetBy = Automatic
+
+	column Land
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000143
+		summarizeBy: none
+		sourceColumn: Land
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000144
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column Breitengrad
+		dataType: double
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000145
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: Breitengrad
+
+		annotation SummarizationSetBy = Automatic
+
+	column Laengengrad
+		dataType: double
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000146
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: Laengengrad
+
+		annotation SummarizationSetBy = Automatic
+
+	column MittelC_1961_1990
+		dataType: double
+		formatString: 0.0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000147
+		summarizeBy: none
+		sourceColumn: MittelC_1961_1990
+
+		annotation SummarizationSetBy = Automatic
+
+	column Klimazone
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000148
+		summarizeBy: none
+		sourceColumn: Klimazone
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-ort = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-ort.csv"), [Delimiter = ";", Columns = 8, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"OrtID", type text}, {"Ort", type text}, {"Land", type text}, {"Region", type text}, {"Breitengrad", type number}, {"Laengengrad", type number}, {"MittelC_1961_1990", type number}, {"Klimazone", type text}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

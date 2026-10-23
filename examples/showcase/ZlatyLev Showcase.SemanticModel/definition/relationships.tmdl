@@ -1,0 +1,16 @@
+relationship cb49c127-3b3d-5a98-a8d7-0caeef65992f
+	fromColumn: Fakten.Datum
+	toColumn: Kalender.Datum
+
+relationship fdee17f6-e97a-5065-ab04-9f9bb5967bc2
+	fromColumn: Fakten.KontoID
+	toColumn: Konto.KontoID
+
+relationship 6ad65e8d-8b70-5b08-9249-de3cd71f06aa
+	fromColumn: Fakten.KundeID
+	toColumn: Kunde.KundeID
+
+relationship 2d3b4956-1ec2-51ce-829d-a2971fc34ab0
+	fromColumn: Fakten.ProduktID
+	toColumn: Produkt.ProduktID
+

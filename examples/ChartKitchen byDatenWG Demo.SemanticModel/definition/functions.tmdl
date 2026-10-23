@@ -1,0 +1,5 @@
+function DatenWG =
+		() =>
+		"https://raw.githubusercontent.com/Losveratos/dataflows/refs/heads/main/Image%20(1).avif"
+	lineageTag: 32ee5dcb-7002-4998-a600-440262511aaa
+

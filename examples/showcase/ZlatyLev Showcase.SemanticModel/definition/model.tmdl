@@ -1,0 +1,13 @@
+model Model
+	culture: de-DE
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+
+annotation __TEdtr = 1
+
+ref table Kalender
+ref table Produkt
+ref table Kunde
+ref table Konto
+ref table Fakten
+

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2020", "dom"],
+    "strict": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "outDir": "dist/types",
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@kitchen/chartkitchen": ["./src/visuals/visual-stub.d.ts"],
+      "@kitchen/pnl": ["./src/visuals/visual-stub.d.ts"]
+    }
+  },
+  "files": ["src/index.ts"]
+}

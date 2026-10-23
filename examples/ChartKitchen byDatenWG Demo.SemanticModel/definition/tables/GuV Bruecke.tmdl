@@ -1,0 +1,38 @@
+table 'GuV Bruecke'
+	lineageTag: c367b366-0550-4cf9-bbd8-4fc9e91068d8
+
+	calculationGroup
+		precedence: 20
+
+		calculationItem Revenue = CALCULATE( SELECTEDMEASURE(), 'Sales Demo'[KPI] = "Revenue" )
+
+		calculationItem Cost = - CALCULATE( SELECTEDMEASURE(), 'Sales Demo'[KPI] = "Cost" )
+
+		calculationItem Profit = CALCULATE( SELECTEDMEASURE(), 'Sales Demo'[KPI] = "Revenue" ) - CALCULATE( SELECTEDMEASURE(), 'Sales Demo'[KPI] = "Cost" )
+
+	column Position
+		dataType: string
+		lineageTag: b51d95f7-b090-41d6-a22e-a63594788c3c
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f95acee9-205d-4036-b710-c40ddeae040d
+		summarizeBy: none
+		sourceColumn: Ordinal
+
+	column Nr = SWITCH( 'GuV Bruecke'[Position], "Revenue", 1, "Cost", 2, "Profit", 3 )
+		dataType: int64
+		formatString: 0
+		lineageTag: 5c2df237-cf2b-4c3d-840a-3f58c66145cf
+		summarizeBy: none
+
+	column Typ = SWITCH( 'GuV Bruecke'[Position], "Revenue", "sum", "Cost", "delta", "Profit", "sum" )
+		dataType: string
+		lineageTag: 71150c1d-d123-4c88-b000-5e3a2483fe18
+		summarizeBy: none
+

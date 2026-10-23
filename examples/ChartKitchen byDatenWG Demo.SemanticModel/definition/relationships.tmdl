@@ -1,0 +1,40 @@
+relationship 9f14c7f1-930e-f621-c739-c868af6da0a0
+	fromColumn: 'Sales Demo'.Date
+	toColumn: Calender.Date
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000001
+	fromColumn: fact-guv.Datum
+	toColumn: Calender.Date
+
+relationship 8f4a5c92-1e66-4a3d-af5c-e4c3a8b00001
+	fromColumn: fact-guv.AccountID
+	toColumn: dim-konten.AccountID
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000002
+	fromColumn: 'Sales Demo'.Product
+	toColumn: dim-produkt.Product
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000003
+	fromColumn: 'Sales Demo'.Country
+	toColumn: dim-markt.Country
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000004
+	fromColumn: 'Sales Demo'.Scenario
+	toColumn: dim-szenario.Scenario
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000005
+	fromColumn: 'Sales Demo'.KPI
+	toColumn: dim-kpi.KPI
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000006
+	fromColumn: fact-klima.OrtID
+	toColumn: dim-ort.OrtID
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000007
+	fromColumn: fact-klima.Jahr
+	toColumn: dim-jahr.Jahr
+
+relationship b2c4e6a8-1122-4d33-9e44-000000000008
+	fromColumn: dim-markt.KlimaOrt
+	toColumn: dim-ort.Ort
+

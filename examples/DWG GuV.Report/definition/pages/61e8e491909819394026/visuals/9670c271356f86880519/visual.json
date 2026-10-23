@@ -1,0 +1,525 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "9670c271356f86880519",
+  "position": {
+    "x": 24,
+    "y": 24,
+    "z": 1000,
+    "width": 1872,
+    "height": 1032,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "pnlByDatenWG3F9A7D2C51E64B08A1C4E7F0B92D6358",
+    "query": {
+      "queryState": {
+        "levels": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L1"
+                }
+              },
+              "queryRef": "dim-konten.L1",
+              "nativeQueryRef": "L1",
+              "active": true
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L2"
+                }
+              },
+              "queryRef": "dim-konten.L2",
+              "nativeQueryRef": "L2"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L3"
+                }
+              },
+              "queryRef": "dim-konten.L3",
+              "nativeQueryRef": "L3"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L4"
+                }
+              },
+              "queryRef": "dim-konten.L4",
+              "nativeQueryRef": "L4"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L5"
+                }
+              },
+              "queryRef": "dim-konten.L5",
+              "nativeQueryRef": "L5"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "L6"
+                }
+              },
+              "queryRef": "dim-konten.L6",
+              "nativeQueryRef": "L6"
+            }
+          ]
+        },
+        "account": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "AccountID"
+                }
+              },
+              "queryRef": "dim-konten.AccountID",
+              "nativeQueryRef": "AccountID",
+              "active": true
+            }
+          ]
+        },
+        "accountName": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "Name"
+                }
+              },
+              "queryRef": "dim-konten.Name",
+              "nativeQueryRef": "Name",
+              "active": true
+            }
+          ]
+        },
+        "sortOrder": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "SortOrder"
+                }
+              },
+              "queryRef": "dim-konten.SortOrder",
+              "nativeQueryRef": "SortOrder",
+              "active": true
+            }
+          ]
+        },
+        "rowType": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "RowType"
+                }
+              },
+              "queryRef": "dim-konten.RowType",
+              "nativeQueryRef": "RowType",
+              "active": true
+            }
+          ]
+        },
+        "formulaDef": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "FormulaDef"
+                }
+              },
+              "queryRef": "dim-konten.FormulaDef",
+              "nativeQueryRef": "FormulaDef",
+              "active": true
+            }
+          ]
+        },
+        "signConvention": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "SignConvention"
+                }
+              },
+              "queryRef": "dim-konten.SignConvention",
+              "nativeQueryRef": "SignConvention",
+              "active": true
+            }
+          ]
+        },
+        "displayInvert": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "DisplayInvert"
+                }
+              },
+              "queryRef": "dim-konten.DisplayInvert",
+              "nativeQueryRef": "DisplayInvert",
+              "active": true
+            }
+          ]
+        },
+        "varianceInvert": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "VarianceInvert"
+                }
+              },
+              "queryRef": "dim-konten.VarianceInvert",
+              "nativeQueryRef": "VarianceInvert",
+              "active": true
+            }
+          ]
+        },
+        "comment": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim-konten"
+                    }
+                  },
+                  "Property": "Kommentar"
+                }
+              },
+              "queryRef": "dim-konten.Kommentar",
+              "nativeQueryRef": "Kommentar",
+              "active": true
+            }
+          ]
+        },
+        "ac": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV AC"
+                }
+              },
+              "queryRef": "fact-guv.GuV AC",
+              "nativeQueryRef": "GuV AC"
+            }
+          ]
+        },
+        "py": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV PY"
+                }
+              },
+              "queryRef": "fact-guv.GuV PY",
+              "nativeQueryRef": "GuV PY"
+            }
+          ]
+        },
+        "pl": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV PL"
+                }
+              },
+              "queryRef": "fact-guv.GuV PL",
+              "nativeQueryRef": "GuV PL"
+            }
+          ]
+        },
+        "fc": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV FC"
+                }
+              },
+              "queryRef": "fact-guv.GuV FC",
+              "nativeQueryRef": "GuV FC"
+            }
+          ]
+        },
+        "fcFy": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV FC FY"
+                }
+              },
+              "queryRef": "fact-guv.GuV FC FY",
+              "nativeQueryRef": "GuV FC FY"
+            }
+          ]
+        },
+        "plFy": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact-guv"
+                    }
+                  },
+                  "Property": "GuV PL FY"
+                }
+              },
+              "queryRef": "fact-guv.GuV PL FY",
+              "nativeQueryRef": "GuV PL FY"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "titleBlock": [
+        {
+          "properties": {
+            "unitLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Daten-WG Knowledgekitchen Group · Konzern'"
+                }
+              }
+            },
+            "measureLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'GuV in Mio. EUR'"
+                }
+              }
+            },
+            "periodLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Jan bis Aug 2026 (YTD), FY-Ausblick'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columns": [
+        {
+          "properties": {
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'acpldpl'"
+                }
+              }
+            },
+            "reference": {
+              "expr": {
+                "Literal": {
+                  "Value": "'pl'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "numbers": [
+        {
+          "properties": {
+            "scaling": {
+              "expr": {
+                "Literal": {
+                  "Value": "'m'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "hierarchy": [
+        {
+          "properties": {
+            "defaultLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showLegend": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "style": [
+        {
+          "properties": {
+            "fontPreset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'fullhd'"
+                }
+              }
+            },
+            "density": {
+              "expr": {
+                "Literal": {
+                  "Value": "'compact'"
+                }
+              }
+            },
+            "colorMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'teal'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

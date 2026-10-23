@@ -1,0 +1,146 @@
+table dim-konten
+	lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00001
+
+	column AccountID
+		dataType: string
+		isKey
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00002
+		summarizeBy: none
+		sourceColumn: AccountID
+
+		annotation SummarizationSetBy = Automatic
+
+	column ParentAccountID
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00003
+		summarizeBy: none
+		sourceColumn: ParentAccountID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Name
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00004
+		summarizeBy: none
+		sourceColumn: Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column L1
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00005
+		summarizeBy: none
+		sourceColumn: L1
+
+		annotation SummarizationSetBy = Automatic
+
+	column L2
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00006
+		summarizeBy: none
+		sourceColumn: L2
+
+		annotation SummarizationSetBy = Automatic
+
+	column L3
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00007
+		summarizeBy: none
+		sourceColumn: L3
+
+		annotation SummarizationSetBy = Automatic
+
+	column L4
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00008
+		summarizeBy: none
+		sourceColumn: L4
+
+		annotation SummarizationSetBy = Automatic
+
+	column L5
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00009
+		summarizeBy: none
+		sourceColumn: L5
+
+		annotation SummarizationSetBy = Automatic
+
+	column L6
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000a
+		summarizeBy: none
+		sourceColumn: L6
+
+		annotation SummarizationSetBy = Automatic
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000b
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+		annotation SummarizationSetBy = User
+
+	column RowType
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000c
+		summarizeBy: none
+		sourceColumn: RowType
+
+		annotation SummarizationSetBy = Automatic
+
+	column FormulaDef
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000d
+		summarizeBy: none
+		sourceColumn: FormulaDef
+
+		annotation SummarizationSetBy = Automatic
+
+	column SignConvention
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000e
+		summarizeBy: none
+		sourceColumn: SignConvention
+
+		annotation SummarizationSetBy = User
+
+	column DisplayInvert
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f0000f
+		summarizeBy: none
+		sourceColumn: DisplayInvert
+
+		annotation SummarizationSetBy = Automatic
+
+	column VarianceInvert
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00010
+		summarizeBy: none
+		sourceColumn: VarianceInvert
+
+		annotation SummarizationSetBy = Automatic
+
+	column Kommentar
+		dataType: string
+		lineageTag: 5b1f2a70-9c44-4e1b-8d3a-c2a1e6f00011
+		summarizeBy: none
+		sourceColumn: Kommentar
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-konten = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-konten.csv"), [Delimiter = ";", Columns = 16, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"AccountID", type text}, {"ParentAccountID", type text}, {"Name", type text}, {"L1", type text}, {"L2", type text}, {"L3", type text}, {"L4", type text}, {"L5", type text}, {"L6", type text}, {"SortOrder", Int64.Type}, {"RowType", type text}, {"FormulaDef", type text}, {"SignConvention", Int64.Type}, {"DisplayInvert", type text}, {"VarianceInvert", type text}, {"Kommentar", type text}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,34 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: de-DE
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["DemoPfad","Sales Demo","dim-produkt","dim-markt","dim-szenario","dim-kpi","fact-guv","dim-konten","fact-klima","dim-ort","dim-jahr","gantt_demo_daten","guv_wasserfall_demo","guv_wasserfall_demo (2)"]
+
+annotation PBI_ProTooling = ["TMDLView_Desktop","DevMode","CalcGroup"]
+
+ref table 'Sales Demo'
+ref table Calender
+ref table Parameter
+ref table gantt_demo_daten
+ref table guv_wasserfall_demo
+ref table 'GuV Bruecke'
+ref table dim-konten
+ref table fact-guv
+ref table dim-produkt
+ref table dim-markt
+ref table dim-szenario
+ref table dim-kpi
+ref table dim-ort
+ref table dim-jahr
+ref table fact-klima
+ref table 'Parameter Tree'
+
+ref cultureInfo en-US
+

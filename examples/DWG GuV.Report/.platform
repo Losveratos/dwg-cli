@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "DWG GuV"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "abe47d51-4f28-4962-a417-ab64153a9749"
+  }
+}

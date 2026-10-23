@@ -1,0 +1,26 @@
+/// Ordner mit allen Demo-CSVs. Einziger Ort, an dem der Pfad steht — bei einer Ordnerverschiebung nur hier anpassen.
+expression DemoPfad = "C:\dwg-demo\demoData\merged\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000001
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Text
+
+expression 'guv_wasserfall_demo (2)' =
+		let
+		  Quelle = Csv.Document(File.Contents(DemoPfad & "guv-wasserfall.csv"), [Delimiter = ";", Columns = 6, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		  #"Höher gestufte Header" = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+		  #"Geänderter Spaltentyp" = Table.TransformColumnTypes(#"Höher gestufte Header", {{"Nr", Int64.Type}, {"Position", type text}, {"Typ", type text}, {"AC", type number}, {"PY", type number}, {"PL", type number}}, "en-US"),
+		    #"Added Custom" = Table.AddColumn(#"Geänderter Spaltentyp", "Company", each "Daten-WG"),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom",{{"Company", type text}}),
+		    #"Multiplied Column" = Table.TransformColumns(#"Changed Type", {{"AC", each _ * 1.342, type number}}),
+		    #"Multiplied Column1" = Table.TransformColumns(#"Multiplied Column", {{"PY", each _ * 1.243, type number}}),
+		    #"Multiplied Column2" = Table.TransformColumns(#"Multiplied Column1", {{"PL", each _ * 1.28, type number}})
+		in
+		    #"Multiplied Column2"
+	lineageTag: 0b500677-1800-425c-b235-5f07a69a53dd
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

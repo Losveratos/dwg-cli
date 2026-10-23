@@ -1,0 +1,261 @@
+table 'Sales Demo'
+	lineageTag: 497201f0-fe76-4d2d-8d2a-0b54b4d5e960
+
+	measure AC = ```
+			var _base = CALCULATE (SUM('Sales Demo'[Value]),'Sales Demo'[Scenario]="AC")
+			     var _select = SELECTEDVALUE('Sales Demo'[KPI])
+			     var _result = IF(ISBLANK(_select),CALCULATE(_base,'Sales Demo'[KPI]="Revenue"),_base)
+			     RETURN _result
+			   
+			```
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: ff414a4e-423d-4d7e-9fdb-19aa5bc2a843
+
+	measure FC = ```
+			
+			 CALCULATE(SUM('Sales Demo'[Value]),KEEPFILTERS('Sales Demo'[Scenario]="FC1"))
+			   
+			```
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: 1e94367c-114a-4588-9cc3-5fcdc7115a94
+
+	measure PY = CALCULATE([AC],DATEADD(Calender[Date],-1,YEAR))
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: f7028b30-8684-4225-8997-6e6a85b0f499
+
+	measure PL = CALCULATE(SUM('Sales Demo'[Value]),'Sales Demo'[Scenario]="PL1")
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: 3557390a-b836-4950-924b-32ef17a07a4f
+
+	measure 'AC YTD' = TOTALYTD([AC],Calender[Date])
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: 21765406-a88b-4b40-ac6c-5e99bed058d5
+
+	measure 'PY YTD' = TOTALYTD([PY],Calender[Date],Calender[Month]<8)
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: a0375ff0-c637-40fb-afad-3b7f498f68d4
+
+	measure 'PL YTD' = TOTALYTD([PL],Calender[Date],Calender[Month]<8)
+		displayFolder: _KPI
+		lineageTag: 7fac8450-c6b3-4437-8d96-6196646375d1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure DatenWG = DatenWG()
+		displayFolder: _KPI
+		lineageTag: 7a565e87-e432-4f37-8744-100774635b09
+
+	measure FC2 = ```
+			
+			 CALCULATE(SUM('Sales Demo'[Value]),KEEPFILTERS('Sales Demo'[Scenario]="FC2"))
+			   
+			```
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: a7b3f5c8-a9c1-4047-9652-be4039f4bdbd
+
+	measure FC3 = CALCULATE ( SUM ( 'Sales Demo'[Value] ), KEEPFILTERS ( 'Sales Demo'[Scenario] = "FC3" ) )
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f003
+
+	measure PL2 = CALCULATE ( SUM ( 'Sales Demo'[Value] ), KEEPFILTERS ( 'Sales Demo'[Scenario] = "PL2" ) )
+		formatString: 0
+		displayFolder: _KPI
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f004
+
+	measure 'Δ PY' = [AC] - [PY]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: _Abweichungen
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f005
+
+	measure 'Δ PY %' = DIVIDE ( [Δ PY], ABS ( [PY] ) )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: _Abweichungen
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f006
+
+	measure 'Δ PL' = [AC] - [PL]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: _Abweichungen
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f007
+
+	measure 'Δ PL %' = DIVIDE ( [Δ PL], ABS ( [PL] ) )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: _Abweichungen
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f008
+
+	measure 'Δ FC' = [FC] - [PL]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: _Abweichungen
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f009
+
+	/// Rollierende 12 Monate Ist — glättet Saisonalität, zeigt den echten Trend.
+	measure 'AC R12' =
+			CALCULATE (
+			    [AC],
+			    DATESINPERIOD ( Calender[Date], MAX ( Calender[Date] ), -12, MONTH )
+			)
+		formatString: #,##0
+		displayFolder: _Trend
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00a
+
+	/// Vormonat Ist
+	measure 'AC PM' = CALCULATE ( [AC], DATEADD ( Calender[Date], -1, MONTH ) )
+		formatString: #,##0
+		displayFolder: _Trend
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00b
+
+	measure Umsatz = CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Revenue", 'Sales Demo'[Scenario] = "AC" )
+		formatString: #,##0
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00c
+
+	measure Kosten = CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Cost", 'Sales Demo'[Scenario] = "AC" )
+		formatString: #,##0
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00d
+
+	measure Ergebnis = CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Profit", 'Sales Demo'[Scenario] = "AC" )
+		formatString: #,##0
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00e
+
+	measure 'Marge %' = DIVIDE ( [Ergebnis], [Umsatz] )
+		formatString: 0.0 %
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f00f
+
+	measure Menge = CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Units Sold", 'Sales Demo'[Scenario] = "AC" )
+		formatString: #,##0
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f010
+
+	measure 'Ø Preis' = DIVIDE ( [Umsatz], [Menge] )
+		formatString: #,##0.00
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f011
+
+	measure 'Retourenquote %' =
+			DIVIDE (
+			    CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Returned Units", 'Sales Demo'[Scenario] = "AC" ),
+			    [Menge]
+			)
+		formatString: 0.0 %
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f012
+
+	measure 'Marketingquote %' =
+			DIVIDE (
+			    CALCULATE ( SUM ( 'Sales Demo'[Value] ), 'Sales Demo'[KPI] = "Marketing Spend", 'Sales Demo'[Scenario] = "AC" ),
+			    [Umsatz]
+			)
+		formatString: 0.0 %
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f013
+
+	measure CSAT =
+			CALCULATE (
+			    AVERAGE ( 'Sales Demo'[Value] ),
+			    'Sales Demo'[KPI] = "Customer Satisfaction",
+			    'Sales Demo'[Scenario] = "AC"
+			)
+		formatString: 0.0
+		displayFolder: _Geschäft
+		lineageTag: 3557390a-b836-4950-924b-32ef1000f014
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 63d7edb4-59fb-4fd3-bd16-1a63a292dc64
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Scenario
+		dataType: string
+		lineageTag: 4b423f64-537c-4560-9d31-445b54b36241
+		summarizeBy: none
+		sourceColumn: Scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 6d387c8d-170c-409b-8e5d-7f222798276b
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: bccc7557-cf9f-4f43-84e8-6ee8d7e13f9d
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: d66a5027-5db0-491d-97b0-dedc0fa2a067
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: aa4ba211-2da3-4fc0-b2ca-22eb42097f41
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column KPI
+		dataType: string
+		lineageTag: 7bc246dd-1032-488f-936f-fe45abf73234
+		summarizeBy: none
+		sourceColumn: KPI
+
+		annotation SummarizationSetBy = Automatic
+
+	column Value
+		dataType: double
+		lineageTag: 671c5ce3-b200-4604-b60e-213d875106ee
+		summarizeBy: sum
+		sourceColumn: Value
+
+		annotation SummarizationSetBy = Automatic
+
+	column Filter = LEFT('Sales Demo'[Scenario],2)
+		lineageTag: 27aee6aa-9950-461b-8151-314a2ce9ad61
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Sales Demo' = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "sales-fact.csv"), [Delimiter = ";", Columns = 17, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Date", type date}, {"Scenario", type text}, {"Product", type text}, {"Category", type text}, {"Country", type text}, {"Region", type text}}, "en-US"),
+				    Entpivotiert = Table.UnpivotOtherColumns(Typen, {"Region", "Country", "Category", "Product", "Scenario", "Date"}, "Attribut", "Wert"),
+				    Umbenannt = Table.RenameColumns(Entpivotiert, {{"Attribut", "KPI"}, {"Wert", "Value"}}),
+				    Wertetyp = Table.TransformColumnTypes(Umbenannt, {{"Value", type number}}, "en-US")
+				in
+				    Wertetyp
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

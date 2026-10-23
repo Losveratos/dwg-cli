@@ -1,0 +1,53 @@
+table Parameter
+	lineageTag: 9bfed94d-9bae-4cb8-8abd-631009e15a04
+
+	measure 'KPI Selection' = SELECTEDVALUE('Sales Demo'[KPI],"Revenue")
+		lineageTag: 1c1d5e5b-8376-4546-a9bf-e0e1708fefed
+
+	column Parameter
+		lineageTag: 44bea335-0ef5-4c00-b1a8-fec81c5ce05e
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Parameter Reihenfolge'
+
+		relatedColumnDetails
+			groupByColumn: 'Parameter Felder'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Felder'
+		isHidden
+		lineageTag: 0123d38e-0d9f-4b34-8fc3-1ff70c2eb647
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Parameter Reihenfolge'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Reihenfolge'
+		isHidden
+		formatString: 0
+		lineageTag: 3647e87b-4b95-4c2f-88ce-7e47d9a433bd
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Parameter = calculated
+		mode: import
+		source =
+				{
+				    ("Country", NAMEOF('Sales Demo'[Country]), 0),
+				    ("Category", NAMEOF('Sales Demo'[Category]), 1),
+				    ("Product", NAMEOF('Sales Demo'[Product]), 2),
+				    ("Region", NAMEOF('Sales Demo'[Region]), 3)
+				}
+
+	annotation PBI_Id = ac5d00be9dfc4c8bab6025b04f2cdbe2
+

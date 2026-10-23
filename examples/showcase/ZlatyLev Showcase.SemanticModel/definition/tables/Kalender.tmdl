@@ -1,0 +1,75 @@
+table Kalender
+	lineageTag: c77a0b0f-3578-5da3-afe3-a0c27fcbe7f6
+	sourceLineageTag: [dbo].[kalender]
+	dataCategory: Time
+
+	column Datum
+		dataType: dateTime
+		isKey
+		formatString: dd.MM.yyyy
+		lineageTag: 2bb0a39e-e4f9-5339-a0b9-af1f3b136c07
+		sourceLineageTag: Datum
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column Jahr
+		dataType: int64
+		formatString: 0
+		lineageTag: fb1f7e7b-d289-5ebf-afab-f0d16c368e47
+		sourceLineageTag: Jahr
+		summarizeBy: none
+		sourceColumn: Jahr
+
+	column Monat
+		dataType: int64
+		formatString: 0
+		lineageTag: f0061fd3-1914-51e5-bb7a-0c4731f686e7
+		sourceLineageTag: Monat
+		summarizeBy: none
+		sourceColumn: Monat
+
+	column Monatsname
+		dataType: string
+		lineageTag: a9d75572-9f2c-5718-8539-31a9f92decf4
+		sourceLineageTag: Monatsname
+		summarizeBy: none
+		sourceColumn: Monatsname
+		sortByColumn: Monat
+
+	/// Jahr und Monat als Text (2026-01), Periodenspalte für das P&L-Visual.
+	column Periode
+		dataType: string
+		lineageTag: 80850d84-2033-5a3d-ac66-7a7b883ff2be
+		sourceLineageTag: Periode
+		summarizeBy: none
+		sourceColumn: Periode
+
+	column Quartal
+		dataType: string
+		lineageTag: 105b18c2-aefc-5f49-9ffb-eb1267e1058f
+		sourceLineageTag: Quartal
+		summarizeBy: none
+		sourceColumn: Quartal
+
+	column 'Jahr Quartal'
+		dataType: string
+		lineageTag: 3476a0e8-b4a3-5197-b13b-8e765ae7ce06
+		sourceLineageTag: JahrQuartal
+		summarizeBy: none
+		sourceColumn: JahrQuartal
+
+	/// WAHR bis zum letzten Ist-Monat (August 2026), danach FALSCH.
+	column Ist
+		dataType: boolean
+		lineageTag: e1c7b829-abc0-517a-8661-4963ee173af8
+		sourceLineageTag: Ist
+		summarizeBy: none
+		sourceColumn: Ist
+
+	partition Kalender = entity
+		mode: directLake
+		source
+			entityName: kalender
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

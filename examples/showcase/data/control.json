@@ -1,0 +1,53 @@
+{
+  "rows": {
+    "fakten": 28248,
+    "fakten2026": 14124,
+    "kombinationen": 107
+  },
+  "2026": {
+    "GuV AC": 58417579.0,
+    "GuV PY": 80712013.0,
+    "GuV PL": 87158043.0,
+    "GuV FC": 85431330.0,
+    "GuV FC FY": 85431330.0,
+    "GuV PL FY": 87158043.0,
+    "Umsatz AC": 27527603.0,
+    "Umsatz PY": 38527414.0,
+    "Umsatz PL": 41684991.0,
+    "Umsatz FC": 40167091.0,
+    "Umsatz PY bis Ist": 26356201.0,
+    "Umsatz PL bis Ist": 28640106.0,
+    "Wareneinsatz AC": 13026379.0,
+    "Kosten AC": 26212364.0,
+    "EBIT AC": 1315239.0,
+    "EBIT PL bis Ist": 2507660.0,
+    "Absatz hl AC": 279545.3,
+    "Absatz hl PL bis Ist": 288695.4,
+    "Logistik AC": 2624524.0,
+    "Logistik PL bis Ist": 2202956.0,
+    "DB AC": 14501224.0,
+    "DB-Marge % AC": 0.5267884748265224
+  },
+  "2025": {
+    "Umsatz AC": 38527414.0,
+    "Umsatz PL": 38862885.0,
+    "EBIT AC": 2422583.0,
+    "Absatz hl AC": 399360.7
+  },
+  "Geschichten Jan bis Aug 2026": {
+    "Region Polen": {
+      "Umsatz AC": 1592019.0,
+      "Umsatz PL": 1343114.0,
+      "Umsatz PY": 1177685.0
+    },
+    "Praha Premium 13°": {
+      "Umsatz AC": 3120117.0,
+      "Umsatz PL": 4272360.0,
+      "Umsatz PY": 4077418.0
+    },
+    "Logistik": {
+      "AC": 2624524.0,
+      "PL": 2202956.0
+    }
+  }
+}

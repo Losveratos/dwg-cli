@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "ZlatyLev Showcase"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "5d0c3a8e-6f1b-4c2a-9e47-2a1b8c7d9e01"
+  }
+}

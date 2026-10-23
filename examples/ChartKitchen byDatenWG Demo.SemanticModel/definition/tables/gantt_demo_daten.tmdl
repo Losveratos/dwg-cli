@@ -1,0 +1,112 @@
+table gantt_demo_daten
+	lineageTag: c89b35d2-7743-4570-82bd-05ebfea9509c
+
+	column id
+		dataType: string
+		lineageTag: cd86a23e-98e6-46a1-a0de-e3c9e1b5ae59
+		summarizeBy: none
+		sourceColumn: id
+
+		annotation SummarizationSetBy = Automatic
+
+	column typ
+		dataType: string
+		lineageTag: 78189d73-98c4-49cf-ac90-b8a687b06693
+		summarizeBy: none
+		sourceColumn: typ
+
+		annotation SummarizationSetBy = Automatic
+
+	column phase_id
+		dataType: string
+		lineageTag: 294c9794-66a1-444d-a859-61146ae3c99e
+		summarizeBy: none
+		sourceColumn: phase_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column phase
+		dataType: string
+		lineageTag: f77d2216-abe6-4f02-b851-6c9014bd478a
+		summarizeBy: none
+		sourceColumn: phase
+
+		annotation SummarizationSetBy = Automatic
+
+	column name
+		dataType: string
+		lineageTag: 118c6316-b5c7-4380-9a61-0645878e2d7a
+		summarizeBy: none
+		sourceColumn: name
+
+		annotation SummarizationSetBy = Automatic
+
+	column start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 6f0e4d8f-c015-4ff2-9b01-d82d0ad81f52
+		summarizeBy: none
+		sourceColumn: start
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ende
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b9a3e5d6-a82e-496b-bb73-7f9b67e2281b
+		summarizeBy: none
+		sourceColumn: ende
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fortschritt_pct
+		dataType: int64
+		formatString: 0
+		lineageTag: 62a85dad-3847-400f-859c-d5a4b2cfcef9
+		summarizeBy: sum
+		sourceColumn: fortschritt_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		lineageTag: 3dd88bc7-0c2f-4813-8ad1-dc62b3fd16d9
+		summarizeBy: none
+		sourceColumn: status
+
+		annotation SummarizationSetBy = Automatic
+
+	column verantwortlich
+		dataType: string
+		lineageTag: 8a19f3f1-4d95-489a-906a-e8d9840d7298
+		summarizeBy: none
+		sourceColumn: verantwortlich
+
+		annotation SummarizationSetBy = Automatic
+
+	column abhaengigkeiten
+		dataType: string
+		lineageTag: 804538f0-98c0-46e6-add4-a96f2c1cc4d0
+		summarizeBy: none
+		sourceColumn: abhaengigkeiten
+
+		annotation SummarizationSetBy = Automatic
+
+	partition gantt_demo_daten = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "gantt.csv"), [Delimiter = ";", Columns = 11, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"start", type date}, {"ende", type date}, {"fortschritt_pct", Int64.Type}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

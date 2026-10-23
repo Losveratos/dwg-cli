@@ -1,0 +1,86 @@
+/// Produktdimension des Sales-Sterns.
+table dim-produkt
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000100
+
+	/// Join-Schluessel auf Sales Demo[Product].
+	column Product
+		dataType: string
+		isKey
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000101
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProduktID
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000102
+		summarizeBy: none
+		sourceColumn: ProduktID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000103
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Produktlinie
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000104
+		summarizeBy: none
+		sourceColumn: Produktlinie
+
+		annotation SummarizationSetBy = Automatic
+
+	column Einfuehrung
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000105
+		summarizeBy: none
+		sourceColumn: Einfuehrung
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Zielmarge_pct
+		dataType: double
+		formatString: 0.0 %
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000106
+		summarizeBy: none
+		sourceColumn: Zielmarge_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column Lebenszyklus
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000107
+		summarizeBy: none
+		sourceColumn: Lebenszyklus
+
+		annotation SummarizationSetBy = Automatic
+
+	column Farbe
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000108
+		summarizeBy: none
+		sourceColumn: Farbe
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-produkt = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-produkt.csv"), [Delimiter = ";", Columns = 8, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Product", type text}, {"ProduktID", type text}, {"Category", type text}, {"Produktlinie", type text}, {"Einfuehrung", type date}, {"Zielmarge_pct", type number}, {"Lebenszyklus", type text}, {"Farbe", type text}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

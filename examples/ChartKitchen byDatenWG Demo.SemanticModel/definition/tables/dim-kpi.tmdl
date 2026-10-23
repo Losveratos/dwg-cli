@@ -1,0 +1,69 @@
+/// KPI-Dimension: beschreibt die entpivotierten Kennzahlen der Faktentabelle.
+table dim-kpi
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000130
+
+	column KPI
+		dataType: string
+		isKey
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000131
+		summarizeBy: none
+		sourceColumn: KPI
+		sortByColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	column KPI_Gruppe
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000132
+		summarizeBy: none
+		sourceColumn: KPI_Gruppe
+
+		annotation SummarizationSetBy = Automatic
+
+	column Einheit
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000133
+		summarizeBy: none
+		sourceColumn: Einheit
+
+		annotation SummarizationSetBy = Automatic
+
+	column Format
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000134
+		summarizeBy: none
+		sourceColumn: Format
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Steuert die Ampellogik in Abweichungsvisuals.
+	column HoeherIstBesser
+		dataType: boolean
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000135
+		summarizeBy: none
+		sourceColumn: HoeherIstBesser
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sortierung
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000136
+		summarizeBy: none
+		sourceColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-kpi = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-kpi.csv"), [Delimiter = ";", Columns = 6, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"KPI", type text}, {"KPI_Gruppe", type text}, {"Einheit", type text}, {"Format", type text}, {"HoeherIstBesser", type logical}, {"Sortierung", Int64.Type}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

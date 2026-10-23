@@ -1,0 +1,85 @@
+table guv_wasserfall_demo
+	lineageTag: 25faf69d-bd57-47c4-951d-09b9642652f6
+
+	column Nr
+		dataType: int64
+		formatString: 0
+		lineageTag: 8f5ed399-e0c2-4930-a0c4-0f28236ffd4c
+		summarizeBy: sum
+		sourceColumn: Nr
+
+		annotation SummarizationSetBy = Automatic
+
+	column Position
+		dataType: string
+		lineageTag: 975e9765-bde1-4864-a05f-4bf4500087d2
+		summarizeBy: none
+		sourceColumn: Position
+		sortByColumn: Nr
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Typ
+		dataType: string
+		lineageTag: 41a3461d-3afa-4844-8b95-1b0c783052f1
+		summarizeBy: none
+		sourceColumn: Typ
+
+		annotation SummarizationSetBy = Automatic
+
+	column AC
+		dataType: double
+		lineageTag: 2a9bf29a-6f45-4eea-bb28-9557f73b480c
+		summarizeBy: sum
+		sourceColumn: AC
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PY
+		dataType: double
+		lineageTag: c56e53c0-b9b2-47ed-a02a-f0e0de016456
+		summarizeBy: sum
+		sourceColumn: PY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PL
+		dataType: double
+		lineageTag: f58b2fdb-8dc8-4bdd-ac5e-98fd770e0fdb
+		summarizeBy: sum
+		sourceColumn: PL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Company
+		dataType: string
+		lineageTag: c3e30b7e-f2ec-4672-9256-2bf941e19182
+		summarizeBy: none
+		sourceColumn: Company
+
+		annotation SummarizationSetBy = Automatic
+
+	partition guv_wasserfall_demo = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "guv-wasserfall.csv"), [Delimiter = ";", Columns = 6, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Nr", Int64.Type}, {"Position", type text}, {"Typ", type text}, {"AC", type number}, {"PY", type number}, {"PL", type number}}, "en-US"),
+				    Angehaengt = Table.Combine({Typen, #"guv_wasserfall_demo (2)"}),
+				    Firma = Table.ReplaceValue(Angehaengt, null, "Knowledgekitchen", Replacer.ReplaceValue, {"Company"})
+				in
+				    Firma
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

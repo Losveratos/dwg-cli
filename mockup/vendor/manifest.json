@@ -1,0 +1,50 @@
+{
+  "note": "Erzeugt von `dwg mockup build`. Quelle ist das Kitchen-Repo (PowerBI-Kitchen-), nicht von Hand ändern.",
+  "kitchen": {
+    "branch": "feat/mockup-pixelgrid",
+    "commit": "c7cf7859e9fc11a316bad283a432872a16d422ba",
+    "dirty": false
+  },
+  "files": {
+    "layout/pixelgrid.mjs": {
+      "from": "assets/mockup/pixelgrid.js",
+      "sourceSha256": "b71d0058bed11f691df87b4ed60f365d8e3cf2ab911feb9d963177795e490ed1",
+      "sha256": "46c4e053ee53ed5556511cab4722f218cda1b654131230ee8b37e34f86695edf"
+    },
+    "mockup/vendor/pixelgrid.js": {
+      "from": "assets/mockup/pixelgrid.js",
+      "sourceSha256": "b71d0058bed11f691df87b4ed60f365d8e3cf2ab911feb9d963177795e490ed1",
+      "sha256": "b71d0058bed11f691df87b4ed60f365d8e3cf2ab911feb9d963177795e490ed1"
+    },
+    "layout/pixelgrid.d.ts": {
+      "from": "assets/mockup/pixelgrid.d.ts",
+      "sourceSha256": "395d4da106640727f3006f0dd5749ac148a694a5133e7a11ad9b348b0040312c",
+      "sha256": "395d4da106640727f3006f0dd5749ac148a694a5133e7a11ad9b348b0040312c"
+    },
+    "mockup/vendor/gridcheck.js": {
+      "from": "assets/mockup/gridcheck.js",
+      "sourceSha256": "2a3a911e5f6a5e0a53250e30a942a9495c63e974bb60310a29344b799fae7e2a",
+      "sha256": "2a3a911e5f6a5e0a53250e30a942a9495c63e974bb60310a29344b799fae7e2a"
+    },
+    "mockup/vendor/a11y.js": {
+      "from": "assets/mockup/a11y.js",
+      "sourceSha256": "ad26a3fa66a2fe668a2a5f80ba9a35ce03c0a839dfa95f1007c1170cfe23b395",
+      "sha256": "ad26a3fa66a2fe668a2a5f80ba9a35ce03c0a839dfa95f1007c1170cfe23b395"
+    },
+    "mockup/vendor/skill/scripts/mockup_spec.py": {
+      "from": ".claude/skills/mockup-to-powerbi/scripts/mockup_spec.py",
+      "sourceSha256": "23dbd0695f19d7f417eea2eb37cb2a46ec5e1d2ca89a4960049a4cf7b87703c0",
+      "sha256": "23dbd0695f19d7f417eea2eb37cb2a46ec5e1d2ca89a4960049a4cf7b87703c0"
+    },
+    "mockup/vendor/skill/scripts/mockup_to_pbir.py": {
+      "from": ".claude/skills/mockup-to-powerbi/scripts/mockup_to_pbir.py",
+      "sourceSha256": "62aa04719aed4d61f1957e8b3d7e7da3eb5893585193383ab8b873e38c773236",
+      "sha256": "62aa04719aed4d61f1957e8b3d7e7da3eb5893585193383ab8b873e38c773236"
+    },
+    "mockup/vendor/skill/references/mockup-spec.schema.json": {
+      "from": ".claude/skills/mockup-to-powerbi/references/mockup-spec.schema.json",
+      "sourceSha256": "9cff77b5c9e1762b555576628945c1d00b4665e9500655ba8d5e1af2e8fdc480",
+      "sha256": "9cff77b5c9e1762b555576628945c1d00b4665e9500655ba8d5e1af2e8fdc480"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+node_modules/
+pbip/test/.schema-cache/
+visuals/src/_generated.ts
+visuals/src/visuals/_locales-*.ts
+visuals/test/out/
+visuals/demo/build/
+visuals/dist/**/*.map
+app/test/out/
+pbip/test/out/
+quickstart/
+**/out/

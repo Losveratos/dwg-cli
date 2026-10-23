@@ -1,0 +1,50 @@
+/// Jahresdimension 1850-2025 fuer den Klima-Stern (Calender beginnt erst 2020).
+table dim-jahr
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000150
+
+	column Jahr
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000151
+		summarizeBy: none
+		sourceColumn: Jahr
+
+		annotation SummarizationSetBy = Automatic
+
+	column Dekade
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000152
+		summarizeBy: none
+		sourceColumn: Dekade
+
+		annotation SummarizationSetBy = Automatic
+
+	column Jahrhundert
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000153
+		summarizeBy: none
+		sourceColumn: Jahrhundert
+
+		annotation SummarizationSetBy = Automatic
+
+	column Periode
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000154
+		summarizeBy: none
+		sourceColumn: Periode
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-jahr = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-jahr.csv"), [Delimiter = ";", Columns = 4, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Jahr", Int64.Type}, {"Dekade", type text}, {"Jahrhundert", type text}, {"Periode", type text}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

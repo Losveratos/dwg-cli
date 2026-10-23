@@ -1,0 +1,127 @@
+table Konto
+	lineageTag: 7b9a3a16-c05b-5ec8-807a-eaf95e8e5781
+	sourceLineageTag: [dbo].[konto]
+
+	column KontoID
+		dataType: string
+		isKey
+		lineageTag: ed8eda7e-ab3d-5f1a-ac68-244db99b1608
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column ParentID
+		dataType: string
+		lineageTag: 20fad5d0-8040-50ee-b38f-f96e39d3f964
+		sourceLineageTag: ParentID
+		summarizeBy: none
+		sourceColumn: ParentID
+
+	column Konto
+		dataType: string
+		lineageTag: 9f3ddb1a-6dd0-53c6-9c7a-37dcb59a1b78
+		sourceLineageTag: Konto
+		summarizeBy: none
+		sourceColumn: Konto
+
+	column L1
+		dataType: string
+		lineageTag: 37370a95-295d-55c5-8395-55f0c3576906
+		sourceLineageTag: L1
+		summarizeBy: none
+		sourceColumn: L1
+		sortByColumn: 'L1 Sort'
+
+	column 'L1 Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a6abca31-9aa7-5f94-b62f-504bd873a705
+		sourceLineageTag: L1Sort
+		summarizeBy: none
+		sourceColumn: L1Sort
+
+	column L2
+		dataType: string
+		lineageTag: 0603ca9f-0b26-59b9-b1bb-3d34c5a51807
+		sourceLineageTag: L2
+		summarizeBy: none
+		sourceColumn: L2
+		sortByColumn: SortOrder
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: 5032e33a-56ee-59c2-9f23-ca2f26d8241c
+		sourceLineageTag: SortOrder
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+	column RowType
+		dataType: string
+		lineageTag: feacc714-a2d6-5169-96ea-5ce43f639726
+		sourceLineageTag: RowType
+		summarizeBy: none
+		sourceColumn: RowType
+
+	/// Formel des P&L-Visuals über Kontonamen, Summen mit Vorzeichen.
+	column FormulaDef
+		dataType: string
+		lineageTag: 2b1b79e3-b767-5823-b67a-346432c0dd0c
+		sourceLineageTag: FormulaDef
+		summarizeBy: none
+		sourceColumn: FormulaDef
+
+	/// 1 Erlös, -1 Aufwand und Erlösminderung. Die Fakten liegen positiv vor.
+	column SignConvention
+		dataType: int64
+		formatString: 0
+		lineageTag: 8a0dddef-3491-5b38-9863-a70478f2b65d
+		sourceLineageTag: SignConvention
+		summarizeBy: none
+		sourceColumn: SignConvention
+
+	column DisplayInvert
+		dataType: string
+		lineageTag: 1b250eaf-28c0-5c04-bc95-755089c13f87
+		sourceLineageTag: DisplayInvert
+		summarizeBy: none
+		sourceColumn: DisplayInvert
+
+	column VarianceInvert
+		dataType: string
+		lineageTag: 20a57285-301d-5d11-82cb-cd26353396e9
+		sourceLineageTag: VarianceInvert
+		summarizeBy: none
+		sourceColumn: VarianceInvert
+
+	column Kommentar
+		dataType: string
+		lineageTag: 6157c50d-068d-59d3-b4b6-d59388608edf
+		sourceLineageTag: Kommentar
+		summarizeBy: none
+		sourceColumn: Kommentar
+
+	/// Erlöse oder Kosten (nur Konten).
+	column Bereich
+		dataType: string
+		lineageTag: 6b3fb4f6-1df2-5d24-9d60-1526a0027b2d
+		sourceLineageTag: Bereich
+		summarizeBy: none
+		sourceColumn: Bereich
+
+	/// sum oder delta für eine GuV-Brücke über L1.
+	column Brückentyp
+		dataType: string
+		lineageTag: d72a5203-a3fd-5a80-a443-16c6255f9109
+		sourceLineageTag: Brueckentyp
+		summarizeBy: none
+		sourceColumn: Brueckentyp
+
+	partition Konto = entity
+		mode: directLake
+		source
+			entityName: konto
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

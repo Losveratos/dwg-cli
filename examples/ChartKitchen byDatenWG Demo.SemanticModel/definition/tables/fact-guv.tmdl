@@ -1,0 +1,195 @@
+table fact-guv
+	lineageTag: 14da3e79-1217-40c0-a848-012be1536e9f
+
+	/// Ist-Werte der Konzern-GuV. Umbenannt zu "GuV AC", weil 'Sales Demo' bereits ein Measure "AC" hat.
+	measure 'GuV AC' = SUM ( 'fact-guv'[AC Wert] )
+		formatString: #,##0
+		displayFolder: 01 Basis
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00101
+
+	measure 'GuV PY' = SUM ( 'fact-guv'[PY Wert] )
+		formatString: #,##0
+		displayFolder: 01 Basis
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00102
+
+	measure 'GuV PL' = SUM ( 'fact-guv'[PL Wert] )
+		formatString: #,##0
+		displayFolder: 01 Basis
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00103
+
+	/// Rolling Forecast: entspricht dem Ist für abgeschlossene Monate, danach Prognose.
+	measure 'GuV FC' = SUM ( 'fact-guv'[FC Wert] )
+		formatString: #,##0
+		displayFolder: 01 Basis
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00106
+
+	/// FY-Skalar: steht identisch auf jeder Monatszeile — MAX statt SUM!
+	measure 'GuV FC FY' = MAX ( 'fact-guv'[FC_FY] )
+		formatString: #,##0
+		displayFolder: 02 Geschäftsjahr
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00104
+
+	/// FY-Skalar: steht identisch auf jeder Monatszeile — MAX statt SUM!
+	measure 'GuV PL FY' = MAX ( 'fact-guv'[PL_FY] )
+		formatString: #,##0
+		displayFolder: 02 Geschäftsjahr
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00105
+
+	measure 'GuV Δ PY' = [GuV AC] - [GuV PY]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: 03 Abweichungen
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00107
+
+	measure 'GuV Δ PY %' = DIVIDE ( [GuV Δ PY], ABS ( [GuV PY] ) )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: 03 Abweichungen
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00108
+
+	measure 'GuV Δ PL' = [GuV AC] - [GuV PL]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: 03 Abweichungen
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00109
+
+	measure 'GuV Δ PL %' = DIVIDE ( [GuV Δ PL], ABS ( [GuV PL] ) )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: 03 Abweichungen
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010a
+
+	measure 'GuV Δ FC' = [GuV FC] - [GuV PL]
+		formatString: +#,##0;-#,##0;0
+		displayFolder: 03 Abweichungen
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010b
+
+	measure 'GuV AC YTD' = TOTALYTD ( [GuV AC], Calender[Date] )
+		formatString: #,##0
+		displayFolder: 04 Kumuliert
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010c
+
+	measure 'GuV PY YTD' = TOTALYTD ( [GuV PY], Calender[Date] )
+		formatString: #,##0
+		displayFolder: 04 Kumuliert
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010d
+
+	measure 'GuV PL YTD' = TOTALYTD ( [GuV PL], Calender[Date] )
+		formatString: #,##0
+		displayFolder: 04 Kumuliert
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010e
+
+	/// Year to go: was laut Forecast im Rest des Geschäftsjahres noch kommt.
+	measure 'GuV YTG' = [GuV FC FY] - [GuV AC YTD]
+		formatString: #,##0
+		displayFolder: 04 Kumuliert
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0010f
+
+	/// Letzter Monat mit Ist-Werten im aktuellen Filterkontext — für "AC bis / FC ab"-Beschriftungen.
+	measure 'GuV Letzter Ist-Monat' = CALCULATE ( MAX ( 'fact-guv'[Monat] ), NOT ISBLANK ( 'fact-guv'[AC Wert] ) )
+		displayFolder: 05 Kontext
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00110
+
+	column AccountID
+		dataType: string
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00002
+		summarizeBy: none
+		sourceColumn: AccountID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Textmonat "2026-01" — Slicer- und Perioden-Spalte des Custom Visuals. Nicht umbenennen.
+	column Monat
+		dataType: string
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00003
+		summarizeBy: none
+		sourceColumn: Monat
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Monatserster — Beziehung zu Calender[Date], macht Zeitintelligenz auf der GuV möglich.
+	column Datum
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00009
+		summarizeBy: none
+		sourceColumn: Datum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'AC Wert'
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00004
+		summarizeBy: sum
+		sourceColumn: AC
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'PY Wert'
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00005
+		summarizeBy: sum
+		sourceColumn: PY
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'PL Wert'
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00006
+		summarizeBy: sum
+		sourceColumn: PL
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'FC Wert'
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a0000a
+		summarizeBy: sum
+		sourceColumn: FC
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column FC_FY
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00007
+		summarizeBy: none
+		sourceColumn: FC_FY
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column PL_FY
+		dataType: double
+		isHidden
+		lineageTag: 7c2e3b81-0d55-4f2c-9e4b-d3b2f7a00008
+		summarizeBy: none
+		sourceColumn: PL_FY
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact-guv = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "fact-guv.csv"), [Delimiter = ";", Columns = 9, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"AccountID", type text}, {"Monat", type text}, {"Datum", type date}, {"AC", type number}, {"PY", type number}, {"PL", type number}, {"FC", type number}, {"FC_FY", type number}, {"PL_FY", type number}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

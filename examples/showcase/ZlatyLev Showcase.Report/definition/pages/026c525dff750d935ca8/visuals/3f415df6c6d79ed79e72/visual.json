@@ -1,0 +1,587 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "3f415df6c6d79ed79e72",
+  "position": {
+    "x": 327,
+    "y": 275,
+    "z": 2000,
+    "width": 1566,
+    "height": 742,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "pnlByDatenWG3F9A7D2C51E64B08A1C4E7F0B92D6358",
+    "query": {
+      "queryState": {
+        "levels": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Kunde"
+                    }
+                  },
+                  "Property": "Land"
+                }
+              },
+              "queryRef": "Kunde.Land",
+              "nativeQueryRef": "Land"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Kunde"
+                    }
+                  },
+                  "Property": "Region"
+                }
+              },
+              "queryRef": "Kunde.Region",
+              "nativeQueryRef": "Region"
+            }
+          ]
+        },
+        "ac": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fakten"
+                    }
+                  },
+                  "Property": "Umsatz AC"
+                }
+              },
+              "queryRef": "Fakten.Umsatz AC",
+              "nativeQueryRef": "Umsatz AC"
+            }
+          ]
+        },
+        "py": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fakten"
+                    }
+                  },
+                  "Property": "Umsatz PY"
+                }
+              },
+              "queryRef": "Fakten.Umsatz PY",
+              "nativeQueryRef": "Umsatz PY"
+            }
+          ]
+        },
+        "pl": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fakten"
+                    }
+                  },
+                  "Property": "Umsatz PL"
+                }
+              },
+              "queryRef": "Fakten.Umsatz PL",
+              "nativeQueryRef": "Umsatz PL"
+            }
+          ]
+        },
+        "period": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Kalender"
+                    }
+                  },
+                  "Property": "Periode"
+                }
+              },
+              "queryRef": "Kalender.Periode",
+              "nativeQueryRef": "Periode"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "titleBlock": [
+        {
+          "properties": {
+            "unitLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ZLATÝ LEV Brauerei'"
+                }
+              }
+            },
+            "measureLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Nettoumsatz in Mio. EUR nach Land und Region'"
+                }
+              }
+            },
+            "periodLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Aug 2026 | Jan..Aug 2026 (YTD), AC gegen PY und PL'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columns": [
+        {
+          "properties": {
+            "template": {
+              "expr": {
+                "Literal": {
+                  "Value": "'T01B'"
+                }
+              }
+            },
+            "templateApplied": {
+              "expr": {
+                "Literal": {
+                  "Value": "'T01B'"
+                }
+              }
+            },
+            "minuend": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ac'"
+                }
+              }
+            },
+            "showPY": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showPL": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showMinuend": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "valueCascade": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyAbs": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPyBar": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyWaterfall": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyPct": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPyPin": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlAbs": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPlBar": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlWaterfall": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlPct": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPlPin": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "secondBlock": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "structureSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showPctRows": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "thresholds": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "scenarioMarks": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "chartLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "capBars": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "sort": {
+              "expr": {
+                "Literal": {
+                  "Value": "'cat'"
+                }
+              }
+            },
+            "sortBlock": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ytd'"
+                }
+              }
+            },
+            "blockKind": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ytd'"
+                }
+              }
+            },
+            "leftBlockKind": {
+              "expr": {
+                "Literal": {
+                  "Value": "'month'"
+                }
+              }
+            },
+            "pctRevenue": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "numbers": [
+        {
+          "properties": {
+            "scaling": {
+              "expr": {
+                "Literal": {
+                  "Value": "'m'"
+                }
+              }
+            },
+            "decimals": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "pctDecimals": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "hierarchy": [
+        {
+          "properties": {
+            "defaultLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showLegend": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "foldable": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "startFolded": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "style": [
+        {
+          "properties": {
+            "fontPreset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'fullhd'"
+                }
+              }
+            },
+            "density": {
+              "expr": {
+                "Literal": {
+                  "Value": "'compact'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E1DFD6'"
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,85 @@
+/// Marktdimension des Sales-Sterns, mit Geokoordinaten fuer Kartenvisuals.
+table dim-markt
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000110
+
+	/// Join-Schluessel auf Sales Demo[Country].
+	column Country
+		dataType: string
+		isKey
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000111
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000112
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column ISO2
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000113
+		summarizeBy: none
+		sourceColumn: ISO2
+
+		annotation SummarizationSetBy = Automatic
+
+	column Waehrung
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000114
+		summarizeBy: none
+		sourceColumn: Waehrung
+
+		annotation SummarizationSetBy = Automatic
+
+	column Breitengrad
+		dataType: double
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000115
+		dataCategory: Latitude
+		summarizeBy: none
+		sourceColumn: Breitengrad
+
+		annotation SummarizationSetBy = Automatic
+
+	column Laengengrad
+		dataType: double
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000116
+		dataCategory: Longitude
+		summarizeBy: none
+		sourceColumn: Laengengrad
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Bruecke zum Klima-Stern: verweist auf dim-ort[Ort].
+	column KlimaOrt
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000117
+		summarizeBy: none
+		sourceColumn: KlimaOrt
+
+		annotation SummarizationSetBy = Automatic
+
+	column Marktreife
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000118
+		summarizeBy: none
+		sourceColumn: Marktreife
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-markt = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-markt.csv"), [Delimiter = ";", Columns = 8, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Country", type text}, {"Region", type text}, {"ISO2", type text}, {"Waehrung", type text}, {"Breitengrad", type number}, {"Laengengrad", type number}, {"KlimaOrt", type text}, {"Marktreife", type text}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

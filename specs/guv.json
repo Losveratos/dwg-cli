@@ -1,0 +1,179 @@
+{
+  "name": "DWG GuV",
+  "about": "Konzern-GuV auf dem Modell ChartKitchen byDatenWG Demo (Konnektor guv), nur mit den vorhandenen Measures: GuV-Statement und GuV-Baum mit dem P&L Statement byDatenWG. Ist gibt es bis August 2026, deshalb filtern beide Seiten auf Januar bis August 2026 (YTD, Ist und Plan über denselben Zeitraum), dazu der FY-Ausblick (FC FY, PL FY). Keine Monatsspalten: 5.000 Konten mal 12 Monate sprengen das Limit der executeQuery-API (1 Mio. Werte, 15 MB). Jedes Konto hat Faktenzeilen (auch Summen und Formeln mit 0), daher ohne ADDMISSINGITEMS. Eine Übersicht mit ChartKitchen-Karten je GuV-Block bräuchte Measures mit Vorzeichen und eine Sortierspalte für L1 im Modell; bewusst weggelassen, damit das Modell im Workspace unverändert bleibt. Alle Zahlen sind Demodaten.",
+  "pages": [
+    {
+      "name": "GuV Statement",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "filters": [
+        {
+          "column": "'Calender'[Year]",
+          "values": [
+            2026
+          ]
+        },
+        {
+          "column": "'Calender'[Month]",
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ],
+      "tiles": [
+        {
+          "id": "statement",
+          "visual": "pnl",
+          "rect": [
+            24,
+            24,
+            1872,
+            1032
+          ],
+          "bindings": {
+            "levels": [
+              "'dim-konten'[L1]",
+              "'dim-konten'[L2]",
+              "'dim-konten'[L3]",
+              "'dim-konten'[L4]",
+              "'dim-konten'[L5]",
+              "'dim-konten'[L6]"
+            ],
+            "account": "'dim-konten'[AccountID]",
+            "accountName": "'dim-konten'[Name]",
+            "sortOrder": "'dim-konten'[SortOrder]",
+            "rowType": "'dim-konten'[RowType]",
+            "formulaDef": "'dim-konten'[FormulaDef]",
+            "signConvention": "'dim-konten'[SignConvention]",
+            "displayInvert": "'dim-konten'[DisplayInvert]",
+            "varianceInvert": "'dim-konten'[VarianceInvert]",
+            "comment": "'dim-konten'[Kommentar]",
+            "ac": "'fact-guv'[GuV AC]",
+            "py": "'fact-guv'[GuV PY]",
+            "pl": "'fact-guv'[GuV PL]",
+            "fc": "'fact-guv'[GuV FC]",
+            "fcFy": "'fact-guv'[GuV FC FY]",
+            "plFy": "'fact-guv'[GuV PL FY]"
+          },
+          "objects": {
+            "titleBlock": {
+              "unitLine": "Daten-WG Knowledgekitchen Group · Konzern",
+              "measureLine": "GuV in Mio. EUR",
+              "periodLine": "Jan bis Aug 2026 (YTD), FY-Ausblick"
+            },
+            "columns": {
+              "preset": "acpldpl",
+              "reference": "pl"
+            },
+            "numbers": {
+              "scaling": "m"
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact",
+              "colorMode": "teal"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "GuV Baum",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "filters": [
+        {
+          "column": "'Calender'[Year]",
+          "values": [
+            2026
+          ]
+        },
+        {
+          "column": "'Calender'[Month]",
+          "values": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ],
+      "tiles": [
+        {
+          "id": "baum",
+          "visual": "pnl",
+          "rect": [
+            24,
+            24,
+            1872,
+            1032
+          ],
+          "bindings": {
+            "levels": [
+              "'dim-konten'[L1]",
+              "'dim-konten'[L2]",
+              "'dim-konten'[L3]",
+              "'dim-konten'[L4]",
+              "'dim-konten'[L5]",
+              "'dim-konten'[L6]"
+            ],
+            "account": "'dim-konten'[AccountID]",
+            "accountName": "'dim-konten'[Name]",
+            "sortOrder": "'dim-konten'[SortOrder]",
+            "rowType": "'dim-konten'[RowType]",
+            "formulaDef": "'dim-konten'[FormulaDef]",
+            "signConvention": "'dim-konten'[SignConvention]",
+            "displayInvert": "'dim-konten'[DisplayInvert]",
+            "varianceInvert": "'dim-konten'[VarianceInvert]",
+            "comment": "'dim-konten'[Kommentar]",
+            "ac": "'fact-guv'[GuV AC]",
+            "py": "'fact-guv'[GuV PY]",
+            "pl": "'fact-guv'[GuV PL]",
+            "fc": "'fact-guv'[GuV FC]",
+            "fcFy": "'fact-guv'[GuV FC FY]",
+            "plFy": "'fact-guv'[GuV PL FY]"
+          },
+          "objects": {
+            "titleBlock": {
+              "unitLine": "Daten-WG Knowledgekitchen Group · Konzern",
+              "measureLine": "GuV als Werttreiberbaum in Mio. EUR",
+              "periodLine": "Jan bis Aug 2026 (YTD), AC gegen PL"
+            },
+            "state": {
+              "uiState": "{\"view\":\"tree\",\"preset\":\"acref\",\"ref\":\"pl\",\"unit\":\"m\",\"density\":\"compact\",\"pctRev\":false,\"hideZero\":true,\"fit\":false,\"collapsed\":[],\"spark\":[],\"treeRoot\":\"\",\"treeCollapsed\":[\"F-GP\",\"L:Operating expenses\",\"L:Other operating result\",\"L:Depreciation & amortization\",\"L:Financial result\",\"L:Income taxes\",\"L:Net revenue¦Industrial Automation\",\"L:Net revenue¦Energy Systems\",\"L:Net revenue¦Mobility Solutions\",\"L:Net revenue¦Digital Services\"],\"treeStatus\":true,\"treeV\":2}"
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "showLevels": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "colorMode": "teal"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

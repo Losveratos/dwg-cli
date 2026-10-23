@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "ZlatyLev Showcase"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f6fbe1eb-be7e-4d6b-b874-835154ea92e5"
+  }
+}

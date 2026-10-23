@@ -1,0 +1,82 @@
+/// Waermestreifen-Faktentabelle: 60 Orte x 176 Jahre.
+table fact-klima
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000170
+
+	/// Mittlere Temperaturabweichung gegenueber der Referenzperiode 1961-1990.
+	measure 'Anomalie Ø' = AVERAGE ( 'fact-klima'[AnomalieC] )
+		formatString: +0.00 "°C";-0.00 "°C";0.00 "°C"
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000161
+
+	measure 'Anomalie max' = MAX ( 'fact-klima'[AnomalieC] )
+		formatString: +0.00 "°C";-0.00 "°C";0.00 "°C"
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000162
+
+	measure 'Temperatur Ø' = AVERAGE ( 'fact-klima'[TemperaturC] )
+		formatString: 0.0 "°C"
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000163
+
+	/// Erwaermung gegenueber dem Mittel 1850-1900 (vorindustrielle Basis).
+	measure 'Erwaermung ggue. vorindustriell' =
+			VAR _Basis =
+			    CALCULATE ( AVERAGE ( 'fact-klima'[AnomalieC] ), ALL ( 'dim-jahr' ), 'dim-jahr'[Jahr] <= 1900 )
+			RETURN
+			    [Anomalie Ø] - _Basis
+		formatString: +0.00 "°C";-0.00 "°C";0.00 "°C"
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000164
+
+	column OrtID
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000171
+		summarizeBy: none
+		sourceColumn: OrtID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Jahr
+		dataType: int64
+		formatString: 0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000172
+		summarizeBy: none
+		sourceColumn: Jahr
+
+		annotation SummarizationSetBy = Automatic
+
+	column AnomalieC
+		dataType: double
+		formatString: 0.00
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000173
+		summarizeBy: sum
+		sourceColumn: AnomalieC
+
+		annotation SummarizationSetBy = Automatic
+
+	column TemperaturC
+		dataType: double
+		formatString: 0.0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000174
+		summarizeBy: sum
+		sourceColumn: TemperaturC
+
+		annotation SummarizationSetBy = Automatic
+
+	column Anomalie_gleitend_10J
+		dataType: double
+		formatString: 0.00
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000175
+		summarizeBy: sum
+		sourceColumn: Anomalie_gleitend_10J
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact-klima = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "fact-klima.csv"), [Delimiter = ";", Columns = 5, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"OrtID", type text}, {"Jahr", Int64.Type}, {"AnomalieC", type number}, {"TemperaturC", type number}, {"Anomalie_gleitend_10J", type number}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

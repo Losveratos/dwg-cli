@@ -1,0 +1,56 @@
+table Kunde
+	lineageTag: 7df51d2b-9281-511c-bc6b-dd9bd343080e
+	sourceLineageTag: [dbo].[kunde]
+
+	column KundeID
+		dataType: string
+		isKey
+		lineageTag: 967c4629-1020-56b8-99ad-ba9290227625
+		sourceLineageTag: KundeID
+		summarizeBy: none
+		sourceColumn: KundeID
+
+	column Kunde
+		dataType: string
+		lineageTag: 0622a399-d5fc-5053-9a3c-7063737c4bd4
+		sourceLineageTag: Kunde
+		summarizeBy: none
+		sourceColumn: Kunde
+
+	column Kanal
+		dataType: string
+		lineageTag: df15d532-76fb-5d6f-8551-0d4c95fdbe7f
+		sourceLineageTag: Kanal
+		summarizeBy: none
+		sourceColumn: Kanal
+		sortByColumn: 'Kanal Sort'
+
+	column 'Kanal Sort'
+		dataType: int64
+		isHidden
+		lineageTag: 01d9adb0-ebfe-50d5-bbf9-bd609e63f06f
+		sourceLineageTag: KanalSort
+		summarizeBy: none
+		sourceColumn: KanalSort
+
+	column Region
+		dataType: string
+		lineageTag: 3134a4d3-0027-5a61-bdfb-e1652a6f2ec8
+		sourceLineageTag: Region
+		summarizeBy: none
+		sourceColumn: Region
+
+	column Land
+		dataType: string
+		lineageTag: f7600230-a49b-5799-9c42-c7dbce9a6507
+		sourceLineageTag: Land
+		summarizeBy: none
+		sourceColumn: Land
+
+	partition Kunde = entity
+		mode: directLake
+		source
+			entityName: kunde
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

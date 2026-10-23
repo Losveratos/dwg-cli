@@ -1,0 +1,55 @@
+table 'Parameter Tree'
+	lineageTag: 99a28d77-8dcc-466a-9050-0f6452826645
+
+	column Parameter
+		lineageTag: 07feb2c6-54f9-458a-a32f-85b571cb4563
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Parameter Reihenfolge'
+
+		relatedColumnDetails
+			groupByColumn: 'Parameter Felder'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Felder'
+		isHidden
+		lineageTag: 3c9592d5-6a1e-476f-a546-b3642edb4fc6
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Parameter Reihenfolge'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Parameter Reihenfolge'
+		isHidden
+		formatString: 0
+		lineageTag: eba6d30f-dcd9-4d2a-828b-85bfe7d0bb94
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Parameter Tree' = calculated
+		mode: import
+		source =
+				{
+				    ("Country", NAMEOF('dim-markt'[Country]), 0),
+				    ("Marktreife", NAMEOF('dim-markt'[Marktreife]), 1),
+				    ("Region", NAMEOF('dim-markt'[Region]), 2),
+				    ("Category", NAMEOF('dim-produkt'[Category]), 3),
+				    ("Produktlinie", NAMEOF('dim-produkt'[Produktlinie]), 4),
+				    ("Product", NAMEOF('dim-produkt'[Product]), 5),
+				    ("Klimazone", NAMEOF('dim-ort'[Klimazone]), 6),
+				    ("Ort", NAMEOF('dim-ort'[Ort]), 7),
+				    ("Region", NAMEOF('dim-ort'[Region]), 8)
+				}
+
+	annotation PBI_Id = c149cb7b62b54aa09368abcb546b3562
+

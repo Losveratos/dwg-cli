@@ -1,0 +1,71 @@
+/// Szenariodimension mit IBCS-Notation.
+table dim-szenario
+	lineageTag: a1b2c3d4-0000-4000-8000-000000000120
+
+	column Scenario
+		dataType: string
+		isKey
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000121
+		summarizeBy: none
+		sourceColumn: Scenario
+		sortByColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	column Szenario_Name
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000122
+		summarizeBy: none
+		sourceColumn: Szenario_Name
+		sortByColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	column Szenario_Kurz
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000123
+		summarizeBy: none
+		sourceColumn: Szenario_Kurz
+		sortByColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	/// IBCS-Szenarionotation: AC / PL / FC / PY.
+	column IBCS
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000124
+		summarizeBy: none
+		sourceColumn: IBCS
+
+		annotation SummarizationSetBy = Automatic
+
+	column Typ
+		dataType: string
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000125
+		summarizeBy: none
+		sourceColumn: Typ
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sortierung
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a1b2c3d4-0000-4000-8000-000000000126
+		summarizeBy: none
+		sourceColumn: Sortierung
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim-szenario = m
+		mode: import
+		source =
+				let
+				    Quelle = Csv.Document(File.Contents(DemoPfad & "dim-szenario.csv"), [Delimiter = ";", Columns = 6, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Header = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),
+				    Typen = Table.TransformColumnTypes(Header, {{"Scenario", type text}, {"Szenario_Name", type text}, {"Szenario_Kurz", type text}, {"IBCS", type text}, {"Typ", type text}, {"Sortierung", Int64.Type}}, "en-US")
+				in
+				    Typen
+
+	annotation PBI_ResultType = Table
+

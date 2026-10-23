@@ -1,0 +1,2610 @@
+{
+  "meta": {
+    "tool": "MockupKitchen byDatenWG",
+    "version": "0.6.2",
+    "specVersion": 3,
+    "specHash": "10e58a47",
+    "name": "ZLATÝ LEV Vertrieb",
+    "lang": "de",
+    "exportedAt": "2026-10-20T08:00:00.000Z",
+    "skill": "mockup-to-powerbi"
+  },
+  "report": {
+    "name": "ZLATÝ LEV Vertrieb",
+    "audience": "Vertriebsleitung",
+    "purpose": "Monatsgespräch Vertrieb: Umsatz, Absatz und GuV gegen Plan.",
+    "decision": "Maßnahmen je Region festlegen",
+    "participants": "",
+    "version": "0.1",
+    "dataDate": ""
+  },
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "preset": "1920x1080",
+    "uiScale": 1.5,
+    "pixel": {
+      "mode": "lattice",
+      "n": 12,
+      "pitchX": 132,
+      "pitchY": 77,
+      "gutter": 18,
+      "margins": {
+        "l": 27,
+        "r": 27,
+        "t": 27,
+        "b": 27
+      },
+      "exact": true
+    }
+  },
+  "spacing": {
+    "margin": 24,
+    "gutter": 18,
+    "tilePadding": 12,
+    "base": {
+      "margin": 16,
+      "gutter": 12,
+      "tilePadding": 8
+    }
+  },
+  "design": {
+    "nativePalette": "neutral",
+    "cornerRadius": 12,
+    "tileStyle": "border",
+    "pageBackground": "#F4F4F1",
+    "tileBackground": "#FFFFFF",
+    "headerStyle": "light",
+    "accent": "#C25A2D",
+    "variancePalette": "teal",
+    "varianceColors": {
+      "good": "#1E8F9E",
+      "bad": "#D64541"
+    },
+    "colors": {
+      "pageBackground": "#F4F4F1",
+      "tileBackground": "#FFFFFF",
+      "ink": "#0F1E2E",
+      "headerBackground": "#FFFFFF",
+      "headerInk": "#0F1E2E"
+    },
+    "darkMode": false,
+    "fontScale": 1.5,
+    "typography": {
+      "basis": "1280px",
+      "scale": 1,
+      "title": 12,
+      "sub": 9.5,
+      "chart": 9
+    }
+  },
+  "zones": {
+    "header": {
+      "x": 0,
+      "y": 0,
+      "w": 1920,
+      "h": 84,
+      "style": "light",
+      "logoPos": "left",
+      "title": "ZLATÝ LEV Vertrieb",
+      "subtitle": "Ist Jan bis Aug 2026",
+      "nav": [
+        "Umsatz und Absatz",
+        "GuV"
+      ],
+      "navOn": true,
+      "navPosition": "header",
+      "navAuto": true,
+      "burger": false
+    },
+    "footer": {
+      "x": 0,
+      "y": 1044,
+      "w": 1920,
+      "h": 36,
+      "text": "Stand: 18.09.2026 · Quelle: DWH · Kontakt: Controlling",
+      "nav": [],
+      "navPosition": "header"
+    },
+    "filter": {
+      "x": 0,
+      "y": 84,
+      "w": 300,
+      "h": 960,
+      "mode": "left",
+      "side": "left",
+      "collapsible": false,
+      "heading": null,
+      "text": null,
+      "slicers": [
+        {
+          "table": "Kalender",
+          "name": "Jahr",
+          "kind": "column",
+          "ref": "Kalender.Jahr",
+          "isNew": false,
+          "default": "2026",
+          "type": "dropdown"
+        },
+        {
+          "table": "Produkt",
+          "name": "Sorte",
+          "kind": "column",
+          "ref": "Produkt.Sorte",
+          "isNew": false,
+          "default": null,
+          "type": "list"
+        }
+      ]
+    },
+    "content": {
+      "x": 327,
+      "y": 111,
+      "w": 1566,
+      "h": 906
+    }
+  },
+  "pages": [
+    {
+      "id": "p1",
+      "index": 1,
+      "name": "Umsatz und Absatz",
+      "role": "nav",
+      "hidden": false,
+      "question": "Wo liegen Umsatz, Absatz und Deckungsbeitrag gegenüber Plan, und welche Region treibt die Abweichung?",
+      "notes": "",
+      "contentRect": {
+        "x": 327,
+        "y": 111,
+        "w": 1566,
+        "h": 906
+      },
+      "visuals": [
+        {
+          "id": "mk_kpiU",
+          "stableId": "kpiU",
+          "slug": "Umsatz",
+          "page": "Umsatz und Absatz",
+          "kind": "kpi",
+          "label": "KPI-Kachel (ChartKitchen)",
+          "engine": "ck",
+          "chartKitchenType": "kpi",
+          "chartKitchenMode": "cards",
+          "native": {
+            "type": "card",
+            "buckets": {
+              "Values": [
+                {
+                  "ref": "Fakten.Umsatz AC",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "Umsatz",
+          "titleShown": true,
+          "displayName": "Umsatz",
+          "subtitle": "",
+          "content": "",
+          "scenario": null,
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PL",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PL"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PL",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [],
+              "marker": [],
+              "delta": [
+                "abs",
+                "rel"
+              ],
+              "deltaBasis": "PL",
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": "M",
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 327,
+            "y": 111,
+            "w": 510,
+            "h": 213
+          },
+          "cell": {
+            "x": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                3
+              ]
+            ],
+            "y": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                4
+              ]
+            ]
+          },
+          "roles": {
+            "indicator": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz AC",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz AC",
+                "isNew": false
+              }
+            ],
+            "goal": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz PL bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz PL bis Ist",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        },
+        {
+          "id": "mk_kpiA",
+          "stableId": "kpiA",
+          "slug": "Absatz_hl",
+          "page": "Umsatz und Absatz",
+          "kind": "kpi",
+          "label": "KPI-Kachel (ChartKitchen)",
+          "engine": "ck",
+          "chartKitchenType": "kpi",
+          "chartKitchenMode": "cards",
+          "native": {
+            "type": "card",
+            "buckets": {
+              "Values": [
+                {
+                  "ref": "Fakten.Absatz hl AC",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "Absatz hl",
+          "titleShown": true,
+          "displayName": "Absatz hl",
+          "subtitle": "",
+          "content": "",
+          "scenario": null,
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PL",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PL"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PL",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [],
+              "marker": [],
+              "delta": [
+                "abs",
+                "rel"
+              ],
+              "deltaBasis": "PL",
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": "M",
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 855,
+            "y": 111,
+            "w": 510,
+            "h": 213
+          },
+          "cell": {
+            "x": [
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "y": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                4
+              ]
+            ]
+          },
+          "roles": {
+            "indicator": [
+              {
+                "table": "Fakten",
+                "name": "Absatz hl AC",
+                "kind": "measure",
+                "ref": "Fakten.Absatz hl AC",
+                "isNew": false
+              }
+            ],
+            "goal": [
+              {
+                "table": "Fakten",
+                "name": "Absatz hl PL bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.Absatz hl PL bis Ist",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        },
+        {
+          "id": "mk_kpiD",
+          "stableId": "kpiD",
+          "slug": "Deckungsbeitrag",
+          "page": "Umsatz und Absatz",
+          "kind": "kpi",
+          "label": "KPI-Kachel (ChartKitchen)",
+          "engine": "ck",
+          "chartKitchenType": "kpi",
+          "chartKitchenMode": "cards",
+          "native": {
+            "type": "card",
+            "buckets": {
+              "Values": [
+                {
+                  "ref": "Fakten.DB AC",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "Deckungsbeitrag",
+          "titleShown": true,
+          "displayName": "Deckungsbeitrag",
+          "subtitle": "",
+          "content": "",
+          "scenario": null,
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PL",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PL"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PL",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [],
+              "marker": [],
+              "delta": [
+                "abs",
+                "rel"
+              ],
+              "deltaBasis": "PL",
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": "M",
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 1383,
+            "y": 111,
+            "w": 510,
+            "h": 213
+          },
+          "cell": {
+            "x": [
+              [
+                2,
+                3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "y": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                4
+              ]
+            ]
+          },
+          "roles": {
+            "indicator": [
+              {
+                "table": "Fakten",
+                "name": "DB AC",
+                "kind": "measure",
+                "ref": "Fakten.DB AC",
+                "isNew": false
+              }
+            ],
+            "goal": [
+              {
+                "table": "Fakten",
+                "name": "DB PL bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.DB PL bis Ist",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        },
+        {
+          "id": "mk_mon",
+          "stableId": "mon",
+          "slug": "Umsatz_je_Monat",
+          "page": "Umsatz und Absatz",
+          "kind": "columns",
+          "label": "Säulen (AC vs Referenz)",
+          "engine": "ck",
+          "chartKitchenType": "columns",
+          "chartKitchenMode": "columns",
+          "native": {
+            "type": "clusteredColumnChart",
+            "buckets": {
+              "Category": [
+                {
+                  "ref": "Kalender.Monatsname",
+                  "kind": "column",
+                  "isNew": false
+                }
+              ],
+              "Y": [
+                {
+                  "ref": "Fakten.Umsatz AC",
+                  "kind": "measure",
+                  "isNew": false
+                },
+                {
+                  "ref": "Fakten.Umsatz PY",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "Umsatz je Monat",
+          "titleShown": true,
+          "displayName": "Umsatz je Monat",
+          "subtitle": "in EUR",
+          "content": "",
+          "scenario": "AC/PY",
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PY",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PY"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PY",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [
+                "PY"
+              ],
+              "marker": [],
+              "delta": [
+                "abs"
+              ],
+              "deltaBasis": "PY",
+              "labels": true,
+              "total": true,
+              "forecast": false,
+              "unit": null,
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 327,
+            "y": 342,
+            "w": 1038,
+            "h": 675
+          },
+          "cell": {
+            "x": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "y": [
+              [
+                1,
+                4
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "roles": {
+            "category": [
+              {
+                "table": "Kalender",
+                "name": "Monatsname",
+                "kind": "column",
+                "ref": "Kalender.Monatsname",
+                "isNew": false
+              }
+            ],
+            "ac": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz AC",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz AC",
+                "isNew": false
+              }
+            ],
+            "ref": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz PY",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz PY",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        },
+        {
+          "id": "mk_reg",
+          "stableId": "reg",
+          "slug": "Umsatz_nach_Region",
+          "page": "Umsatz und Absatz",
+          "kind": "bars",
+          "label": "Balken (Kategorien, sortiert)",
+          "engine": "ck",
+          "chartKitchenType": "bars",
+          "chartKitchenMode": "bars",
+          "native": {
+            "type": "clusteredBarChart",
+            "buckets": {
+              "Category": [
+                {
+                  "ref": "Kunde.Region",
+                  "kind": "column",
+                  "isNew": false
+                }
+              ],
+              "Y": [
+                {
+                  "ref": "Fakten.Umsatz AC",
+                  "kind": "measure",
+                  "isNew": false
+                },
+                {
+                  "ref": "Fakten.Umsatz PL bis Ist",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "Umsatz nach Region",
+          "titleShown": true,
+          "displayName": "Umsatz nach Region",
+          "subtitle": "",
+          "content": "",
+          "scenario": "AC/PL",
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PL",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": {
+              "by": "delta",
+              "dir": "desc"
+            },
+            "topN": 5,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PL"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PL",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [
+                "PL"
+              ],
+              "marker": [],
+              "delta": [
+                "rel"
+              ],
+              "deltaBasis": "PL",
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": null,
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 1383,
+            "y": 342,
+            "w": 510,
+            "h": 675
+          },
+          "cell": {
+            "x": [
+              [
+                2,
+                3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "y": [
+              [
+                1,
+                4
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "roles": {
+            "category": [
+              {
+                "table": "Kunde",
+                "name": "Region",
+                "kind": "column",
+                "ref": "Kunde.Region",
+                "isNew": false
+              }
+            ],
+            "ac": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz AC",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz AC",
+                "isNew": false
+              }
+            ],
+            "ref": [
+              {
+                "table": "Fakten",
+                "name": "Umsatz PL bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.Umsatz PL bis Ist",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        }
+      ],
+      "layoutTree": {
+        "split": "col",
+        "children": [
+          {
+            "size": 1,
+            "node": {
+              "split": "row",
+              "children": [
+                {
+                  "size": 1,
+                  "node": {
+                    "leaf": "Umsatz",
+                    "stableId": "kpiU"
+                  }
+                },
+                {
+                  "size": 1,
+                  "node": {
+                    "leaf": "Absatz hl",
+                    "stableId": "kpiA"
+                  }
+                },
+                {
+                  "size": 1,
+                  "node": {
+                    "leaf": "Deckungsbeitrag",
+                    "stableId": "kpiD"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "size": 3,
+            "node": {
+              "split": "row",
+              "children": [
+                {
+                  "size": 2,
+                  "node": {
+                    "leaf": "Umsatz je Monat",
+                    "stableId": "mon"
+                  }
+                },
+                {
+                  "size": 1,
+                  "node": {
+                    "leaf": "Umsatz nach Region",
+                    "stableId": "reg"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "p2",
+      "index": 2,
+      "name": "GuV",
+      "role": "nav",
+      "hidden": false,
+      "question": "Wie entwickelt sich das Ergebnis gegenüber Vorjahr und Plan?",
+      "notes": "",
+      "contentRect": {
+        "x": 327,
+        "y": 111,
+        "w": 1566,
+        "h": 906
+      },
+      "visuals": [
+        {
+          "id": "mk_guv",
+          "stableId": "guv",
+          "slug": "GuV_nach_Blocken",
+          "page": "GuV",
+          "kind": "pnl",
+          "label": "GuV-Statement (P&L byDatenWG)",
+          "engine": "custom",
+          "chartKitchenType": null,
+          "chartKitchenMode": null,
+          "native": null,
+          "customVisual": {
+            "name": "pnlByDatenWG",
+            "guid": "pnlByDatenWG3F9A7D2C51E64B08A1C4E7F0B92D6358",
+            "buckets": {
+              "levels": [
+                {
+                  "ref": "Konto.L1",
+                  "kind": "column",
+                  "isNew": false
+                },
+                {
+                  "ref": "Konto.L2",
+                  "kind": "column",
+                  "isNew": false
+                }
+              ],
+              "ac": [
+                {
+                  "ref": "Fakten.GuV AC",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ],
+              "py": [
+                {
+                  "ref": "Fakten.GuV PY bis Ist",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ],
+              "pl": [
+                {
+                  "ref": "Fakten.GuV PL bis Ist",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ],
+              "rowType": [
+                {
+                  "ref": "Konto.RowType",
+                  "kind": "column",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "title": "GuV nach Blöcken",
+          "titleShown": true,
+          "displayName": "GuV nach Blöcken",
+          "subtitle": "",
+          "content": "",
+          "scenario": "AC/PY",
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": "PL",
+            "deltaBasisAuto": true,
+            "deltaBasisSource": "auto",
+            "deltaBasisRequested": null,
+            "deltaKind": [
+              "abs",
+              "rel"
+            ],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC",
+              "PL",
+              "PY"
+            ],
+            "refSource": "bound",
+            "placeholders": [],
+            "deltaBasis": "PL",
+            "deltaBasisSource": "auto",
+            "drawn": {
+              "refs": [
+                "PL"
+              ],
+              "marker": [],
+              "delta": [],
+              "deltaBasis": null,
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": null,
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 327,
+            "y": 111,
+            "w": 1038,
+            "h": 906
+          },
+          "cell": {
+            "x": [
+              [
+                0,
+                1
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "y": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "roles": {
+            "rows": [
+              {
+                "table": "Konto",
+                "name": "L1",
+                "kind": "column",
+                "ref": "Konto.L1",
+                "isNew": false
+              },
+              {
+                "table": "Konto",
+                "name": "L2",
+                "kind": "column",
+                "ref": "Konto.L2",
+                "isNew": false
+              }
+            ],
+            "ac": [
+              {
+                "table": "Fakten",
+                "name": "GuV AC",
+                "kind": "measure",
+                "ref": "Fakten.GuV AC",
+                "isNew": false
+              }
+            ],
+            "ref": [
+              {
+                "table": "Fakten",
+                "name": "GuV PY bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.GuV PY bis Ist",
+                "isNew": false
+              },
+              {
+                "table": "Fakten",
+                "name": "GuV PL bis Ist",
+                "kind": "measure",
+                "ref": "Fakten.GuV PL bis Ist",
+                "isNew": false
+              }
+            ],
+            "rowType": [
+              {
+                "table": "Konto",
+                "name": "RowType",
+                "kind": "column",
+                "ref": "Konto.RowType",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": [
+            "Szenario AC/PY passt nicht zur Referenz „GuV PL bis Ist\" (PL)"
+          ]
+        },
+        {
+          "id": "mk_ebit",
+          "stableId": "ebit",
+          "slug": "EBIT",
+          "page": "GuV",
+          "kind": "card",
+          "label": "Karte (nativ)",
+          "engine": "native",
+          "chartKitchenType": null,
+          "chartKitchenMode": null,
+          "native": {
+            "type": "card",
+            "buckets": {
+              "Values": [
+                {
+                  "ref": "Fakten.EBIT AC",
+                  "kind": "measure",
+                  "isNew": false
+                }
+              ]
+            }
+          },
+          "customVisual": null,
+          "title": "EBIT",
+          "titleShown": true,
+          "displayName": "EBIT",
+          "subtitle": "",
+          "content": "",
+          "scenario": null,
+          "analysis": {
+            "polarity": "higher",
+            "polarityAuto": true,
+            "deltaBasis": null,
+            "deltaBasisAuto": false,
+            "deltaBasisSource": null,
+            "deltaBasisRequested": null,
+            "deltaKind": [],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC"
+            ],
+            "refSource": null,
+            "placeholders": [],
+            "deltaBasis": null,
+            "deltaBasisSource": null,
+            "drawn": {
+              "refs": [],
+              "marker": [],
+              "delta": [],
+              "deltaBasis": null,
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": null,
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 1383,
+            "y": 111,
+            "w": 510,
+            "h": 290
+          },
+          "cell": {
+            "x": [
+              [
+                2,
+                3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "y": [
+              [
+                0,
+                1
+              ],
+              [
+                1,
+                3
+              ]
+            ]
+          },
+          "roles": {
+            "indicator": [
+              {
+                "table": "Fakten",
+                "name": "EBIT AC",
+                "kind": "measure",
+                "ref": "Fakten.EBIT AC",
+                "isNew": false
+              }
+            ]
+          },
+          "notes": "",
+          "link": null,
+          "warnings": []
+        },
+        {
+          "id": "mk_msg",
+          "stableId": "msg",
+          "slug": "Kernaussage",
+          "page": "GuV",
+          "kind": "text",
+          "label": "Textfeld",
+          "engine": "native",
+          "chartKitchenType": null,
+          "chartKitchenMode": null,
+          "native": {
+            "type": "textbox",
+            "buckets": {}
+          },
+          "customVisual": null,
+          "title": "Kernaussage",
+          "titleShown": true,
+          "displayName": "Kernaussage",
+          "subtitle": "",
+          "content": "Kosten über Plan, Umsatz knapp darunter.",
+          "scenario": null,
+          "analysis": {
+            "polarity": null,
+            "polarityAuto": false,
+            "deltaBasis": null,
+            "deltaBasisAuto": false,
+            "deltaBasisSource": null,
+            "deltaBasisRequested": null,
+            "deltaKind": [],
+            "unit": null,
+            "displayUnits": null,
+            "decimals": null,
+            "sort": null,
+            "topN": null,
+            "timeGrain": null,
+            "cumulative": false,
+            "scaleGroup": null,
+            "message": null,
+            "smallMultiples": null,
+            "fieldParam": null
+          },
+          "display": {
+            "scenarios": [
+              "AC"
+            ],
+            "refSource": null,
+            "placeholders": [],
+            "deltaBasis": null,
+            "deltaBasisSource": null,
+            "drawn": {
+              "refs": [],
+              "marker": [],
+              "delta": [],
+              "deltaBasis": null,
+              "labels": true,
+              "total": false,
+              "forecast": false,
+              "unit": null,
+              "reduced": false,
+              "sparkline": false
+            },
+            "numbers": {
+              "displayUnits": "auto",
+              "decimals": null,
+              "unitText": null
+            },
+            "fontPx": {
+              "title": 18,
+              "subtitle": 14.3,
+              "label": 13.5,
+              "axis": 13.5
+            },
+            "fontPt": {
+              "title": 13.5,
+              "subtitle": 10.7,
+              "label": 10.1,
+              "axis": 10.1
+            }
+          },
+          "workshop": {
+            "priority": null,
+            "status": "open",
+            "openQuestion": false
+          },
+          "typography": null,
+          "samples": null,
+          "interaction": {
+            "drillDown": false,
+            "crossFilter": true,
+            "drillThrough": null
+          },
+          "rect": {
+            "x": 1383,
+            "y": 419,
+            "w": 510,
+            "h": 598
+          },
+          "cell": {
+            "x": [
+              [
+                2,
+                3
+              ],
+              [
+                1,
+                1
+              ]
+            ],
+            "y": [
+              [
+                1,
+                3
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "roles": {},
+          "notes": "",
+          "link": null,
+          "warnings": []
+        }
+      ],
+      "layoutTree": {
+        "split": "row",
+        "children": [
+          {
+            "size": 2,
+            "node": {
+              "leaf": "GuV nach Blöcken",
+              "stableId": "guv"
+            }
+          },
+          {
+            "size": 1,
+            "node": {
+              "split": "col",
+              "children": [
+                {
+                  "size": 1,
+                  "node": {
+                    "leaf": "EBIT",
+                    "stableId": "ebit"
+                  }
+                },
+                {
+                  "size": 2,
+                  "node": {
+                    "leaf": "Kernaussage",
+                    "stableId": "msg"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "links": [],
+  "model": {
+    "source": "ZlatyLev Showcase",
+    "tables": [
+      "Fakten",
+      "Kalender",
+      "Konto",
+      "Kunde",
+      "Produkt"
+    ],
+    "usedFields": [
+      {
+        "table": "Fakten",
+        "name": "Umsatz AC",
+        "kind": "measure",
+        "ref": "Fakten.Umsatz AC",
+        "isNew": false,
+        "description": "Nettoumsatz Ist: Bruttoumsatz minus Rabatte plus sonstige Erlöse.",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [GuV ± AC], 'Konto'[L1] = \"Nettoumsatz\" )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "03 Kennzahlen",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "Umsatz PL bis Ist",
+        "kind": "measure",
+        "ref": "Fakten.Umsatz PL bis Ist",
+        "isNew": false,
+        "description": "Nettoumsatz Plan: Bruttoumsatz minus Rabatte plus sonstige Erlöse, nur Monate mit Ist (bis August 2026).",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [Umsatz PL], 'Kalender'[Ist] = TRUE () )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "04 Bis Ist",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "Absatz hl AC",
+        "kind": "measure",
+        "ref": "Fakten.Absatz hl AC",
+        "isNew": false,
+        "description": "Absatz Ist in Hektoliter.",
+        "formatString": "#,##0.0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "SUM ( 'Fakten'[Hektoliter AC] )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "03 Kennzahlen",
+        "formatDescription": "Zahl, 1 Nachkommastelle, mit Tausendertrennzeichen",
+        "formatSample": "1.234.567,9",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "Absatz hl PL bis Ist",
+        "kind": "measure",
+        "ref": "Fakten.Absatz hl PL bis Ist",
+        "isNew": false,
+        "description": "Absatz Plan in Hektoliter, nur Monate mit Ist (bis August 2026).",
+        "formatString": "#,##0.0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [Absatz hl PL], 'Kalender'[Ist] = TRUE () )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "04 Bis Ist",
+        "formatDescription": "Zahl, 1 Nachkommastelle, mit Tausendertrennzeichen",
+        "formatSample": "1.234.567,9",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "DB AC",
+        "kind": "measure",
+        "ref": "Fakten.DB AC",
+        "isNew": false,
+        "description": "Deckungsbeitrag Ist: Nettoumsatz minus Wareneinsatz.",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "[Umsatz AC] - [Wareneinsatz AC]",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "03 Kennzahlen",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "DB PL bis Ist",
+        "kind": "measure",
+        "ref": "Fakten.DB PL bis Ist",
+        "isNew": false,
+        "description": "Deckungsbeitrag Plan: Nettoumsatz minus Wareneinsatz, nur Monate mit Ist (bis August 2026).",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [DB PL], 'Kalender'[Ist] = TRUE () )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "04 Bis Ist",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Kalender",
+        "name": "Monatsname",
+        "kind": "column",
+        "ref": "Kalender.Monatsname",
+        "isNew": false,
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "Umsatz PY",
+        "kind": "measure",
+        "ref": "Fakten.Umsatz PY",
+        "isNew": false,
+        "description": "Nettoumsatz Vorjahr: Bruttoumsatz minus Rabatte plus sonstige Erlöse.",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [GuV ± PY], 'Konto'[L1] = \"Nettoumsatz\" )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "03 Kennzahlen",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Kunde",
+        "name": "Region",
+        "kind": "column",
+        "ref": "Kunde.Region",
+        "isNew": false,
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Konto",
+        "name": "L1",
+        "kind": "column",
+        "ref": "Konto.L1",
+        "isNew": false,
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Konto",
+        "name": "L2",
+        "kind": "column",
+        "ref": "Konto.L2",
+        "isNew": false,
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "GuV AC",
+        "kind": "measure",
+        "ref": "Fakten.GuV AC",
+        "isNew": false,
+        "description": "Ist je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual.",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "SUM ( 'Fakten'[AC] )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "01 GuV",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "GuV PY bis Ist",
+        "kind": "measure",
+        "ref": "Fakten.GuV PY bis Ist",
+        "isNew": false,
+        "description": "Vorjahr je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [GuV PY], 'Kalender'[Ist] = TRUE () )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "04 Bis Ist",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "GuV PL bis Ist",
+        "kind": "measure",
+        "ref": "Fakten.GuV PL bis Ist",
+        "isNew": false,
+        "description": "Plan je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "CALCULATE ( [GuV PL], 'Kalender'[Ist] = TRUE () )",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "04 Bis Ist",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Konto",
+        "name": "RowType",
+        "kind": "column",
+        "ref": "Konto.RowType",
+        "isNew": false,
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Fakten",
+        "name": "EBIT AC",
+        "kind": "measure",
+        "ref": "Fakten.EBIT AC",
+        "isNew": false,
+        "description": "EBIT Ist: Summe aller Konten mit Vorzeichen.",
+        "formatString": "#,##0",
+        "dataType": "measure",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "[GuV ± AC]",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "03 Kennzahlen",
+        "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+        "formatSample": "1.234.568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Kalender",
+        "name": "Jahr",
+        "kind": "column",
+        "ref": "Kalender.Jahr",
+        "isNew": false,
+        "default": "2026",
+        "type": "dropdown",
+        "description": "",
+        "formatString": "0",
+        "dataType": "int64",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "Ganzzahl",
+        "formatSample": "1234568",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      },
+      {
+        "table": "Produkt",
+        "name": "Sorte",
+        "kind": "column",
+        "ref": "Produkt.Sorte",
+        "isNew": false,
+        "default": null,
+        "type": "list",
+        "description": "",
+        "formatString": "",
+        "dataType": "string",
+        "alias": "",
+        "renameInModel": false,
+        "confirmed": false,
+        "owner": "",
+        "source": "",
+        "target": "",
+        "unit": "",
+        "note": "",
+        "expression": "",
+        "formatExpression": "",
+        "formatDynamic": false,
+        "displayFolder": "",
+        "formatDescription": "",
+        "formatSample": "",
+        "formatWish": "",
+        "formatWishString": "",
+        "daxComment": ""
+      }
+    ]
+  },
+  "fields": [
+    {
+      "table": "Fakten",
+      "name": "Umsatz AC",
+      "kind": "measure",
+      "ref": "Fakten.Umsatz AC",
+      "isNew": false,
+      "description": "Nettoumsatz Ist: Bruttoumsatz minus Rabatte plus sonstige Erlöse.",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [GuV ± AC], 'Konto'[L1] = \"Nettoumsatz\" )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "03 Kennzahlen",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "Umsatz PL bis Ist",
+      "kind": "measure",
+      "ref": "Fakten.Umsatz PL bis Ist",
+      "isNew": false,
+      "description": "Nettoumsatz Plan: Bruttoumsatz minus Rabatte plus sonstige Erlöse, nur Monate mit Ist (bis August 2026).",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [Umsatz PL], 'Kalender'[Ist] = TRUE () )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "04 Bis Ist",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "Absatz hl AC",
+      "kind": "measure",
+      "ref": "Fakten.Absatz hl AC",
+      "isNew": false,
+      "description": "Absatz Ist in Hektoliter.",
+      "formatString": "#,##0.0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "SUM ( 'Fakten'[Hektoliter AC] )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "03 Kennzahlen",
+      "formatDescription": "Zahl, 1 Nachkommastelle, mit Tausendertrennzeichen",
+      "formatSample": "1.234.567,9",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "Absatz hl PL bis Ist",
+      "kind": "measure",
+      "ref": "Fakten.Absatz hl PL bis Ist",
+      "isNew": false,
+      "description": "Absatz Plan in Hektoliter, nur Monate mit Ist (bis August 2026).",
+      "formatString": "#,##0.0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [Absatz hl PL], 'Kalender'[Ist] = TRUE () )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "04 Bis Ist",
+      "formatDescription": "Zahl, 1 Nachkommastelle, mit Tausendertrennzeichen",
+      "formatSample": "1.234.567,9",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "DB AC",
+      "kind": "measure",
+      "ref": "Fakten.DB AC",
+      "isNew": false,
+      "description": "Deckungsbeitrag Ist: Nettoumsatz minus Wareneinsatz.",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "[Umsatz AC] - [Wareneinsatz AC]",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "03 Kennzahlen",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "DB PL bis Ist",
+      "kind": "measure",
+      "ref": "Fakten.DB PL bis Ist",
+      "isNew": false,
+      "description": "Deckungsbeitrag Plan: Nettoumsatz minus Wareneinsatz, nur Monate mit Ist (bis August 2026).",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [DB PL], 'Kalender'[Ist] = TRUE () )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "04 Bis Ist",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Kalender",
+      "name": "Monatsname",
+      "kind": "column",
+      "ref": "Kalender.Monatsname",
+      "isNew": false,
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "Umsatz PY",
+      "kind": "measure",
+      "ref": "Fakten.Umsatz PY",
+      "isNew": false,
+      "description": "Nettoumsatz Vorjahr: Bruttoumsatz minus Rabatte plus sonstige Erlöse.",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [GuV ± PY], 'Konto'[L1] = \"Nettoumsatz\" )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "03 Kennzahlen",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Kunde",
+      "name": "Region",
+      "kind": "column",
+      "ref": "Kunde.Region",
+      "isNew": false,
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Konto",
+      "name": "L1",
+      "kind": "column",
+      "ref": "Konto.L1",
+      "isNew": false,
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Konto",
+      "name": "L2",
+      "kind": "column",
+      "ref": "Konto.L2",
+      "isNew": false,
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "GuV AC",
+      "kind": "measure",
+      "ref": "Fakten.GuV AC",
+      "isNew": false,
+      "description": "Ist je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual.",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "SUM ( 'Fakten'[AC] )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "01 GuV",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "GuV PY bis Ist",
+      "kind": "measure",
+      "ref": "Fakten.GuV PY bis Ist",
+      "isNew": false,
+      "description": "Vorjahr je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [GuV PY], 'Kalender'[Ist] = TRUE () )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "04 Bis Ist",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "GuV PL bis Ist",
+      "kind": "measure",
+      "ref": "Fakten.GuV PL bis Ist",
+      "isNew": false,
+      "description": "Plan je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "CALCULATE ( [GuV PL], 'Kalender'[Ist] = TRUE () )",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "04 Bis Ist",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Konto",
+      "name": "RowType",
+      "kind": "column",
+      "ref": "Konto.RowType",
+      "isNew": false,
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Fakten",
+      "name": "EBIT AC",
+      "kind": "measure",
+      "ref": "Fakten.EBIT AC",
+      "isNew": false,
+      "description": "EBIT Ist: Summe aller Konten mit Vorzeichen.",
+      "formatString": "#,##0",
+      "dataType": "measure",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "[GuV ± AC]",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "03 Kennzahlen",
+      "formatDescription": "Ganzzahl, mit Tausendertrennzeichen",
+      "formatSample": "1.234.568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Kalender",
+      "name": "Jahr",
+      "kind": "column",
+      "ref": "Kalender.Jahr",
+      "isNew": false,
+      "default": "2026",
+      "type": "dropdown",
+      "description": "",
+      "formatString": "0",
+      "dataType": "int64",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "Ganzzahl",
+      "formatSample": "1234568",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    },
+    {
+      "table": "Produkt",
+      "name": "Sorte",
+      "kind": "column",
+      "ref": "Produkt.Sorte",
+      "isNew": false,
+      "default": null,
+      "type": "list",
+      "description": "",
+      "formatString": "",
+      "dataType": "string",
+      "alias": "",
+      "renameInModel": false,
+      "confirmed": false,
+      "owner": "",
+      "source": "",
+      "target": "",
+      "unit": "",
+      "note": "",
+      "expression": "",
+      "formatExpression": "",
+      "formatDynamic": false,
+      "displayFolder": "",
+      "formatDescription": "",
+      "formatSample": "",
+      "formatWish": "",
+      "formatWishString": "",
+      "daxComment": ""
+    }
+  ],
+  "newFields": [],
+  "issues": [
+    {
+      "level": "warn",
+      "code": "SCENARIO_REF_MISMATCH",
+      "text": "„GuV nach Blöcken\": Szenario AC/PY, gebunden ist aber „GuV PL bis Ist\" (PL). Referenz oder Szenario angleichen.",
+      "page": "GuV",
+      "visual": "mk_guv"
+    }
+  ],
+  "warnings": [
+    "Seite „GuV\": „GuV nach Blöcken\": Szenario AC/PY, gebunden ist aber „GuV PL bis Ist\" (PL). Referenz oder Szenario angleichen."
+  ]
+}

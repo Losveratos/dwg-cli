@@ -1,0 +1,37 @@
+{
+  "name": "dwg-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "dwg cli (working title): one app spec for a Fabric App and a Power BI report, with the custom visuals ChartKitchen and P&L Statement byDatenWG.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Losveratos/dwg-cli"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "bin": {
+    "dwg": "dwg.mjs"
+  },
+  "scripts": {
+    "build": "node visuals/build.mjs",
+    "demo": "node visuals/build.mjs --demo",
+    "test": "node visuals/test/unit.mjs && node layout/test.mjs && node mockup/test/unit.mjs && node templates/test/unit.mjs && node app/test/unit.mjs && node app/test/guv.mjs && node app/test/showcase-data.mjs && node app/test/showcase-spec.mjs && node app/test/e2e.mjs --page dwg-spike && node app/test/e2e.mjs --page guv-statement && node app/test/e2e.mjs --page guv-baum && node app/test/shell.mjs && node pbip/test/unit.mjs && node pbip/test/validate.mjs && node pbip/test/parity.mjs --app && node pbip/test/parity.mjs",
+    "test:showcase": "node app/test/showcase-e2e.mjs",
+    "doctor": "node install.mjs --check",
+    "test:all": "node visuals/build.mjs --demo && node visuals/test/spike.mjs && npm test"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.25.10",
+    "playwright": "1.56.1",
+    "powerbi-visuals-utils-formattingmodel": "6.0.4",
+    "powerbi-visuals-utils-formattingutils": "6.1.2",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "5.7.3"
+  }
+}

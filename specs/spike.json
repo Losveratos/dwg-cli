@@ -1,0 +1,92 @@
+{
+  "name": "dwg Spike",
+  "about": "Eine Definition für Fabric App (@visuals) und Power BI (dwg pbip). Modell: ChartKitchen byDatenWG Demo. Alle Zahlen sind Demodaten.",
+  "pages": [
+    {
+      "name": "dwg Spike",
+      "width": 1920,
+      "height": 1700,
+      "background": "#F4F4F1",
+      "filters": [
+        { "column": "'Calender'[Year]", "values": [2026] }
+      ],
+      "tiles": [
+        {
+          "id": "kpis",
+          "visual": "chartkitchen",
+          "rect": [24, 24, 1872, 230],
+          "bindings": {
+            "category": "'Sales Demo'[KPI]",
+            "actual": "'Sales Demo'[AC]",
+            "previousYear": "'Sales Demo'[PY]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "objects": {
+            "chart": { "orientation": "cards", "invertList": "Cost" },
+            "ibcsTitle": { "kpi": "Kennzahlen", "period": "2026" },
+            "labels": { "fontPreset": "fullhd" }
+          }
+        },
+        {
+          "id": "umsatz",
+          "visual": "chartkitchen",
+          "rect": [24, 278, 1140, 560],
+          "bindings": {
+            "category": "'Calender'[Month Name Short]",
+            "actual": "'Sales Demo'[AC]",
+            "previousYear": "'Sales Demo'[PY]",
+            "plan": "'Sales Demo'[PL]",
+            "forecast": "'Sales Demo'[FC]"
+          },
+          "sortBy": { "'Calender'[Month Name Short]": "'Calender'[Month]" },
+          "objects": {
+            "chart": { "orientation": "intwaterfall", "comparisonMode": "plan" },
+            "ibcsTitle": { "kpi": "Umsatz", "period": "2026" },
+            "labels": { "fontPreset": "fullhd" }
+          }
+        },
+        {
+          "id": "laender",
+          "visual": "chartkitchen",
+          "rect": [1188, 278, 708, 560],
+          "bindings": {
+            "category": "'Sales Demo'[Country]",
+            "actual": "'Sales Demo'[AC]",
+            "plan": "'Sales Demo'[PL]"
+          },
+          "objects": {
+            "chart": { "orientation": "catbridge", "comparisonMode": "plan", "sortByImpact": true },
+            "ibcsTitle": { "kpi": "Umsatz nach Land", "period": "2026" },
+            "labels": { "fontPreset": "fullhd" }
+          }
+        },
+        {
+          "id": "guv",
+          "visual": "pnl",
+          "rect": [24, 862, 1872, 814],
+          "showItemsWithNoData": true,
+          "bindings": {
+            "levels": ["'dim-konten'[L1]", "'dim-konten'[L2]", "'dim-konten'[L3]"],
+            "account": "'dim-konten'[AccountID]",
+            "accountName": "'dim-konten'[Name]",
+            "sortOrder": "'dim-konten'[SortOrder]",
+            "rowType": "'dim-konten'[RowType]",
+            "formulaDef": "'dim-konten'[FormulaDef]",
+            "signConvention": "'dim-konten'[SignConvention]",
+            "displayInvert": "'dim-konten'[DisplayInvert]",
+            "varianceInvert": "'dim-konten'[VarianceInvert]",
+            "ac": "'fact-guv'[GuV AC]",
+            "py": "'fact-guv'[GuV PY]",
+            "pl": "'fact-guv'[GuV PL]",
+            "fcFy": "'fact-guv'[GuV FC FY]",
+            "plFy": "'fact-guv'[GuV PL FY]"
+          },
+          "objects": {
+            "titleBlock": { "measureLine": "GuV in EUR", "periodLine": "2026" },
+            "style": { "fontPreset": "fullhd" }
+          }
+        }
+      ]
+    }
+  ]
+}
