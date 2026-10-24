@@ -3,6 +3,7 @@
 //
 //   node dwg.mjs install | update | doctor                         einrichten, aktualisieren, prüfen (install.mjs)
 //   node dwg.mjs visuals build [--kitchen <PowerBI-Kitchen-Klon>]   Adapter @visuals bauen
+//   node dwg.mjs visuals update [--kitchen <Klon>] [--ref origin/main] [--dry-run] [--commit]   neues Visual-Release einspielen
 //   node dwg.mjs app page --app <Rayfin-App> --spec <app-spec.json> --connector <name> [--model <Y.SemanticModel>]
 //   node dwg.mjs pbip new|register|pages …                         Power-BI-Projekt (siehe dwg pbip)
 //   node dwg.mjs validate [<X.Report> …]                           PBIR gegen die offiziellen Schemas prüfen
@@ -31,6 +32,9 @@ const HELP = `dwg · eine App-Spec für Fabric App und Power BI
 
   install | update | doctor              einrichten, aktualisieren (git pull), prüfen
   visuals build [--kitchen <pfad>]       Adapter bauen (ChartKitchen + P&L aus dem Kitchen-Repo)
+  visuals update [--kitchen <klon>] [--ref origin/main] [--pbiviz <datei> …] [--no-test] [--force] [--dry-run] [--commit]
+                                         Neues Visual-Release einspielen: Kitchen-Stand nach .kitchen/, Adapter bauen,
+                                         .pbiviz übernehmen, Beispielberichte und Doku heben, CHANGELOG, npm test
   app page --app <Rayfin-App> --spec <datei> --connector <name> [--model <Y.SemanticModel>]
                                          Seiten in eine Rayfin-App schreiben
   pbip new|register|pages …              Power-BI-Projekt erzeugen (dwg pbip ohne Argumente: Hilfe)
@@ -74,6 +78,8 @@ try {
         node("install.mjs", [...flag, ...[sub, ...rest].filter(Boolean)]);
     } else if (cmd === "visuals" && sub === "build") {
         node("visuals/build.mjs", rest);
+    } else if (cmd === "visuals" && sub === "update") {
+        node("visuals/update.mjs", rest);
     } else if (cmd === "app" && sub === "page") {
         const a = args(rest);
         for (const k of ["app", "spec", "connector"]) { if (!a[k] || a[k] === true) { throw new Error(`--${k} fehlt.`); } }
@@ -95,7 +101,7 @@ try {
     } else if (cmd === "check") {
         const a = args([sub, ...rest].filter(Boolean));
         if (!a.spec || a.spec === true) { throw new Error("--spec fehlt."); }
-        const res = await checkSpecFile(JSON.parse(fs.readFileSync(a.spec, "utf8")), { modelDir: a.model === true ? undefined : a.model });
+        const res = await checkSpecFile(readSpec(a.spec), { modelDir: a.model === true ? undefined : a.model });
         console.log(a.json ? JSON.stringify(res, null, 2) : formatCheck(res));
         process.exit(res.problems.length ? 1 : 0);
     } else if (cmd === "mockup" && sub === "build") {

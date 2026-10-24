@@ -8,4 +8,5 @@ visuals/dist/**/*.map
 app/test/out/
 pbip/test/out/
 quickstart/
+.kitchen/
 **/out/

@@ -22,6 +22,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { consistency, installedVersions, latestVersions, versionReport } from "./visuals/lib/release.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = HERE;
@@ -108,6 +109,20 @@ if (!kitchen && has("--clone-kitchen") && !CHECK) {
 }
 if (kitchen) { ok(`gefunden: ${kitchen}`); }
 else { warn("nicht gefunden. Nötig nur, um den Adapter neu zu bauen (neues Visual-Release): --clone-kitchen oder --kitchen <pfad>"); }
+
+// ---------------------------------------------------------------- 5b · Visual-Stand
+step("Visual-Stand (Adapter, .pbiviz, Beispielberichte, veröffentlicht)");
+{
+    const installed = installedVersions(ROOT);
+    const problems = consistency(installed);
+    if (problems.length) { for (const p of problems) { warn(`${p} (dwg visuals update)`); } }
+    else { ok(`Adapter, .pbiviz und ${Object.keys(installed.reports).length} Beispielberichte auf einem Stand`); }
+    let latest = null;
+    try { latest = await latestVersions(); }
+    catch (e) { warn(`veröffentlichte Version nicht abrufbar (${e.message.split(";")[0].trim()}); offline?`); }
+    for (const l of versionReport(installed, latest)) { (l.level === "ok" ? ok : warn)(l.text); }
+    if (latest) { console.log(`  Quelle: ${latest.source}`); }
+}
 
 // ---------------------------------------------------------------- 6 · Skill für Claude
 step("Skill „dwg“ für alle Claude-Code-Sitzungen");

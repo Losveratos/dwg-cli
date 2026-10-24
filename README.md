@@ -141,7 +141,7 @@ node dwg.mjs check --spec quickstart/app-spec.json --model "$M"   # structure, r
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model "$M" \
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report \
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.52.3.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.5.3.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.5.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -166,7 +166,7 @@ node dwg.mjs lint --spec quickstart/app-spec.json
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model $M `
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report `
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.52.3.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.5.3.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.5.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -182,8 +182,9 @@ clear (several measure families, a structure axis), it stops and lists candidate
 
 | Command | |
 | --- | --- |
-| `install`, `update`, `doctor` | set up, update (`git pull`), check |
+| `install`, `update`, `doctor` | set up, update (`git pull`), check (incl. visual versions: adapter, `.pbiviz`, example reports, published) |
 | `visuals build [--kitchen <path>]` | rebuild the visual adapter and the template catalog from the visual sources (Kitchen repo) |
+| `visuals update [--kitchen <clone>] [--ref origin/main] [--dry-run] [--commit]` | bring a new visual release into this repo in one step: checkout under `.kitchen/`, adapter, `.pbiviz`, example reports, docs, CHANGELOG, `npm test` |
 | `templates [<ID>] [--visual chartkitchen\|pnl] [--lang en] [--json]` | template catalog |
 | `tile add --spec … (--page … \| --new-page … [--description …]) --template <ID> [--model …] [--measure …] [--<role> …] [--title …] [--rect x,y,w,h] [--dry-run]` | add a tile from a template; `--title` is the title line inside the visual |
 | `app page --app … --spec … --connector … [--model …]` | write the pages into a Rayfin app |
@@ -226,6 +227,21 @@ Measures must be model measures for Power BI; free DAX expressions work in the a
 Everything dwg needs at runtime is in this repo: the built visuals, their `.pbiviz`, the template catalog, the PBIR
 schemas, the MockupKitchen converter and the examples. The sources (see [The family](#the-family)) are needed only
 to rebuild (`visuals build`, `mockup build`).
+
+### A new visual release
+
+When ChartKitchen or P&L ship a new version, one command brings it in:
+
+```bash
+node dwg.mjs visuals update --kitchen <clone of PowerBI-Kitchen->        # default: origin/main after git fetch
+node dwg.mjs visuals update --kitchen <clone> --ref v1.53.0 --dry-run    # a tag, and first only the plan
+```
+
+It checks the Kitchen state out under `.kitchen/` (a detached git worktree, ignored by git, so chunk hashes do not
+depend on where the clone lives), rebuilds the adapter and the template catalog, copies the `.pbiviz` into
+`visuals/pbiviz/`, registers them in the example reports, lifts the file names in README, docs and skill, adds a
+CHANGELOG line and runs `npm test`. Nothing is committed unless you pass `--commit`. `node dwg.mjs doctor` tells
+you when a newer version is published than the adapter has, and when `.pbiviz` or example reports drift from it.
 
 ## Tests
 

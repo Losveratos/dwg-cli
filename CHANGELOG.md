@@ -50,6 +50,14 @@ Fixes from the first public review (fresh clone, full test run, code review):
 - README: why dwg exists, how it fits together (diagram), a gallery of real test screenshots (showcase pages, a
   MockupKitchen sketch next to the page dwg builds from it, the app frame) and the family of tools with links.
 - `app/test/showcase-e2e.mjs --spec <file> --name <folder>` renders any spec on the showcase model.
+- **`dwg visuals update`** brings a new visual release into the repo in one step: Kitchen state as a detached worktree
+  under `.kitchen/` (so the adapter's chunk hashes no longer depend on where the Kitchen clone lives), adapter and
+  template catalog, `.pbiviz` into `visuals/pbiviz/`, example reports re-registered, file names in README, docs and
+  skill, this CHANGELOG line, `npm test`; `--dry-run` shows the plan, `--commit` commits. `dwg doctor` compares the
+  adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
+  Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
+- `dwg check` reads the spec with the same file-name errors as the other commands.
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.53.0.0 (from 1.52.3.0) and P&L 1.5.3.0.
 
 ## 0.1.1 (2026-10-23) · public
 

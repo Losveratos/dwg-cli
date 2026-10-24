@@ -52,9 +52,17 @@ Einen fremden Skill gleichen Namens ersetzt er nur mit `--force`. Für Claude De
 Aus dem Repo-Root, einmalig `npm install` (oder `node install.mjs`).
 
 ```bash
-# Adapter bauen (nur nötig nach einem neuen ChartKitchen- oder P&L-Stand; Kitchen-Klon neben diesem Repo
-# oder DWG_KITCHEN=<pfad>)
+# Neues Visual-Release einspielen (ein Schritt: Kitchen-Stand nach .kitchen/, Adapter bauen, .pbiviz übernehmen,
+# Beispielberichte registrieren, Doku und CHANGELOG heben, npm test); erst --dry-run zeigt nur den Plan.
+# Kitchen-Klon neben diesem Repo, DWG_KITCHEN=<pfad> oder --kitchen <pfad>; Stand ist origin/main, --ref <tag> wählt
+node dwg.mjs visuals update --dry-run
+node dwg.mjs visuals update [--commit]
+
+# Adapter nur bauen (Entwicklung gegen einen Arbeitsstand des Kitchen-Klons)
 node dwg.mjs visuals build
+
+# Stand prüfen: Adapter, .pbiviz, Beispielberichte und veröffentlichte Version (Share-Repo)
+node dwg.mjs doctor
 
 # Fabric App: Seite(n) der Spec in eine Rayfin-App schreiben; --model prüft Felder gegen das TMDL
 node dwg.mjs app page --app <pfad zur Rayfin-App> --spec specs/spike.json --connector <name> \

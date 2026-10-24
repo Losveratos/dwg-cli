@@ -23,7 +23,7 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
 
 | Teil | Pfad | Zweck |
 | --- | --- | --- |
-| Adapter `@dwg/visuals` | `visuals/` | ChartKitchen und P&L mit **ihrem Original-Code** außerhalb von Power BI; `daxQuery()` baut die Abfrage aus der Rollenbindung. `dist/` ist committet, `visuals/pbiviz/` hat die passenden `.pbiviz` |
+| Adapter `@dwg/visuals` | `visuals/` | ChartKitchen und P&L mit **ihrem Original-Code** außerhalb von Power BI; `daxQuery()` baut die Abfrage aus der Rollenbindung. `dist/` ist committet, `visuals/pbiviz/` hat die passenden `.pbiviz`. Neues Visual-Release: `dwg visuals update --dry-run`, dann ohne `--dry-run` (Adapter, `.pbiviz`, Beispielberichte, Doku, Tests in einem Schritt); `dwg doctor` meldet, wenn eine neuere Version veröffentlicht ist |
 | Templates | `templates/`, `visuals/dist/templates.json` | `dwg templates` (28 Templates, Rollen Pflicht/empfohlen/optional), `dwg tile add` (Kachel aus Template, Feldvorschläge aus dem TMDL) |
 | App-Generator | `app/` | `dwg app page` schreibt Adapter, `DwgPage`/`DwgShell` und die Seiten in eine Rayfin-App |
 | PBIP-Generator | `pbip/` | `dwg pbip new` · `register` · `pages`, `dwg validate` gegen die offiziellen PBIR-Schemas |
