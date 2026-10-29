@@ -3118,6 +3118,306 @@
       ]
     },
     {
+      "name": "Bilanz zum Stichtag gegen Vorjahr",
+      "template": "T05A",
+      "group": "P&L · Bilanz & Cashflow",
+      "description": "Wie hat sich die Bilanz seit dem Vorjahresstichtag verändert? Aktiva und Passiva stehen als Stand Ende August gegen den Stand ein Jahr zuvor, die Summen sind doppelt unterstrichen und werden nicht über die Monate addiert. Die neue Abfüllanlage erhöht die Sachanlagen, ein Darlehen finanziert sie.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Bilanzkonto'[L2]",
+            "actual": "'Bilanz'[Bilanz Stichtag AC]",
+            "previousYear": "'Bilanz'[Bilanz Stichtag PY]"
+          },
+          "filters": [
+            {
+              "column": "'Bilanzkonto'[KontoID]",
+              "values": [
+                "A-SACH",
+                "A-KASSE",
+                "P-EK"
+              ]
+            }
+          ],
+          "sortBy": {
+            "'Bilanzkonto'[L2]": "'Bilanzkonto'[SortOrder]"
+          },
+          "displayNames": {
+            "[actual]": "Bilanz AC",
+            "[previousYear]": "Bilanz PY"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Bilanzpositionen in EUR",
+              "period": "31.08.2026, AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Bilanzkonto'[L1]",
+              "'Bilanzkonto'[L2]"
+            ],
+            "account": "'Bilanzkonto'[KontoID]",
+            "accountName": "'Bilanzkonto'[Konto]",
+            "sortOrder": "'Bilanzkonto'[SortOrder]",
+            "rowType": "'Bilanzkonto'[RowType]",
+            "formulaDef": "'Bilanzkonto'[FormulaDef]",
+            "signConvention": "'Bilanzkonto'[SignConvention]",
+            "displayInvert": "'Bilanzkonto'[DisplayInvert]",
+            "varianceInvert": "'Bilanzkonto'[VarianceInvert]",
+            "comment": "'Bilanzkonto'[Kommentar]",
+            "ac": "'Bilanz'[Bilanz AC]",
+            "py": "'Bilanz'[Bilanz PY]",
+            "period": "'Kalender'[Periode]"
+          },
+          "showItemsWithNoData": true,
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "Bilanz in Mio. EUR, Stand gegen Vorjahresstichtag",
+              "periodLine": "31.08.2026, AC gegen PY"
+            },
+            "columns": {
+              "template": "T05A",
+              "templateApplied": "T05A",
+              "minuend": "ac",
+              "showPY": true,
+              "showPL": false,
+              "showMinuend": true,
+              "valueCascade": false,
+              "dPyAbs": true,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": true,
+              "dPyPin": false,
+              "dPlAbs": false,
+              "dPlBar": false,
+              "dPlWaterfall": false,
+              "dPlPct": false,
+              "dPlPin": false,
+              "secondBlock": false,
+              "structureSubtotals": true,
+              "showPctRows": true,
+              "thresholds": false,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "cat",
+              "sortBlock": "ytd",
+              "blockKind": "ytd",
+              "leftBlockKind": "month",
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 2,
+              "pctDecimals": 1
+            },
+            "statement": {
+              "stockMode": "allStock"
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cashflow-Brücke vom Anfangs- zum Endbestand",
+      "template": "T05B",
+      "group": "P&L · Bilanz & Cashflow",
+      "description": "Woher kommt das Geld und wohin fließt es? Die Brücke führt vom Anfangsbestand über den operativen, investiven und Finanzierungs-Cashflow zum Endbestand, für August und seit Jahresbeginn. Im Juni fließt das Geld in die neue Abfüllanlage, ein Darlehen deckt den größten Teil.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Cashflowkonto'[L1]",
+            "actual": "'Cashflow'[Cashflow AC]",
+            "previousYear": "'Cashflow'[Cashflow PY bis Ist]"
+          },
+          "filters": [
+            {
+              "column": "'Cashflowkonto'[L1]",
+              "values": [
+                "Operativer Cashflow",
+                "Investiver Cashflow",
+                "Finanzierungs-Cashflow"
+              ]
+            }
+          ],
+          "sortBy": {
+            "'Cashflowkonto'[L1]": "'Cashflowkonto'[L1 Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Cashflow AC",
+            "[previousYear]": "Cashflow PY"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Cashflow in EUR je Bereich",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Cashflowkonto'[L1]",
+              "'Cashflowkonto'[L2]"
+            ],
+            "account": "'Cashflowkonto'[KontoID]",
+            "accountName": "'Cashflowkonto'[Konto]",
+            "sortOrder": "'Cashflowkonto'[SortOrder]",
+            "rowType": "'Cashflowkonto'[RowType]",
+            "formulaDef": "'Cashflowkonto'[FormulaDef]",
+            "signConvention": "'Cashflowkonto'[SignConvention]",
+            "displayInvert": "'Cashflowkonto'[DisplayInvert]",
+            "varianceInvert": "'Cashflowkonto'[VarianceInvert]",
+            "comment": "'Cashflowkonto'[Kommentar]",
+            "ac": "'Cashflow'[Cashflow AC]",
+            "py": "'Cashflow'[Cashflow PY]",
+            "period": "'Kalender'[Periode]"
+          },
+          "showItemsWithNoData": true,
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "Cashflow in Mio. EUR, vom Anfangs- zum Endbestand",
+              "periodLine": "Aug 2026 | Jan..Aug 2026 (YTD), AC gegen PY"
+            },
+            "columns": {
+              "template": "T05B",
+              "templateApplied": "T05B",
+              "minuend": "ac",
+              "showPY": true,
+              "showPL": false,
+              "showMinuend": true,
+              "valueCascade": true,
+              "dPyAbs": true,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": true,
+              "dPyPin": false,
+              "dPlAbs": false,
+              "dPlBar": false,
+              "dPlWaterfall": false,
+              "dPlPct": false,
+              "dPlPin": false,
+              "secondBlock": true,
+              "structureSubtotals": true,
+              "showPctRows": true,
+              "thresholds": false,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "cat",
+              "sortBlock": "ytd",
+              "blockKind": "ytd",
+              "leftBlockKind": "month",
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 2,
+              "pctDecimals": 1
+            },
+            "statement": {
+              "stockMode": "auto"
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Wert-Kaskaden Vorjahr und Ist",
       "template": "12A",
       "group": "P&L · Report-Ansichten",

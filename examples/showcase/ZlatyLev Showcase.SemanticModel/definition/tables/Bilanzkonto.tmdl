@@ -1,0 +1,105 @@
+table Bilanzkonto
+	lineageTag: 515028ea-85ae-550d-8a19-7b154f93c95c
+	sourceLineageTag: [dbo].[bilanzkonto]
+
+	column KontoID
+		dataType: string
+		isKey
+		lineageTag: 36a306eb-60f9-5160-9ec2-ca29a082b979
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column Konto
+		dataType: string
+		lineageTag: e7430437-1ed0-54ba-b96f-ff8227784481
+		sourceLineageTag: Konto
+		summarizeBy: none
+		sourceColumn: Konto
+
+	column L1
+		dataType: string
+		lineageTag: 691318b6-ea78-5fba-bec7-71832151ac37
+		sourceLineageTag: L1
+		summarizeBy: none
+		sourceColumn: L1
+		sortByColumn: 'L1 Sort'
+
+	column 'L1 Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f602f224-16d9-53ff-a965-f40e3f45882d
+		sourceLineageTag: L1Sort
+		summarizeBy: none
+		sourceColumn: L1Sort
+
+	column L2
+		dataType: string
+		lineageTag: 79de3980-aaaa-519b-9447-914b20194a57
+		sourceLineageTag: L2
+		summarizeBy: none
+		sourceColumn: L2
+		sortByColumn: SortOrder
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: cf7ed485-d31c-5c4f-86d7-f7478377452e
+		sourceLineageTag: SortOrder
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+	/// Zeilentyp mit Token für das P&L-Visual (ab 1.7): stock = Stand am Periodenende, opening = Stand am Periodenbeginn.
+	column RowType
+		dataType: string
+		lineageTag: 98359938-0ab2-5ef0-b2a0-852014066028
+		sourceLineageTag: RowType
+		summarizeBy: none
+		sourceColumn: RowType
+
+	/// Formel des P&L-Visuals über Kontonamen und Ebene 1.
+	column FormulaDef
+		dataType: string
+		lineageTag: 15e98ef2-619c-5ae7-9bbc-d333bf0b78d3
+		sourceLineageTag: FormulaDef
+		summarizeBy: none
+		sourceColumn: FormulaDef
+
+	/// Überall 1: Bilanzwerte positiv wie gebucht, Cashflows mit Vorzeichen (Auszahlungen negativ).
+	column SignConvention
+		dataType: int64
+		formatString: 0
+		lineageTag: 7654a4c2-6666-58a1-bb86-ef1042b33d7a
+		sourceLineageTag: SignConvention
+		summarizeBy: none
+		sourceColumn: SignConvention
+
+	column DisplayInvert
+		dataType: string
+		lineageTag: 6ce76bb3-5b8f-5dbb-bda5-e5f3d3189cfa
+		sourceLineageTag: DisplayInvert
+		summarizeBy: none
+		sourceColumn: DisplayInvert
+
+	column VarianceInvert
+		dataType: string
+		lineageTag: cfe2df70-2e29-5735-a4f4-1b13b87555fd
+		sourceLineageTag: VarianceInvert
+		summarizeBy: none
+		sourceColumn: VarianceInvert
+
+	column Kommentar
+		dataType: string
+		lineageTag: c444d0b5-3ef5-51c8-83ed-85cc372bb66e
+		sourceLineageTag: Kommentar
+		summarizeBy: none
+		sourceColumn: Kommentar
+
+	partition Bilanzkonto = entity
+		mode: directLake
+		source
+			entityName: bilanzkonto
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

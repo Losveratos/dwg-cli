@@ -9,8 +9,11 @@
 // Spalten: Zeitachse aus der Kalendertabelle (Monatsname mit Sortierspalte vor Monat und Datum), Ebenen L1..Ln aus
 // einer Tabelle, die GuV-Logik (Zeilentyp, Formel, Vorzeichen …) aus derselben Tabelle wie die Ebenen. Bei den
 // P&L-Strukturtabellen (T01/T02) sind die Ebenen Dimensionen (Region, Land, Kunde); die gibt man an, dwg nennt Kandidaten.
+// Hat das Modell mehrere Kontentabellen mit Ebenen und Zeilentyp (GuV, Bilanz, Cashflow), nimmt dwg die, die über eine
+// Beziehung mit der Tabelle der Ist-Kennzahl verbunden ist. Bilanz- und Cashflow-Templates (data „balance“) suchen ohne
+// Stamm eine Bestands-Familie (Bilanz, Cashflow, Bestand) statt der GuV.
 // Ein Vorschlag wird nur übernommen, wenn er eindeutig vorn liegt (AUTO_MARGIN); sonst nennt dwg die Kandidaten.
-import { parseRef, resolveField } from "../../pbip/lib/tmdl.mjs";
+import { parseRef, resolveField, related } from "../../pbip/lib/tmdl.mjs";
 
 /** Abstand, um den der beste Vorschlag vor dem zweiten liegen muss, damit dwg ihn ohne Rückfrage nimmt */
 export const AUTO_MARGIN = 10;
@@ -267,9 +270,11 @@ export function suggestBindings(model, template, given = {}, measure = null) {
         if (f) { anchor = { stem: f.stem, table: f.table }; }
     } else if (stems.length === 1) {
         anchor = { stem: stems[0].stem, table: stems[0].table };
-    } else if (template.data === "statement") {
-        // GuV-Familie mit den meisten Szenarien („GuV AC/PY/PL/FC“ vor „GuV Letzter Ist-Monat“)
-        const guv = stems.filter(s => /guv|g&v|p&l|pnl|gewinn|ergebnisrechnung|income/.test(s.stem));
+    } else if (template.data === "statement" || template.data === "balance") {
+        // GuV-Familie mit den meisten Szenarien („GuV AC/PY/PL/FC“ vor „GuV Letzter Ist-Monat“), bei Bilanz und Cashflow
+        // die Bestands-Familie
+        const rx = template.data === "balance" ? /bilanz|balance|cash|bestand|stock/ : /guv|g&v|p&l|pnl|gewinn|ergebnisrechnung|income/;
+        const guv = stems.filter(s => rx.test(s.stem));
         if (guv.length === 1 || (guv.length > 1 && guv[0].scenarios.size > guv[1].scenarios.size)) {
             anchor = { stem: guv[0].stem, table: guv[0].table };
         }
@@ -283,7 +288,9 @@ export function suggestBindings(model, template, given = {}, measure = null) {
         else {
             const sets = levelSets(fields);
             const withLogic = sets.filter(s => fields.some(f => f.table === s.table && COLUMN_RULES.rowType.test(f.name)));
-            const pick = withLogic.length === 1 ? withLogic[0] : sets.length === 1 ? sets[0] : null;
+            // mehrere Kontentabellen (GuV, Bilanz, Cashflow): die mit der Tabelle der Kennzahl verbundene
+            const linked = anchor?.table ? withLogic.filter(s => related(model, s.table, anchor.table)) : [];
+            const pick = withLogic.length === 1 ? withLogic[0] : linked.length === 1 ? linked[0] : sets.length === 1 ? sets[0] : null;
             if (pick) {
                 bindings.levels = pick.fields.slice(0, 8).map(refOf); source.levels = "Vorschlag"; levelTable = pick.table;
                 alts.levels = sets.filter(s => s !== pick).map(s => `${s.table}: ${s.fields.map(f => f.name).join(", ")}`);

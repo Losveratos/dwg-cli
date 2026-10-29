@@ -84,6 +84,15 @@ test("daxQuery P&L: levels als Liste, ADDMISSINGITEMS für Formelzeilen", () => 
     }, { showItemsWithNoData: true });
     assert.match(q.query, /ADDMISSINGITEMS\(/);
     assert.deepEqual(q.bindings.levels, ["Konten[Ebene 1]", "Konten[Ebene 2]"]);
+    assert.doesNotMatch(q.query, /CALCULATETABLE/, "ohne Filter kein CALCULATETABLE");
+});
+
+test("daxQuery P&L mit Periode und Filtern: ADDMISSINGITEMS innerhalb der Filter (CALCULATETABLE)", () => {
+    const q = daxQuery("pnl", { levels: ["'Konten'[L1]"], period: "'Kalender'[Periode]", ac: "[AC]" },
+        { showItemsWithNoData: true, filters: [{ column: "'Kalender'[Jahr]", values: [2026] }] });
+    assert.match(q.query, /^EVALUATE\s+CALCULATETABLE\(\s+ADDMISSINGITEMS\(/);
+    assert.match(q.query, /\),\s+TREATAS\(\{2026\}, 'Kalender'\[Jahr\]\)\s+\)/, "Filter außen");
+    assert.equal(q.query.match(/TREATAS/g).length, 2, "Filter auch in SUMMARIZECOLUMNS");
 });
 
 test("daxQuery lehnt Unbekanntes ab", () => {

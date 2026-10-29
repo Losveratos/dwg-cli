@@ -6,301 +6,301 @@ table Fakten
 	measure 'GuV AC' = SUM ( 'Fakten'[AC] )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: c3611dca-9377-47ed-a556-00ee99cd79eb
+		lineageTag: 19b52245-7d08-5fc0-a4a0-ec56b5e0c8d6
 
 	/// Vorjahr je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual.
 	measure 'GuV PY' = SUM ( 'Fakten'[PY] )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: 98568877-1cb4-4f2f-afd6-b1a9e2075fcf
+		lineageTag: be920d83-560b-5bf2-a3d6-7ea788666404
 
 	/// Plan je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual.
 	measure 'GuV PL' = SUM ( 'Fakten'[PL] )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: dc94849d-01f1-4cf6-97d2-0aa59f6423fa
+		lineageTag: 031fd018-ccaa-5669-bdca-e743441feab1
 
 	/// Forecast je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual.
 	measure 'GuV FC' = SUM ( 'Fakten'[FC] )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: c761f523-8263-415f-afb7-64270cdc2d58
+		lineageTag: 1bd7139a-eec2-5217-b790-918d7fcb6c08
 
 	/// Forecast Gesamtjahr der Auswahl, in jedem Monat gleich. Nur mit einem Jahr im Filter sinnvoll.
 	measure 'GuV FC FY' = AVERAGEX ( VALUES ( 'Kalender'[Periode] ), CALCULATE ( SUM ( 'Fakten'[FC_FY] ) ) )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: d8f5624d-79c9-445f-82e2-3add7a435397
+		lineageTag: 7a9f3478-c240-51c0-80b6-d33aa6012683
 
 	/// Plan Gesamtjahr der Auswahl, in jedem Monat gleich. Nur mit einem Jahr im Filter sinnvoll.
 	measure 'GuV PL FY' = AVERAGEX ( VALUES ( 'Kalender'[Periode] ), CALCULATE ( SUM ( 'Fakten'[PL_FY] ) ) )
 		formatString: #,##0
 		displayFolder: 01 GuV
-		lineageTag: b7888496-bdb5-42a3-96c3-33b10633f518
+		lineageTag: 2c374aba-7ee0-5fcc-bd36-50006db0d716
 
 	/// Ist mit Vorzeichen: Erlöse positiv, Aufwand negativ. Über alle Konten ergibt sich das EBIT.
 	measure 'GuV ± AC' = SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV AC] * 'Konto'[SignConvention] )
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 02 GuV mit Vorzeichen
-		lineageTag: a794ae87-5953-48c8-8b3c-283b02b0495a
+		lineageTag: 55035827-7f21-593a-b324-7877570487c7
 
 	/// Vorjahr mit Vorzeichen: Erlöse positiv, Aufwand negativ. Über alle Konten ergibt sich das EBIT.
 	measure 'GuV ± PY' = SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV PY] * 'Konto'[SignConvention] )
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 02 GuV mit Vorzeichen
-		lineageTag: fc6896d7-95fe-4dd7-a117-25ffa1575370
+		lineageTag: 4ca38f78-6369-5142-aaff-74d4f1c751ba
 
 	/// Plan mit Vorzeichen: Erlöse positiv, Aufwand negativ. Über alle Konten ergibt sich das EBIT.
 	measure 'GuV ± PL' = SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV PL] * 'Konto'[SignConvention] )
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 02 GuV mit Vorzeichen
-		lineageTag: 0fa5983c-0216-4ba3-a7cc-545f93971017
+		lineageTag: 1d12ce9a-b9f6-5225-b50e-60e6122bac25
 
 	/// Forecast mit Vorzeichen: Erlöse positiv, Aufwand negativ. Über alle Konten ergibt sich das EBIT.
 	measure 'GuV ± FC' = SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV FC] * 'Konto'[SignConvention] )
 		formatString: +#,##0;-#,##0;0
 		displayFolder: 02 GuV mit Vorzeichen
-		lineageTag: 46f2e547-5ab1-4821-9a58-64504b88d459
+		lineageTag: 911b9414-1b8c-5734-8a4e-d4968be900d1
 
 	/// Nettoumsatz Ist: Bruttoumsatz minus Rabatte plus sonstige Erlöse.
 	measure 'Umsatz AC' = CALCULATE ( [GuV ± AC], 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 68afdf85-8771-409b-aa6c-93d166e4ee28
+		lineageTag: 631643e1-d8ae-523c-8d8d-a5ead8041e94
 
 	/// Nettoumsatz Vorjahr: Bruttoumsatz minus Rabatte plus sonstige Erlöse.
 	measure 'Umsatz PY' = CALCULATE ( [GuV ± PY], 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: f18fe995-faf0-4b59-8531-354cc04fdb62
+		lineageTag: 5f2cda54-079b-5f00-8b0e-1b8be9afc878
 
 	/// Nettoumsatz Plan: Bruttoumsatz minus Rabatte plus sonstige Erlöse.
 	measure 'Umsatz PL' = CALCULATE ( [GuV ± PL], 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 46ffc732-d793-406b-94bd-dc7af2dec453
+		lineageTag: 44a0be51-6afe-5214-8c31-5b893868d02d
 
 	/// Nettoumsatz Forecast: Bruttoumsatz minus Rabatte plus sonstige Erlöse.
 	measure 'Umsatz FC' = CALCULATE ( [GuV ± FC], 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 5b2522f6-e41b-421f-ae6c-9d5f3eb5626d
+		lineageTag: f39583c4-3869-540b-8cff-2ab06661a387
 
 	/// Wareneinsatz Ist (Rohstoffe, Verpackung, Energie), positiv.
 	measure 'Wareneinsatz AC' = CALCULATE ( [GuV AC], 'Konto'[L1] = "Wareneinsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: adfb8f06-4dce-41b4-a876-732385f20287
+		lineageTag: 73ef3438-ba23-531b-865a-64c67fb753f6
 
 	/// Deckungsbeitrag Ist: Nettoumsatz minus Wareneinsatz.
 	measure 'DB AC' = [Umsatz AC] - [Wareneinsatz AC]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: f80bb6bb-32aa-427d-8ede-a7eba30fb906
+		lineageTag: 191735d5-1d01-5cb9-948c-36f91bed3f99
 
 	/// Alle Kosten Ist (Wareneinsatz, Betriebskosten, Abschreibungen), positiv.
 	measure 'Kosten AC' = CALCULATE ( [GuV AC], 'Konto'[Bereich] = "Kosten" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 954f0b79-cd68-4654-a21c-c94f74bc2397
+		lineageTag: a8649d5f-2ad5-5470-a308-f627bf874d25
 
 	/// EBIT Ist: Summe aller Konten mit Vorzeichen.
 	measure 'EBIT AC' = [GuV ± AC]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: f122ad2d-fee7-4368-bf32-6187762e56f1
+		lineageTag: 1515c21d-6131-5ac5-a675-ef2597de4bb6
 
 	/// Deckungsbeitrag Ist im Verhältnis zum Nettoumsatz.
 	measure 'DB-Marge % AC' = DIVIDE ( [DB AC], [Umsatz AC] )
 		formatString: 0.0 %
 		displayFolder: 03 Kennzahlen
-		lineageTag: 1c11b820-a3a6-4250-9362-62fa9205d718
+		lineageTag: d2bf6f47-c4c6-5d2b-99bc-f7eddda935d9
 
 	/// Wareneinsatz Vorjahr (Rohstoffe, Verpackung, Energie), positiv.
 	measure 'Wareneinsatz PY' = CALCULATE ( [GuV PY], 'Konto'[L1] = "Wareneinsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 0539973a-12d5-4460-a652-6b2782050071
+		lineageTag: d65006f3-dd71-5cf3-b09a-9091d6da6b66
 
 	/// Deckungsbeitrag Vorjahr: Nettoumsatz minus Wareneinsatz.
 	measure 'DB PY' = [Umsatz PY] - [Wareneinsatz PY]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 8ab5decf-cf3a-4002-85d1-418b9c2a1250
+		lineageTag: 93acbbb5-9435-53be-a32d-85c6635358d5
 
 	/// Alle Kosten Vorjahr (Wareneinsatz, Betriebskosten, Abschreibungen), positiv.
 	measure 'Kosten PY' = CALCULATE ( [GuV PY], 'Konto'[Bereich] = "Kosten" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 99b4ff89-d539-4a1f-a613-8b0f2652eb11
+		lineageTag: 9bf06fc4-d5de-50d1-a93d-2a41179a64e5
 
 	/// EBIT Vorjahr: Summe aller Konten mit Vorzeichen.
 	measure 'EBIT PY' = [GuV ± PY]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 702a6d17-843d-497b-b2f3-17c2279363b2
+		lineageTag: 2e2af2f7-7dc1-5037-9e28-174a52781648
 
 	/// Deckungsbeitrag Vorjahr im Verhältnis zum Nettoumsatz.
 	measure 'DB-Marge % PY' = DIVIDE ( [DB PY], [Umsatz PY] )
 		formatString: 0.0 %
 		displayFolder: 03 Kennzahlen
-		lineageTag: 94b4d953-3f48-4398-bb78-5ae928fa0b05
+		lineageTag: 9a6a393f-fa86-5d33-865f-e7e30a51a46f
 
 	/// Wareneinsatz Plan (Rohstoffe, Verpackung, Energie), positiv.
 	measure 'Wareneinsatz PL' = CALCULATE ( [GuV PL], 'Konto'[L1] = "Wareneinsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 7f035a86-b5a2-4ec6-8f8b-5320b5a51935
+		lineageTag: c15fae00-55f8-58b6-ac9d-d981bdba428c
 
 	/// Deckungsbeitrag Plan: Nettoumsatz minus Wareneinsatz.
 	measure 'DB PL' = [Umsatz PL] - [Wareneinsatz PL]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: f1bb2706-fffc-40f7-8170-ebdd1475eacf
+		lineageTag: 42d8d2ce-f3ae-5495-a5bb-3adff89621bf
 
 	/// Alle Kosten Plan (Wareneinsatz, Betriebskosten, Abschreibungen), positiv.
 	measure 'Kosten PL' = CALCULATE ( [GuV PL], 'Konto'[Bereich] = "Kosten" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 55d7686d-f01f-4a19-a15f-426c0e222bc6
+		lineageTag: 94c8bb6b-4ea1-59f7-8e01-9cfd00935bbe
 
 	/// EBIT Plan: Summe aller Konten mit Vorzeichen.
 	measure 'EBIT PL' = [GuV ± PL]
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 62429dfa-26d1-419d-a635-6a188695bdc9
+		lineageTag: cbf50419-2b73-5bb3-903a-1a568e145526
 
 	/// Deckungsbeitrag Plan im Verhältnis zum Nettoumsatz.
 	measure 'DB-Marge % PL' = DIVIDE ( [DB PL], [Umsatz PL] )
 		formatString: 0.0 %
 		displayFolder: 03 Kennzahlen
-		lineageTag: 8fe8d773-e9bb-4c20-838a-810b64231c36
+		lineageTag: 4080c7e0-cd0c-5140-b8d9-31f4322895fd
 
 	/// Absatz Ist in Hektoliter.
 	measure 'Absatz hl AC' = SUM ( 'Fakten'[Hektoliter AC] )
 		formatString: #,##0.0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 931f68ee-eaa7-4e1e-b97b-15888e82946a
+		lineageTag: b2d29d66-8dcd-529a-8c28-62eb6b81c4e3
 
 	/// Absatz Vorjahr in Hektoliter.
 	measure 'Absatz hl PY' = SUM ( 'Fakten'[Hektoliter PY] )
 		formatString: #,##0.0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 7c85c814-8e3d-45e0-8ca4-27bc58a9f8a4
+		lineageTag: 20a39b3e-ad7d-57bf-b62e-d2dbd52aa91b
 
 	/// Absatz Plan in Hektoliter.
 	measure 'Absatz hl PL' = SUM ( 'Fakten'[Hektoliter PL] )
 		formatString: #,##0.0
 		displayFolder: 03 Kennzahlen
-		lineageTag: f9fad2da-19fa-4bf0-a930-014304449c1f
+		lineageTag: cc64134f-56fe-5d54-9921-848a49225d6c
 
 	/// Absatz Forecast in Hektoliter.
 	measure 'Absatz hl FC' = SUM ( 'Fakten'[Hektoliter FC] )
 		formatString: #,##0.0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 2fe0f68b-5bcf-4e53-93df-d5ef1504942d
+		lineageTag: e0af6f89-0542-5e95-9815-8ecea03165ca
 
 	/// Nettoumsatz Ist je Hektoliter Absatz in EUR.
 	measure 'Erlös je hl AC' = DIVIDE ( [Umsatz AC], [Absatz hl AC] )
 		formatString: #,##0.00
 		displayFolder: 03 Kennzahlen
-		lineageTag: 2b924cab-719b-4a77-b70d-9088ced720eb
+		lineageTag: ac267364-7794-5b19-9f89-d71da0ddf4b7
 
 	/// Nettoumsatz Vorjahr je Hektoliter Absatz in EUR.
 	measure 'Erlös je hl PY' = DIVIDE ( [Umsatz PY], [Absatz hl PY] )
 		formatString: #,##0.00
 		displayFolder: 03 Kennzahlen
-		lineageTag: 8019faa2-58f7-4bdd-a840-dcfee15a47c1
+		lineageTag: e43a777e-d867-5685-8ffb-4a42e4b0cb47
 
 	/// Nettoumsatz Plan je Hektoliter Absatz in EUR.
 	measure 'Erlös je hl PL' = DIVIDE ( [Umsatz PL], [Absatz hl PL] )
 		formatString: #,##0.00
 		displayFolder: 03 Kennzahlen
-		lineageTag: 3574e3af-f717-41b9-9c4b-fb66e560db2c
+		lineageTag: 3b6597cb-e769-5dba-9f85-095052a5058d
 
 	/// Nettoumsatz Forecast Gesamtjahr, in jedem Monat gleich. Nur mit einem Jahr im Filter sinnvoll.
 	measure 'Umsatz FC FY' = CALCULATE ( SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV FC FY] * 'Konto'[SignConvention] ), 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 3bf756fd-b90b-4dcf-b44b-ca3bd6102931
+		lineageTag: a38a9c0a-292e-5d19-878b-e41ee9499559
 
 	/// Nettoumsatz Plan Gesamtjahr, in jedem Monat gleich. Nur mit einem Jahr im Filter sinnvoll.
 	measure 'Umsatz PL FY' = CALCULATE ( SUMX ( VALUES ( 'Konto'[SignConvention] ), [GuV PL FY] * 'Konto'[SignConvention] ), 'Konto'[L1] = "Nettoumsatz" )
 		formatString: #,##0
 		displayFolder: 03 Kennzahlen
-		lineageTag: 077fa0b2-e1fd-42ca-a064-eb1a48c6aa02
+		lineageTag: 9174f543-18d4-5242-b684-431b0070edd3
 
 	/// Vorjahr je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).
 	measure 'GuV PY bis Ist' = CALCULATE ( [GuV PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: d222efaa-22fd-4443-8f99-b8b4adc6c5fa
+		lineageTag: 7cc5f4a4-cbd3-51b5-9c3d-64901f406046
 
 	/// Plan je Konto, positiv wie gebucht. Vorzeichen über Konto[SignConvention], für das P&L-Visual, nur Monate mit Ist (bis August 2026).
 	measure 'GuV PL bis Ist' = CALCULATE ( [GuV PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: f7eb8e42-832c-42ae-ae93-af8a8401551a
+		lineageTag: 4e2336a1-e0f2-5423-83a4-7269d5094065
 
 	/// Nettoumsatz Vorjahr: Bruttoumsatz minus Rabatte plus sonstige Erlöse, nur Monate mit Ist (bis August 2026).
 	measure 'Umsatz PY bis Ist' = CALCULATE ( [Umsatz PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 5a6bda18-5a0e-448d-8037-1036a8bdd061
+		lineageTag: cb8d5704-81ea-5c58-83cd-086f9ebdeb56
 
 	/// Nettoumsatz Plan: Bruttoumsatz minus Rabatte plus sonstige Erlöse, nur Monate mit Ist (bis August 2026).
 	measure 'Umsatz PL bis Ist' = CALCULATE ( [Umsatz PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 0a48663d-d322-448f-ab33-8ae79e1b555c
+		lineageTag: a49685e0-8f2a-5d57-bdb8-f8918f5cfc56
 
 	/// Deckungsbeitrag Vorjahr: Nettoumsatz minus Wareneinsatz, nur Monate mit Ist (bis August 2026).
 	measure 'DB PY bis Ist' = CALCULATE ( [DB PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 7c15f046-62d5-48af-b330-dbebb2efe0b4
+		lineageTag: 729c2d8a-f9a2-585f-9cfe-c4b6dca61e68
 
 	/// Deckungsbeitrag Plan: Nettoumsatz minus Wareneinsatz, nur Monate mit Ist (bis August 2026).
 	measure 'DB PL bis Ist' = CALCULATE ( [DB PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: a6d73a8a-7086-44ec-b60f-213d0f6309de
+		lineageTag: e00518ff-c02b-5f21-917a-6f4284274ed6
 
 	/// Alle Kosten Vorjahr (Wareneinsatz, Betriebskosten, Abschreibungen), positiv, nur Monate mit Ist (bis August 2026).
 	measure 'Kosten PY bis Ist' = CALCULATE ( [Kosten PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 6208fc89-b9c7-400a-83e6-4f2b665df45e
+		lineageTag: 79db8f38-cf34-5aac-91d9-4279450b0fe3
 
 	/// Alle Kosten Plan (Wareneinsatz, Betriebskosten, Abschreibungen), positiv, nur Monate mit Ist (bis August 2026).
 	measure 'Kosten PL bis Ist' = CALCULATE ( [Kosten PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: ef9d01bb-6dd3-4174-a8ea-f041e467f9c4
+		lineageTag: f0f87ba7-ae06-54e0-8008-5bebfcc79099
 
 	/// EBIT Vorjahr: Summe aller Konten mit Vorzeichen, nur Monate mit Ist (bis August 2026).
 	measure 'EBIT PY bis Ist' = CALCULATE ( [EBIT PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 64b3ed6b-ca8e-4bb4-915b-70ec161a015c
+		lineageTag: 9849e2f8-0829-559c-bd38-0689723235dd
 
 	/// EBIT Plan: Summe aller Konten mit Vorzeichen, nur Monate mit Ist (bis August 2026).
 	measure 'EBIT PL bis Ist' = CALCULATE ( [EBIT PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0
 		displayFolder: 04 Bis Ist
-		lineageTag: 96ca2cec-cffd-433e-9bca-4b3e3982970e
+		lineageTag: e36c39af-fd0a-5044-acce-94cff4c142f1
 
 	/// Absatz Vorjahr in Hektoliter, nur Monate mit Ist (bis August 2026).
 	measure 'Absatz hl PY bis Ist' = CALCULATE ( [Absatz hl PY], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0.0
 		displayFolder: 04 Bis Ist
-		lineageTag: 2b2a28cb-d0aa-431e-aa51-83c4342f718d
+		lineageTag: a331b173-433c-54c3-b41d-245b74869b0d
 
 	/// Absatz Plan in Hektoliter, nur Monate mit Ist (bis August 2026).
 	measure 'Absatz hl PL bis Ist' = CALCULATE ( [Absatz hl PL], 'Kalender'[Ist] = TRUE () )
 		formatString: #,##0.0
 		displayFolder: 04 Bis Ist
-		lineageTag: c09ff2ec-367d-4cd9-b648-8065d6300917
+		lineageTag: fb92758a-73c5-55c8-ba5e-98b82b6042f9
 
 	column Datum
 		dataType: dateTime

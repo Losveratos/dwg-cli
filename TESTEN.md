@@ -51,7 +51,7 @@ app/test/out/dwg-spike/2-filter.png     ChartKitchen-Seite nach einem Klick (Que
 app/test/out/shell/                     App-Rahmen mit Navigation und Filter-Panel
 ```
 
-Je Seite gibt es mehrere Bilder: hell, nach dem Filtern, dunkel und schmal (Handy-Breite). Alle 28 Templates als
+Je Seite gibt es mehrere Bilder: hell, nach dem Filtern, dunkel und schmal (Handy-Breite). Alle 30 Templates als
 Seiten: `npm run test:showcase`, Bilder unter `app/test/out/showcase/`.
 
 ## Teil 2 · Mit Claude Code ausprobieren (empfohlen)

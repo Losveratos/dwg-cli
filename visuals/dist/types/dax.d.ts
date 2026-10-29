@@ -16,7 +16,11 @@ export interface DaxOptions {
     filters?: DaxFilter[];
     /** Sortierspalte je gruppierender Spalte, z. B. Monatsname → Monatsnummer (wie „Nach Spalte sortieren"). */
     sortBy?: Record<string, string>;
-    /** Elemente ohne Daten behalten (ADDMISSINGITEMS), z. B. Summen- und Formelzeilen der GuV. */
+    /**
+     * Elemente ohne Daten behalten (ADDMISSINGITEMS), z. B. Summen- und Formelzeilen der GuV. Mit Filtern steht das
+     * Ganze in CALCULATETABLE(…, Filter): ADDMISSINGITEMS füllt nur mit Elementen auf, die die Filter zulassen (sonst
+     * kämen Perioden anderer Jahre oder Konten außerhalb eines Kachelfilters als leere Zeilen dazu).
+     */
     showItemsWithNoData?: boolean;
 }
 export interface DaxQuery {

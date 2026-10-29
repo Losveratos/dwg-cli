@@ -1,0 +1,95 @@
+table Cashflow
+	lineageTag: 64748913-4c20-57d3-8dd4-450a06336749
+	sourceLineageTag: [dbo].[cashflow]
+
+	/// Ist je Cashflow-Position: Flüsse mit Vorzeichen (Auszahlungen negativ), Anfangsbestand je Monat (Zeilentyp opening).
+	measure 'Cashflow AC' = SUM ( 'Cashflow'[AC] )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 66b31499-11de-58fb-ab9e-048eb1907e1f
+
+	/// Vorjahr je Cashflow-Position: Flüsse mit Vorzeichen (Auszahlungen negativ), Anfangsbestand je Monat (Zeilentyp opening).
+	measure 'Cashflow PY' = SUM ( 'Cashflow'[PY] )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 735f55d9-953e-533b-a683-0c358d28eeec
+
+	/// Plan je Cashflow-Position: Flüsse mit Vorzeichen (Auszahlungen negativ), Anfangsbestand je Monat (Zeilentyp opening).
+	measure 'Cashflow PL' = SUM ( 'Cashflow'[PL] )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 6104e92c-8eec-531b-b3f3-db6e0def920f
+
+	/// Forecast je Cashflow-Position: Flüsse mit Vorzeichen (Auszahlungen negativ), Anfangsbestand je Monat (Zeilentyp opening).
+	measure 'Cashflow FC' = SUM ( 'Cashflow'[FC] )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 73659735-e51a-534d-8653-291165351aa6
+
+	/// Vorjahr je Cashflow-Position, nur Monate mit Ist (bis August 2026).
+	measure 'Cashflow PY bis Ist' = CALCULATE ( [Cashflow PY], 'Kalender'[Ist] = TRUE () )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 4bc58253-2cdb-5440-95b0-1dfaa41a3751
+
+	/// Plan je Cashflow-Position, nur Monate mit Ist (bis August 2026).
+	measure 'Cashflow PL bis Ist' = CALCULATE ( [Cashflow PL], 'Kalender'[Ist] = TRUE () )
+		formatString: #,##0
+		displayFolder: 06 Cashflow
+		lineageTag: 0d255315-bdb5-567e-9b49-9e5ea3a07f33
+
+	column Datum
+		dataType: dateTime
+		isHidden
+		lineageTag: e75ea278-fbbb-504b-9b59-9154daeddc52
+		sourceLineageTag: Datum
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column KontoID
+		dataType: string
+		isHidden
+		lineageTag: 128f2826-2598-5e7b-8c6d-15df60fe3fb0
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column AC
+		dataType: double
+		isHidden
+		lineageTag: 6d260162-dd93-5e68-ac0d-b9cf43d0e4a8
+		sourceLineageTag: AC
+		summarizeBy: none
+		sourceColumn: AC
+
+	column PY
+		dataType: double
+		isHidden
+		lineageTag: 97e8abc7-67ce-572c-87ea-de6b74fa66b8
+		sourceLineageTag: PY
+		summarizeBy: none
+		sourceColumn: PY
+
+	column PL
+		dataType: double
+		isHidden
+		lineageTag: 53dccf3c-1630-5c2b-92ed-9f8dd0d8b710
+		sourceLineageTag: PL
+		summarizeBy: none
+		sourceColumn: PL
+
+	column FC
+		dataType: double
+		isHidden
+		lineageTag: 9fe2ff1d-ddcb-5bdf-8534-1567433deb84
+		sourceLineageTag: FC
+		summarizeBy: none
+		sourceColumn: FC
+
+	partition Cashflow = entity
+		mode: directLake
+		source
+			entityName: cashflow
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

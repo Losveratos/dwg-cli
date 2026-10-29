@@ -1,6 +1,12 @@
 // Mini-DAX für Tests: führt genau die Abfragen aus, die daxQuery() erzeugt, auf exportierten
-// Tabellen eines Sternschemas (eine Faktentabelle, Dimensionen über n:1-Beziehungen).
-//   EVALUATE [ADDMISSINGITEMS(…,] SUMMARIZECOLUMNS(<Spalten>, TREATAS({…}, <Spalte>), "<name>", <Ausdruck>, …) [ORDER BY …]
+// Tabellen eines Sternschemas (Faktentabellen, Dimensionen über n:1-Beziehungen). Mehrere Faktentabellen
+// (z. B. GuV, Bilanz, Cashflow) gehen, solange eine Abfrage nur eine davon braucht: die Faktentabelle der Measures,
+// sonst die, von der alle gruppierten Spalten erreichbar sind. Filter auf Tabellen ohne Beziehung zu ihr wirken
+// wie in DAX nicht.
+//   EVALUATE [CALCULATETABLE(][ADDMISSINGITEMS(…,] SUMMARIZECOLUMNS(<Spalten>, TREATAS({…}, <Spalte>), "<name>", <Ausdruck>, …)
+//            [, …)] [, TREATAS(…))] [ORDER BY …]
+//   ADDMISSINGITEMS über Spalten mehrerer Tabellen: je Tabelle ihre vorhandenen Kombinationen (innerhalb der äußeren
+//   Filter auf diese Tabelle), dann das Kreuzprodukt, wie DAX.
 // Ausdrücke: SUM('T'[C]), MAX('T'[C]), SUMX/AVERAGEX(VALUES('T'[C]), a * 'T'[C]), CALCULATE(<Ausdruck>, 'T'[C] = <Literal>, …),
 // DIVIDE(a, b[, alt]), a + b - c, Zahlen, [Measure] aus model.measures.
 // Ergebnis im Format des Rayfin-Konnektors: { columns: [{name}], rows: [[…]] }. Alles andere wirft einen Fehler,
@@ -98,30 +104,47 @@ function literal(s) {
 /**
  * model = { fact: "Utilization", tables: { Name: { columns: [..], rows: [[..]] } },
  *           relationships: [{ from: ["Utilization", "Employee"], to: ["Employees", "ID"] }], measures: { Name: "DAX" } }
+ * fact ist die Standard-Faktentabelle; jede Tabelle, von der eine Beziehung ausgeht, ist ebenfalls eine.
  */
 export function createEngine(model) {
     const tables = {};
     for (const [name, t] of Object.entries(model.tables)) {
         tables[name] = { ...t, idx: Object.fromEntries(t.columns.map((c, i) => [c, i])) };
     }
-    const fact = tables[model.fact];
-    const rel = {};
+    const facts = [...new Set([model.fact, ...model.relationships.map(r => r.from[0])])];
+    const rels = {};                      // Faktentabelle → Dimension → { fromIdx, dim, key }
     for (const r of model.relationships) {
         const [ft, fc] = r.from, [dt, dc] = r.to;
-        if (ft !== model.fact) { throw new Error("Mini-DAX: nur Beziehungen von der Faktentabelle aus"); }
         const dim = tables[dt];
         const key = new Map(dim.rows.map(row => [String(row[dim.idx[dc]]), row]));
-        rel[dt] = { fromIdx: fact.idx[fc], dim, key };
+        (rels[ft] ??= {})[dt] = { fromIdx: tables[ft].idx[fc], dim, key };
+    }
+    let cur = model.fact;                 // Faktentabelle der laufenden Abfrage
+    const reachable = table => table === cur || Boolean(rels[cur]?.[table]);
+
+    /** Faktentabellen, die ein Ausdruck über Spalten und Measures liest */
+    function factsOf(expr, seen = new Set()) {
+        const out = new Set();
+        for (const m of expr.matchAll(/(?:'((?:[^']|'')+)'\s*)?\[((?:[^\]]|\]\])+)\]/g)) {
+            const table = m[1]?.replace(/''/g, "'"), col = m[2].replace(/\]\]/g, "]");
+            if (table && facts.includes(table) && tables[table].idx[col] != null) { out.add(table); continue; }
+            if (model.measures?.[col] && !(table && tables[table]?.idx[col] != null) && !seen.has(col)) {
+                seen.add(col);
+                for (const f of factsOf(model.measures[col], seen)) { out.add(f); }
+            }
+        }
+        return out;
     }
 
     /** Getter für eine Spalte aus Sicht einer Faktzeile */
     function getter(ref) {
-        if (ref.table === model.fact) {
-            const i = fact.idx[ref.col];
+        if (facts.includes(ref.table)) {
+            if (ref.table !== cur) { throw new Error(`Mini-DAX: '${ref.table}' ist nicht die Faktentabelle dieser Abfrage ('${cur}')`); }
+            const i = tables[cur].idx[ref.col];
             if (i == null) { throw new Error(`Mini-DAX: Spalte ${ref.table}[${ref.col}] fehlt`); }
             return row => row[i];
         }
-        const r = rel[ref.table];
+        const r = rels[cur]?.[ref.table];
         if (!r) { throw new Error(`Mini-DAX: keine Beziehung zu '${ref.table}'`); }
         const i = r.dim.idx[ref.col];
         if (i == null) { throw new Error(`Mini-DAX: Spalte '${ref.table}'[${ref.col}] fehlt`); }
@@ -197,22 +220,36 @@ export function createEngine(model) {
         throw new Error(`Mini-DAX: Ausdruck nicht unterstützt: ${t}`);
     }
 
+    /** Faktentabelle einer Abfrage: die der Measures, sonst die erste, von der alle gruppierten Spalten erreichbar sind */
+    function pickFact(groups, measures) {
+        if (facts.length === 1) { return facts[0]; }
+        const used = new Set(measures.flatMap(([, e]) => [...factsOf(e)]));
+        if (used.size > 1) { throw new Error(`Mini-DAX: Measures aus mehreren Faktentabellen (${[...used].join(", ")})`); }
+        if (used.size === 1) { return [...used][0]; }
+        const hit = facts.find(f => groups.every(g => g.table === f || rels[f]?.[g.table]));
+        if (!hit) { throw new Error(`Mini-DAX: keine Faktentabelle erreicht ${groups.map(g => g.table).join(", ")}`); }
+        return hit;
+    }
+
     function summarize(args) {
-        const groups = [], filters = [], measures = [];
+        const groups = [], treatas = [], measures = [];
         for (let i = 0; i < args.length; i++) {
             const a = args[i];
             if (a.startsWith('"')) { measures.push([literal(a), args[++i]]); continue; }
             const c = call(a);
             if (c?.name === "TREATAS") {
                 const vals = splitTop(c.args[0].trim().replace(/^\{|\}$/g, "")).map(literal);
-                filters.push({ g: getter(parseRef(c.args[1])), vals });
+                treatas.push({ ref: parseRef(c.args[1]), vals });
                 continue;
             }
             const ref = parseRef(a);
             if (!ref?.table) { throw new Error(`Mini-DAX: Argument nicht unterstützt: ${a}`); }
             groups.push(ref);
         }
-        const rows = fact.rows.filter(r => filters.every(f => f.vals.includes(f.g(r))));
+        cur = pickFact(groups, measures);
+        // Filter auf Tabellen ohne Beziehung zur Faktentabelle wirken nicht (wie DAX, z. B. Kunde auf die Bilanz)
+        const filters = treatas.filter(f => reachable(f.ref.table)).map(f => ({ g: getter(f.ref), vals: f.vals }));
+        const rows = tables[cur].rows.filter(r => filters.every(f => f.vals.includes(f.g(r))));
         const gs = groups.map(getter);
         const buckets = new Map();
         for (const r of rows) {
@@ -240,24 +277,50 @@ export function createEngine(model) {
             if (!m) { throw new Error("Mini-DAX: keine EVALUATE-Abfrage"); }
             let c = call(m[1]);
             let result;
+            // CALCULATETABLE(<Tabelle>, TREATAS(…), …): äußere Filter, gelten für die Abfrage und fürs Auffüllen
+            let outerArgs = [];
+            if (c?.name === "CALCULATETABLE") {
+                outerArgs = c.args.slice(1);
+                if (!outerArgs.every(a => call(a)?.name === "TREATAS")) { throw new Error("Mini-DAX: CALCULATETABLE nur mit TREATAS-Filtern"); }
+                c = call(c.args[0]);
+            }
+            const outer = outerArgs.map(a => {
+                const t = call(a);
+                return { ref: parseRef(t.args[1]), vals: splitTop(t.args[0].trim().replace(/^\{|\}$/g, "")).map(literal) };
+            });
             if (c?.name === "ADDMISSINGITEMS") {
                 const inner = c.args.findIndex(a => /^\s*SUMMARIZECOLUMNS\(/.test(a));
                 const showAll = c.args.slice(0, inner).map(parseRef);
-                result = summarize(call(c.args[inner]).args);
-                const table = showAll[0].table;
-                if (!showAll.every(r => r.table === table)) { throw new Error("Mini-DAX: ADDMISSINGITEMS nur mit Spalten einer Tabelle"); }
-                const t = tables[table];
-                const have = new Set(result.rows.map(r => JSON.stringify(result.groups.map((g, i) => (g.table === table ? r[i] : null)))));
+                result = summarize([...call(c.args[inner]).args, ...outerArgs]);
+                const pos = ref => result.groups.findIndex(g => g.table === ref.table && g.col === ref.col);
+                const idx = showAll.map(pos);
+                if (idx.some(i => i < 0)) { throw new Error("Mini-DAX: ADDMISSINGITEMS über eine Spalte, die nicht gruppiert ist"); }
+                // je Tabelle die vorhandenen Kombinationen ihrer Spalten, Filter auf dieselbe Tabelle beachtet; dann Kreuzprodukt
+                let combos = [[]];
+                for (const table of [...new Set(showAll.map(r => r.table))]) {
+                    const t = tables[table], refs = showAll.filter(r => r.table === table);
+                    const fl = outer.filter(f => f.ref.table === table);
+                    const seen = new Map();
+                    for (const row of t.rows) {
+                        if (!fl.every(f => f.vals.includes(row[t.idx[f.ref.col]]))) { continue; }
+                        const vals = refs.map(r => row[t.idx[r.col]]);
+                        seen.set(JSON.stringify(vals), vals);
+                    }
+                    combos = combos.flatMap(cmb => [...seen.values()].map(v => [...cmb, ...refs.map((r, i) => [pos(r), v[i]])]));
+                }
                 const width = result.columns.length;
-                for (const row of t.rows) {
-                    const key = result.groups.map(g => (g.table === table ? row[t.idx[g.col]] : null));
-                    const k = JSON.stringify(key);
+                const keyOf = row => JSON.stringify(idx.map(i => row[i]));
+                const have = new Set(result.rows.map(keyOf));
+                for (const cmb of combos) {
+                    const row = Array(width).fill(null);
+                    for (const [i, v] of cmb) { row[i] = v; }
+                    const k = keyOf(row);
                     if (have.has(k)) { continue; }
                     have.add(k);
-                    result.rows.push([...key, ...Array(width - key.length).fill(null)]);
+                    result.rows.push(row);
                 }
             } else if (c?.name === "SUMMARIZECOLUMNS") {
-                result = summarize(c.args);
+                result = summarize([...c.args, ...outerArgs]);
             } else {
                 throw new Error(`Mini-DAX: ${c?.name ?? "Ausdruck"} nicht unterstützt`);
             }

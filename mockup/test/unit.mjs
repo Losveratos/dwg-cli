@@ -47,7 +47,7 @@ test("lint: Farben kommen aus DwgShell.tsx (hell und dunkel, alle Schlüssel)", 
     for (const mode of ["light", "dark"]) { for (const k of ["bg", "surface", "panel", "text", "muted", "accent", "onAccent"]) { assert.match(p[mode][k], /^#[0-9a-f]{6}$/i, `${mode}.${k}`); } }
 });
 
-test("lint: Showcase (28 Seiten im Raster) ohne Fehler und ohne Rasterbefunde", () => {
+test("lint: Showcase (30 Seiten im Raster) ohne Fehler und ohne Rasterbefunde", () => {
     const r = lintSpec(SHOWCASE, { palette });
     assert.equal(r.counts.error, 0, formatFindings(r));
     for (const c of ["OFF_LATTICE", "NOT_FLUSH", "OUTSIDE_CONTENT", "EDGE_NEAR_X", "EDGE_NEAR_Y", "GUTTER_MISMATCH", "OVERLAP"]) { assert.ok(!codes(r).includes(c), c); }

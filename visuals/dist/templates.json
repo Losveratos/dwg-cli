@@ -1,7 +1,7 @@
 {
   "versions": {
     "chartkitchen": "1.53.0.0",
-    "pnl": "1.5.3.0"
+    "pnl": "1.7.0.0"
   },
   "templates": [
     {
@@ -3935,6 +3935,442 @@
         {
           "role": "rowType",
           "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
+      "id": "T05A",
+      "visual": "pnl",
+      "data": "balance",
+      "group": {
+        "id": "balance",
+        "title": {
+          "de": "Bilanz & Cashflow",
+          "en": "Balance sheet & cash flow"
+        }
+      },
+      "title": {
+        "de": "Bilanz zum Stichtag",
+        "en": "Balance sheet at the reporting date"
+      },
+      "use": {
+        "de": "Aktiva und Passiva mit Bilanzsumme (Doppelstrich), Stand gegen Vorjahresstichtag mit ΔPY und ΔPY %.",
+        "en": "Assets and equity and liabilities with their totals (double rule), balances against the prior-year date with ΔPY and ΔPY %."
+      },
+      "objects": {
+        "columns": {
+          "template": "T05A",
+          "templateApplied": "T05A",
+          "minuend": "ac",
+          "showPY": true,
+          "showPL": false,
+          "showMinuend": true,
+          "valueCascade": false,
+          "dPyAbs": true,
+          "dPyBar": false,
+          "dPyWaterfall": false,
+          "dPyPct": true,
+          "dPyPin": false,
+          "dPlAbs": false,
+          "dPlBar": false,
+          "dPlWaterfall": false,
+          "dPlPct": false,
+          "dPlPin": false,
+          "secondBlock": false,
+          "structureSubtotals": true,
+          "showPctRows": true,
+          "thresholds": false,
+          "scenarioMarks": true,
+          "chartLabels": true,
+          "capBars": false,
+          "sort": "cat",
+          "sortBlock": "ytd",
+          "blockKind": "ytd",
+          "leftBlockKind": "month"
+        },
+        "numbers": {
+          "decimals": 0,
+          "pctDecimals": 1
+        },
+        "statement": {
+          "stockMode": "allStock"
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
+      "id": "T05B",
+      "visual": "pnl",
+      "data": "balance",
+      "group": {
+        "id": "balance",
+        "title": {
+          "de": "Bilanz & Cashflow",
+          "en": "Balance sheet & cash flow"
+        }
+      },
+      "title": {
+        "de": "Cashflow-Brücke",
+        "en": "Cash-flow bridge"
+      },
+      "use": {
+        "de": "Anfangsbestand → operativ · investiv · finanziell → Endbestand als Kaskade, Monat und YTD, Bestände als Anker.",
+        "en": "Opening balance → operating · investing · financing → closing balance as a cascade, month and YTD, stocks as anchors."
+      },
+      "objects": {
+        "columns": {
+          "template": "T05B",
+          "templateApplied": "T05B",
+          "minuend": "ac",
+          "showPY": true,
+          "showPL": false,
+          "showMinuend": true,
+          "valueCascade": true,
+          "dPyAbs": true,
+          "dPyBar": false,
+          "dPyWaterfall": false,
+          "dPyPct": true,
+          "dPyPin": false,
+          "dPlAbs": false,
+          "dPlBar": false,
+          "dPlWaterfall": false,
+          "dPlPct": false,
+          "dPlPin": false,
+          "secondBlock": true,
+          "structureSubtotals": true,
+          "showPctRows": true,
+          "thresholds": false,
+          "scenarioMarks": true,
+          "chartLabels": true,
+          "capBars": false,
+          "sort": "cat",
+          "sortBlock": "ytd",
+          "blockKind": "ytd",
+          "leftBlockKind": "month"
+        },
+        "numbers": {
+          "decimals": 0,
+          "pctDecimals": 1
+        },
+        "statement": {
+          "stockMode": "auto"
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "required",
           "kind": "Grouping",
           "label": {
             "de": "Zeilentyp",

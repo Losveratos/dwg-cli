@@ -30,7 +30,11 @@ export interface DaxOptions {
     filters?: DaxFilter[];
     /** Sortierspalte je gruppierender Spalte, z. B. Monatsname → Monatsnummer (wie „Nach Spalte sortieren"). */
     sortBy?: Record<string, string>;
-    /** Elemente ohne Daten behalten (ADDMISSINGITEMS), z. B. Summen- und Formelzeilen der GuV. */
+    /**
+     * Elemente ohne Daten behalten (ADDMISSINGITEMS), z. B. Summen- und Formelzeilen der GuV. Mit Filtern steht das
+     * Ganze in CALCULATETABLE(…, Filter): ADDMISSINGITEMS füllt nur mit Elementen auf, die die Filter zulassen (sonst
+     * kämen Perioden anderer Jahre oder Konten außerhalb eines Kachelfilters als leere Zeilen dazu).
+     */
     showItemsWithNoData?: boolean;
 }
 
@@ -169,6 +173,10 @@ export function daxQuery(kind: VisualKind, bindings: Bindings, opts: DaxOptions 
     let table = `SUMMARIZECOLUMNS(\n${args.map(a => indent + a).join(",\n")}\n    )`;
     if (opts.showItemsWithNoData && groupBy.length) {
         table = `ADDMISSINGITEMS(\n${groupBy.map(a => indent + a).join(",\n")},\n    ${table},\n${groupBy.map(a => indent + a).join(",\n")}\n    )`;
+        // Filter auch außen, wie „Elemente ohne Daten anzeigen“ in Power BI: aufgefüllt wird nur innerhalb der Filter
+        if (filters.length) {
+            table = `CALCULATETABLE(\n    ${table},\n${filters.map(f => indent + f).join(",\n")}\n    )`;
+        }
     }
     const query = `EVALUATE\n    ${table}${order.length ? `\nORDER BY ${order.join(", ")}` : ""}`;
     return { query, bindings: out, displayNames };

@@ -2,7 +2,9 @@
   "rows": {
     "fakten": 28248,
     "fakten2026": 14124,
-    "kombinationen": 107
+    "kombinationen": 107,
+    "bilanz": 192,
+    "cashflow": 216
   },
   "2026": {
     "GuV AC": 58417579.0,
@@ -49,5 +51,31 @@
       "AC": 2624524.0,
       "PL": 2202956.0
     }
+  },
+  "Bilanz und Cashflow 2026": {
+    "Stichtag": "2026-08",
+    "Aktiva AC": 39993754.0,
+    "Passiva AC": 39993754.0,
+    "Aktiva PY": 36847730.0,
+    "Aktiva PL": 40801910.0,
+    "Eigenkapital AC": 24498007.0,
+    "Eigenkapital PY": 23622741.0,
+    "Sachanlagen AC": 29467439.0,
+    "Kasse und Bank AC": 3771494.0,
+    "Verbindlichkeiten Kreditinstitute AC": 12080000.0,
+    "Eigenkapitalquote AC": 0.6125458240304223,
+    "Anfangsbestand AC": 4326188.0,
+    "Anfangsbestand PY": 3983655.0,
+    "Operativer Cashflow AC": 1419128.0,
+    "Investiver Cashflow AC": -4193822.0,
+    "Finanzierungs-Cashflow AC": 2220000.0,
+    "Operativer Cashflow PY bis Ist": 1370549.0,
+    "Investiver Cashflow PY bis Ist": -870644.0,
+    "Finanzierungs-Cashflow PY bis Ist": -880000.0,
+    "Endbestand AC": 3771494.0,
+    "Endbestand PY": 3603560.0,
+    "Jahresüberschuss AC": 784426.0,
+    "Abschreibungen AC": 2016011.0,
+    "Endbestand FC Dezember": 5480869.0
   }
 }

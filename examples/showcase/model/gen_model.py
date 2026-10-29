@@ -46,8 +46,27 @@ TABLES = {
         ("Hektoliter AC", "HektoliterAC", "double"), ("Hektoliter PY", "HektoliterPY", "double"),
         ("Hektoliter PL", "HektoliterPL", "double"), ("Hektoliter FC", "HektoliterFC", "double")]),
 }
-RELATIONSHIPS = [("Datum", "Kalender", "Datum"), ("KontoID", "Konto", "KontoID"),
-                 ("KundeID", "Kunde", "KundeID"), ("ProduktID", "Produkt", "ProduktID")]
+# Bilanz und Cashflow (Bestände für die P&L-Templates T05A und T05B): je eine Konten- und eine Faktentabelle
+STOCK_DIM = [
+    ("KontoID", "KontoID", "string"), ("Konto", "Konto", "string"), ("L1", "L1", "string"), ("L1 Sort", "L1Sort", "int64"),
+    ("L2", "L2", "string"), ("SortOrder", "SortOrder", "int64"), ("RowType", "RowType", "string"),
+    ("FormulaDef", "FormulaDef", "string"), ("SignConvention", "SignConvention", "int64"),
+    ("DisplayInvert", "DisplayInvert", "string"), ("VarianceInvert", "VarianceInvert", "string"),
+    ("Kommentar", "Kommentar", "string")]
+STOCK_FACT = [
+    ("Datum", "Datum", "dateTime"), ("KontoID", "KontoID", "string"), ("AC", "AC", "double"), ("PY", "PY", "double"),
+    ("PL", "PL", "double"), ("FC", "FC", "double")]
+TABLES.update({
+    "Bilanzkonto": ("bilanzkonto", STOCK_DIM),
+    "Bilanz": ("bilanz", STOCK_FACT + [("Stichtag", "Stichtag", "boolean")]),
+    "Cashflowkonto": ("cashflowkonto", STOCK_DIM),
+    "Cashflow": ("cashflow", STOCK_FACT),
+})
+# (Faktentabelle, Spalte, Dimension, Spalte); die Kennung der Fakten-Beziehungen bleibt wie bisher (nur nach Dimension)
+RELATIONSHIPS = [("Fakten", "Datum", "Kalender", "Datum"), ("Fakten", "KontoID", "Konto", "KontoID"),
+                 ("Fakten", "KundeID", "Kunde", "KundeID"), ("Fakten", "ProduktID", "Produkt", "ProduktID"),
+                 ("Bilanz", "Datum", "Kalender", "Datum"), ("Bilanz", "KontoID", "Bilanzkonto", "KontoID"),
+                 ("Cashflow", "Datum", "Kalender", "Datum"), ("Cashflow", "KontoID", "Cashflowkonto", "KontoID")]
 
 
 def q(name):
@@ -89,9 +108,10 @@ def main():
         w(d / "tables" / f"{t}.tmdl", "\n".join(lines))
 
     rel = []
-    for fc, dt, dc in RELATIONSHIPS:
-        rel += [f"relationship {uuid.uuid5(uuid.NAMESPACE_URL, f'{NAME}/rel/{dt}')}",
-                f"\tfromColumn: Fakten.{q(fc)}", f"\ttoColumn: {q(dt)}.{q(dc)}", ""]
+    for ft, fc, dt, dc in RELATIONSHIPS:
+        key = f"{NAME}/rel/{dt}" if ft == "Fakten" else f"{NAME}/rel/{ft}/{dt}"
+        rel += [f"relationship {uuid.uuid5(uuid.NAMESPACE_URL, key)}",
+                f"\tfromColumn: {q(ft)}.{q(fc)}", f"\ttoColumn: {q(dt)}.{q(dc)}", ""]
     w(d / "relationships.tmdl", "\n".join(rel))
     print(OUT)
 

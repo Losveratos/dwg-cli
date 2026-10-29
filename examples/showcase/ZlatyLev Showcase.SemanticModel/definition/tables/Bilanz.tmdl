@@ -1,0 +1,110 @@
+table Bilanz
+	lineageTag: 38cade93-1796-56f0-825e-590c2b72e80a
+	sourceLineageTag: [dbo].[bilanz]
+
+	/// Ist je Bilanzposition: Stand am Monatsende. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periodenfeld (Zeilentyp stock) oder als Bilanz Stichtag.
+	measure 'Bilanz AC' = SUM ( 'Bilanz'[AC] )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: 2c0f7fa3-048f-56e9-869e-e124a2ba2006
+
+	/// Vorjahr je Bilanzposition: Stand am Monatsende. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periodenfeld (Zeilentyp stock) oder als Bilanz Stichtag.
+	measure 'Bilanz PY' = SUM ( 'Bilanz'[PY] )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: eeb907b3-922d-5b4f-badb-2b8936578788
+
+	/// Plan je Bilanzposition: Stand am Monatsende. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periodenfeld (Zeilentyp stock) oder als Bilanz Stichtag.
+	measure 'Bilanz PL' = SUM ( 'Bilanz'[PL] )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: e742a554-4e92-5b5b-a7bf-0d1e3c7c0673
+
+	/// Forecast je Bilanzposition: Stand am Monatsende. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periodenfeld (Zeilentyp stock) oder als Bilanz Stichtag.
+	measure 'Bilanz FC' = SUM ( 'Bilanz'[FC] )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: c3e90403-a73b-51f1-947d-139b6ffca4f2
+
+	/// Ist am Stichtag: Stand im letzten Ist-Monat des Jahres (2026: August).
+	measure 'Bilanz Stichtag AC' = CALCULATE ( [Bilanz AC], 'Bilanz'[Stichtag] = TRUE () )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: a36f9b2c-ca94-59de-bbef-830b603c1ddf
+
+	/// Vorjahr am Stichtag: Stand im letzten Ist-Monat des Jahres (2026: August).
+	measure 'Bilanz Stichtag PY' = CALCULATE ( [Bilanz PY], 'Bilanz'[Stichtag] = TRUE () )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: 89be987e-fb5d-5f2a-8dda-f2c7f65fd164
+
+	/// Plan am Stichtag: Stand im letzten Ist-Monat des Jahres (2026: August).
+	measure 'Bilanz Stichtag PL' = CALCULATE ( [Bilanz PL], 'Bilanz'[Stichtag] = TRUE () )
+		formatString: #,##0
+		displayFolder: 05 Bilanz
+		lineageTag: 918835be-075b-5a0d-a5b1-943c5cdc4470
+
+	column Datum
+		dataType: dateTime
+		isHidden
+		lineageTag: 2935b418-4cc7-5bb4-92ae-83d7ca099231
+		sourceLineageTag: Datum
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column KontoID
+		dataType: string
+		isHidden
+		lineageTag: d73c84be-88ec-59a5-8176-4b0c773b407a
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column AC
+		dataType: double
+		isHidden
+		lineageTag: 6e2f9fb8-cade-5c35-94e6-ffe370d8483f
+		sourceLineageTag: AC
+		summarizeBy: none
+		sourceColumn: AC
+
+	column PY
+		dataType: double
+		isHidden
+		lineageTag: e6f94b92-c8a1-5768-ab3a-5c2b31e82ae3
+		sourceLineageTag: PY
+		summarizeBy: none
+		sourceColumn: PY
+
+	column PL
+		dataType: double
+		isHidden
+		lineageTag: 7737e727-4990-5de4-b83c-698ddf0a50d9
+		sourceLineageTag: PL
+		summarizeBy: none
+		sourceColumn: PL
+
+	column FC
+		dataType: double
+		isHidden
+		lineageTag: 4ce4c0a0-4fcf-5053-87d8-c03d113a8b22
+		sourceLineageTag: FC
+		summarizeBy: none
+		sourceColumn: FC
+
+	/// WAHR im letzten Ist-Monat jedes Jahres (Dezember 2025, August 2026), für Stände am Stichtag.
+	column Stichtag
+		dataType: boolean
+		isHidden
+		lineageTag: ecab9302-2977-5000-b443-e80a04e8d6b4
+		sourceLineageTag: Stichtag
+		summarizeBy: none
+		sourceColumn: Stichtag
+
+	partition Bilanz = entity
+		mode: directLake
+		source
+			entityName: bilanz
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

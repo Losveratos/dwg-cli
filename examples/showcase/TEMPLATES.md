@@ -1,7 +1,8 @@
 # Showcase · Notizen zu den Templates
 
-Stand 19.10.2026. Spec: `specs/showcase.json` (28 Seiten, je Template eine), Test:
-`node app/test/showcase-spec.mjs`. Visuals: ChartKitchen 1.51.1, P&L Statement 1.4.2 (Adapter `visuals/dist`).
+Stand 29.10.2026 (Bilanz und Cashflow ergänzt, sonst 19.10.2026). Spec: `specs/showcase.json` (30 Seiten, je
+Template eine), Test: `node app/test/showcase-spec.mjs`. Visuals: ChartKitchen 1.53.0.0, P&L Statement 1.7.0.0
+(Adapter `visuals/dist`).
 Datenvertrag: `showcase/CONTRACT.md`. Die Templates sind an IBCS angelehnt.
 Die Spec ist mit einem kleinen Generator erzeugt (Presets als Tabellen, Seiten kompakt); er liegt außerhalb des
 Repos im Notizordner der Sessions (`gen-showcase.mjs`, Aufruf `node gen-showcase.mjs <repo>`).
@@ -24,6 +25,8 @@ kein Chip „↺ Zum Template zurück“.
 showMinuend, valueCascade, dPy*/dPl* (Abs, Bar, Waterfall, Pct, Pin), secondBlock, structureSubtotals, showPctRows,
 thresholds, scenarioMarks, chartLabels, capBars, sort, sortBlock, blockKind, leftBlockKind; dazu
 `numbers.decimals` und `numbers.pctDecimals` des Templates und bei 12G und 12H `titleBlock.headline: true`.
+Ab P&L 1.7 gehört `statement.stockMode` dazu: T05A schreibt `allStock`, T05B `auto` (die GuV-Templates lassen es
+weg). `templateSwitches()` liefert es als `stmt`, der Katalog als Objekt `statement`.
 Templates wirken nur in der Ansicht Tabelle (Standard, kein `state.uiState` gesetzt).
 
 Der Test prüft beides gegen eine Kopie der Preset-Tabellen und alle Objekte gegen die `capabilities.json` der Visuals.
@@ -38,7 +41,8 @@ Ist gibt es bis August 2026, Plan und Forecast für das ganze Jahr. Damit keine 
 | ChartKitchen Struktur, Korrelation, Brücken (C02, C04, C06, C09, C10, C12) | Kachelfilter `'Kalender'[Ist] = TRUE`: nur Ist-Monate, PY und PL über denselben Zeitraum |
 | Kontextkarten (alle Seiten) | Measures `… PY bis Ist`, `… PL bis Ist` |
 | P&L Struktur mit AC als Minuend (T01A, T01B, T02A, T02B, T02C) | Rolle `period` = `'Kalender'[Periode]`: das Visual rechnet YTD bis zum letzten Monat mit AC (`mtdIndex`/`ytdRawSum`), „Monat“ ist August, zwei Blöcke Monat \| YTD |
-| P&L GuV mit AC als Minuend (T03A, T04A, T04B, T04C, 12A) | **ohne** `period`, dafür `GuV PY bis Ist` und `GuV PL bis Ist`: ein YTD-Block, wie im Preset. Grund: Summen, Formeln und KPIs brauchen ADDMISSINGITEMS; mit Periode würde es Konto × Periode auffüllen, in DAX auch mit den leeren Perioden 2025 (Filter steht in SUMMARIZECOLUMNS), und Mini-DAX kann es nur über eine Tabelle |
+| P&L GuV mit AC als Minuend (T03A, T04A, T04B, T04C, 12A) | **ohne** `period`, dafür `GuV PY bis Ist` und `GuV PL bis Ist`: ein YTD-Block, wie im Preset. Grund damals: Summen, Formeln und KPIs brauchen ADDMISSINGITEMS; mit Periode füllte es Konto × Periode auf, in DAX auch mit den leeren Perioden 2025 (Filter stand nur in SUMMARIZECOLUMNS), und Mini-DAX konnte es nur über eine Tabelle. Seit 29.10.2026 steht ADDMISSINGITEMS mit Filtern in CALCULATETABLE (aufgefüllt wird nur innerhalb der Filter) und Mini-DAX füllt über mehrere Tabellen auf; die GuV-Seiten bleiben wie abgenommen |
+| P&L Bestände (T05A Bilanz, T05B Cashflow) | **mit** `period`: das Visual wählt den Stand am Stichtag aus den Monatswerten (Token `stock` im Zeilentyp, Anfangsbestand `opening`), PY am selben Stichtag ein Jahr früher; mit `showItemsWithNoData` für Eigenkapitalquote und Endbestand (Formel ohne Fakten). Normale Measures (`Bilanz PY`, `Cashflow PY`), das Visual rechnet periodengleich bis August |
 | 12G | ohne `period`; FY-Block aus `GuV FC FY` (AC&FC), PY = ganzes Vorjahr (`GuV PY`), YTD-Anteil = AC Jan bis Aug |
 | P&L mit FC oder PL als Minuend (T02E, T02F, T03B, T04D, T04E, 12H) | **ohne** `period`: ein Block über das Gesamtjahr. Mit Periode wäre der FC im YTD-Fenster gleich dem AC (FC = AC in Ist-Monaten) und das Template zeigte nichts. Ohne Periode fällt der zweite Block still weg (`megaKeys`), der einzelne YTD-Block trägt keinen Titel; `periodLine` sagt „Gesamtjahr“ |
 
@@ -76,8 +80,11 @@ Jahr-Slicer ist Einfachauswahl (Standard 2026): FY-Measures (AVERAGEX über Peri
 | 12A | GuV, AC, PY bis Ist | 0 Dezimalen, Tsd. EUR |
 | 12G | GuV, AC/PY/PL/FC + FC FY, PL FY, ohne Periode | Block FY braucht `fcFy`; Headline an |
 | 12H | GuV, PL/PY (+AC), ohne Periode | Minuend PL, Planrechnung Gesamtjahr; Headline an |
+| T05A | Bilanz ('Bilanzkonto', 'Bilanz'), AC und PY, Periode | `statement.stockMode: allStock` wie das Template (die Daten tragen trotzdem die Token, „Auto“ ergäbe dasselbe); `columns.pctRevenue: false`; `showPctRows` bleibt an, es betrifft nur die KPI-Zeile Eigenkapitalquote (Δ in Prozentpunkten). Mio. EUR mit 2 Dezimalen. Karten: drei Positionen am Stichtag (`Bilanz Stichtag AC/PY`, Kachelfilter auf KontoID: Sachanlagen, Kasse und Bank, Eigenkapital). Verbindlichkeiten bewusst nicht: die Karten kennen keine umgekehrte Polarität und färbten einen Anstieg günstig |
+| T05B | Cashflow ('Cashflowkonto', 'Cashflow'), AC und PY, Periode | `statement.stockMode: auto`: Anfangsbestand `Account opening`, Endbestand `Formula stock`, Flüsse ohne Token. Zwei Blöcke August \| Jan..Aug, Kaskaden PY und AC. Karten: die drei Cashflow-Bereiche Jan bis Aug gegen `Cashflow PY bis Ist` |
 
-Jede Seite hat oben eine Kontextkachel (ChartKitchen-KPI-Karten je Kanal oder Sorte, Ist gegen PY und PL bis Ist).
+Jede Seite hat oben eine Kontextkachel (ChartKitchen-KPI-Karten je Kanal oder Sorte, Ist gegen PY und PL bis Ist;
+bei Bilanz und Cashflow Bilanzpositionen bzw. Cashflow-Bereiche gegen PY).
 Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Summe der Kanäle = Ganzes).
 
 ## Prüfung (19.10.2026)
@@ -88,6 +95,10 @@ Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Sum
   Nur Jahr 2026: der Testdatensatz hat Fakten nur für 2026.
 - `dwg app page --model "showcase/ZlatyLev Showcase.SemanticModel"` in eine Wegwerf-App: ohne Feldfehler.
 - `dwg pbip new/register/pages` + `dwg validate` in einen Wegwerf-Ordner: 28 Seiten, schemagültig, keine Hinweise.
+- 29.10.2026 (T05A, T05B): `showcase-spec.mjs` 18/18 (mit `DWG_KITCHEN`), `npm run test:showcase` 31/31 Seiten ohne
+  Befund, Parität App und PBIP ohne Befund, `dwg validate` 30 Seiten, `te validate` ohne Fehler. Im Browser:
+  Doppelstrich unter Aktiva und Passiva, Stand August statt Summe, Eigenkapitalquote in Prozentpunkten; Cashflow als
+  Kaskade vom Anfangs- zum Endbestand, im YTD-Block Anfangsbestand 1. Januar.
 - **Nicht geprüft:** Darstellung im Browser (die Mini-DAX-Prüfung rechnet keine Visuals) und Power BI Desktop.
   Ob jedes Template sichtbar so aussieht wie in der Doku, zeigt erst der Browser-Test der Rahmen-Session bzw.
   das Öffnen in Desktop. Kritisch dafür: GuV im Ebenen-Modus mit leerem L1 bei Summenzeilen (wie im Kitchen-Modell,
@@ -105,3 +116,10 @@ Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Sum
 3. **Format-Slicer:** Der Vertrag hat keine Spalte Format/Gebinde; der Slicer fehlt.
 4. **C08:** keine Wochen im Modell, die Linie hat 12 Punkte.
 5. **Brückentyp:** `'Konto'[Brückentyp]` bleibt ungenutzt (siehe C12).
+6. **ADDMISSINGITEMS und Filter (29.10.2026, behoben).** Die App setzte Filter nur in SUMMARIZECOLUMNS; ADDMISSINGITEMS
+   füllte deshalb auch mit Elementen außerhalb der Filter auf (Perioden 2025 bei Jahr 2026, Konten außerhalb eines
+   Kachelfilters, nach einem Klick alle übrigen Konten als leere Zeilen). `daxQuery` legt die Filter jetzt zusätzlich
+   außen an (CALCULATETABLE), wie Power BI mit „Elemente ohne Daten anzeigen“. Aufgefallen bei T05A/T05B, die als
+   erste Seiten Periode und „Elemente ohne Daten“ zusammen nutzen.
+7. **T05A/T05B noch nicht im Dienst geprüft:** Die vier Tabellen fehlen im Lakehouse, bis sie jemand hochlädt
+   (CONTRACT.md, Neuaufbau). Browser-Test und Paritätstest (App und PBIP) sind grün.

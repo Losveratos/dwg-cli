@@ -1,5 +1,6 @@
 // Liest aus einem *.SemanticModel/definition/tables/*.tmdl, was die Prüfung braucht:
-// Tabellen, Spalten (Datentyp, Sortierspalte) und Measures (Heimattabelle, Formatstring).
+// Tabellen, Spalten (Datentyp, Sortierspalte) und Measures (Heimattabelle, Formatstring), dazu aus
+// definition/relationships.tmdl die Beziehungen (welche Tabellen verbunden sind, für Feldvorschläge).
 import fs from "node:fs";
 import path from "node:path";
 
@@ -14,7 +15,7 @@ export const unquote = n => (n.startsWith("'") ? n.slice(1, -1).replace(/''/g, "
 /**
  * Formatstrings der Measures (`formats`) braucht der Paritätstest: Power BI gibt sie dem Visual als source.format mit,
  * die App nicht.
- * @returns {{ tables: Map<string, {columns: Map<string, {dataType?: string, sortBy?: string, formatString?: string}>, measures: Set<string>, formats: Map<string, string>}>, measureHome: Map<string, string[]> }}
+ * @returns {{ tables: Map<string, {columns: Map<string, {dataType?: string, sortBy?: string, formatString?: string}>, measures: Set<string>, formats: Map<string, string>}>, measureHome: Map<string, string[]>, relationships: {from: [string, string], to: [string, string]}[] }}
  */
 export function readModel(modelDir) {
     const dir = path.join(modelDir, "definition", "tables");
@@ -56,7 +57,28 @@ export function readModel(modelDir) {
             }
         }
     }
-    return { tables, measureHome };
+    return { tables, measureHome, relationships: readRelationships(modelDir) };
+}
+
+const REL_COL_RX = new RegExp(String.raw`^\t(from|to)Column:\s*${NAME}\.(.+?)\s*$`);
+
+/** Beziehungen aus definition/relationships.tmdl: [{ from: [Tabelle, Spalte], to: [Tabelle, Spalte] }] */
+function readRelationships(modelDir) {
+    const file = path.join(modelDir, "definition", "relationships.tmdl");
+    if (!fs.existsSync(file)) { return []; }
+    const out = [];
+    let cur = null;
+    for (const line of fs.readFileSync(file, "utf8").split(/\r?\n/)) {
+        if (/^relationship\s/.test(line)) { cur = {}; out.push(cur); continue; }
+        const m = cur && REL_COL_RX.exec(line);
+        if (m) { cur[m[1]] = [unquote(m[2]), unquote(m[3])]; }
+    }
+    return out.filter(r => r.from && r.to);
+}
+
+/** Sind zwei Tabellen direkt über eine Beziehung verbunden (gleich welche Richtung)? */
+export function related(model, a, b) {
+    return (model.relationships ?? []).some(r => (r.from[0] === a && r.to[0] === b) || (r.from[0] === b && r.to[0] === a));
 }
 
 /** `'Sales Demo'[AC]` → { table: "Sales Demo", name: "AC" }, `[AC]` → { table: null, name: "AC" } */

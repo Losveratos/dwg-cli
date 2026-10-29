@@ -1,0 +1,755 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "493e0a48712ca144bcb2",
+  "position": {
+    "x": 327,
+    "y": 275,
+    "z": 2000,
+    "width": 1566,
+    "height": 742,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "pnlByDatenWG3F9A7D2C51E64B08A1C4E7F0B92D6358",
+    "query": {
+      "queryState": {
+        "levels": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "L1"
+                }
+              },
+              "queryRef": "Bilanzkonto.L1",
+              "nativeQueryRef": "L1"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "L2"
+                }
+              },
+              "queryRef": "Bilanzkonto.L2",
+              "nativeQueryRef": "L2"
+            }
+          ],
+          "showAll": true
+        },
+        "account": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "KontoID"
+                }
+              },
+              "queryRef": "Bilanzkonto.KontoID",
+              "nativeQueryRef": "KontoID"
+            }
+          ],
+          "showAll": true
+        },
+        "accountName": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "Konto"
+                }
+              },
+              "queryRef": "Bilanzkonto.Konto",
+              "nativeQueryRef": "Konto"
+            }
+          ],
+          "showAll": true
+        },
+        "sortOrder": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "SortOrder"
+                }
+              },
+              "queryRef": "Bilanzkonto.SortOrder",
+              "nativeQueryRef": "SortOrder"
+            }
+          ],
+          "showAll": true
+        },
+        "rowType": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "RowType"
+                }
+              },
+              "queryRef": "Bilanzkonto.RowType",
+              "nativeQueryRef": "RowType"
+            }
+          ],
+          "showAll": true
+        },
+        "formulaDef": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "FormulaDef"
+                }
+              },
+              "queryRef": "Bilanzkonto.FormulaDef",
+              "nativeQueryRef": "FormulaDef"
+            }
+          ],
+          "showAll": true
+        },
+        "signConvention": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "SignConvention"
+                }
+              },
+              "queryRef": "Bilanzkonto.SignConvention",
+              "nativeQueryRef": "SignConvention"
+            }
+          ],
+          "showAll": true
+        },
+        "displayInvert": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "DisplayInvert"
+                }
+              },
+              "queryRef": "Bilanzkonto.DisplayInvert",
+              "nativeQueryRef": "DisplayInvert"
+            }
+          ],
+          "showAll": true
+        },
+        "varianceInvert": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "VarianceInvert"
+                }
+              },
+              "queryRef": "Bilanzkonto.VarianceInvert",
+              "nativeQueryRef": "VarianceInvert"
+            }
+          ],
+          "showAll": true
+        },
+        "comment": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanzkonto"
+                    }
+                  },
+                  "Property": "Kommentar"
+                }
+              },
+              "queryRef": "Bilanzkonto.Kommentar",
+              "nativeQueryRef": "Kommentar"
+            }
+          ],
+          "showAll": true
+        },
+        "ac": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanz"
+                    }
+                  },
+                  "Property": "Bilanz AC"
+                }
+              },
+              "queryRef": "Bilanz.Bilanz AC",
+              "nativeQueryRef": "Bilanz AC"
+            }
+          ]
+        },
+        "py": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Bilanz"
+                    }
+                  },
+                  "Property": "Bilanz PY"
+                }
+              },
+              "queryRef": "Bilanz.Bilanz PY",
+              "nativeQueryRef": "Bilanz PY"
+            }
+          ]
+        },
+        "period": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Kalender"
+                    }
+                  },
+                  "Property": "Periode"
+                }
+              },
+              "queryRef": "Kalender.Periode",
+              "nativeQueryRef": "Periode"
+            }
+          ],
+          "showAll": true
+        }
+      }
+    },
+    "objects": {
+      "titleBlock": [
+        {
+          "properties": {
+            "unitLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ZLATÝ LEV Brauerei'"
+                }
+              }
+            },
+            "measureLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Bilanz in Mio. EUR, Stand gegen Vorjahresstichtag'"
+                }
+              }
+            },
+            "periodLine": {
+              "expr": {
+                "Literal": {
+                  "Value": "'31.08.2026, AC gegen PY'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columns": [
+        {
+          "properties": {
+            "template": {
+              "expr": {
+                "Literal": {
+                  "Value": "'T05A'"
+                }
+              }
+            },
+            "templateApplied": {
+              "expr": {
+                "Literal": {
+                  "Value": "'T05A'"
+                }
+              }
+            },
+            "minuend": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ac'"
+                }
+              }
+            },
+            "showPY": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showPL": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "showMinuend": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "valueCascade": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyAbs": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPyBar": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyWaterfall": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPyPct": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "dPyPin": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlAbs": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlBar": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlWaterfall": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlPct": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "dPlPin": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "secondBlock": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "structureSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showPctRows": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "thresholds": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "scenarioMarks": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "chartLabels": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "capBars": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "sort": {
+              "expr": {
+                "Literal": {
+                  "Value": "'cat'"
+                }
+              }
+            },
+            "sortBlock": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ytd'"
+                }
+              }
+            },
+            "blockKind": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ytd'"
+                }
+              }
+            },
+            "leftBlockKind": {
+              "expr": {
+                "Literal": {
+                  "Value": "'month'"
+                }
+              }
+            },
+            "pctRevenue": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "numbers": [
+        {
+          "properties": {
+            "scaling": {
+              "expr": {
+                "Literal": {
+                  "Value": "'m'"
+                }
+              }
+            },
+            "decimals": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            },
+            "pctDecimals": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "statement": [
+        {
+          "properties": {
+            "stockMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'allStock'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "hierarchy": [
+        {
+          "properties": {
+            "defaultLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "toolbar": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "showLegend": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "foldable": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "startFolded": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "style": [
+        {
+          "properties": {
+            "fontPreset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'fullhd'"
+                }
+              }
+            },
+            "density": {
+              "expr": {
+                "Literal": {
+                  "Value": "'compact'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "padding": [
+        {
+          "properties": {
+            "top": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "bottom": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "left": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "right": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#E1DFD6'"
+                    }
+                  }
+                }
+              }
+            },
+            "width": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

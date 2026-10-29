@@ -24,7 +24,7 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
 | Teil | Pfad | Zweck |
 | --- | --- | --- |
 | Adapter `@dwg/visuals` | `visuals/` | ChartKitchen und P&L mit **ihrem Original-Code** außerhalb von Power BI; `daxQuery()` baut die Abfrage aus der Rollenbindung. `dist/` ist committet, `visuals/pbiviz/` hat die passenden `.pbiviz`. Neues Visual-Release: `dwg visuals update --dry-run`, dann ohne `--dry-run` (Adapter, `.pbiviz`, Beispielberichte, Doku, Tests in einem Schritt); `dwg doctor` meldet, wenn eine neuere Version veröffentlicht ist |
-| Templates | `templates/`, `visuals/dist/templates.json` | `dwg templates` (28 Templates, Rollen Pflicht/empfohlen/optional), `dwg tile add` (Kachel aus Template, Feldvorschläge aus dem TMDL) |
+| Templates | `templates/`, `visuals/dist/templates.json` | `dwg templates` (30 Templates: 11 ChartKitchen, 19 P&L, Rollen Pflicht/empfohlen/optional), `dwg tile add` (Kachel aus Template, Feldvorschläge aus dem TMDL) |
 | App-Generator | `app/` | `dwg app page` schreibt Adapter, `DwgPage`/`DwgShell` und die Seiten in eine Rayfin-App |
 | PBIP-Generator | `pbip/` | `dwg pbip new` · `register` · `pages`, `dwg validate` gegen die offiziellen PBIR-Schemas |
 | MockupKitchen-Bausteine | `mockup/`, `layout/` | `dwg lint --spec` (Pixelraster, Barrierefreiheit), `dwg mockup import` (mockup-spec.json → App-Spec), `dwg mockup build` (aus dem Kitchen-Repo holen; nicht von Hand ändern) |
@@ -76,10 +76,11 @@ node dwg.mjs validate "<Name>.Report"
 ## Ablauf D · Testen ohne Fabric
 
 - Alles: `npm test` (Adapter, Generator, Templates, Mini-DAX, App-Seiten und App-Rahmen im Browser, PBIR-Schemas,
-  Parität Power BI gegen App). `npm run test:showcase` rendert alle 28 Showcase-Seiten. `npm run test:all` baut
+  Parität Power BI gegen App). `npm run test:showcase` rendert alle 30 Showcase-Seiten. `npm run test:all` baut
   zusätzlich den Adapter neu (Kitchen-Repo nötig). Erwartet: überall „grün“.
 - **Mini-DAX** (`app/test/minidax.mjs`) führt die erzeugten Abfragen auf Tabellen im Format `{columns, rows}` aus
-  (SUMMARIZECOLUMNS, TREATAS, CALCULATE mit `=`-Filtern, SUM, ORDER BY, ADDMISSINGITEMS). Neuer Datensatz:
+  (SUMMARIZECOLUMNS, TREATAS, CALCULATE mit `=`-Filtern, SUM, ORDER BY, ADDMISSINGITEMS, CALCULATETABLE mit TREATAS,
+  mehrere Faktentabellen: je Abfrage die der Measures). Neuer Datensatz:
   `app/test/datasets/<name>.mjs` mit `model` und `CONTROL`, Test wie `app/test/guv.mjs`, Fall in `CASES` in `e2e.mjs`.
 - Browser-Tests erzeugen die Seiten selbst in eine Minimal-App (`app/test/minimal-app.mjs`); Screenshots unter
   `app/test/out/` ansehen, nicht nur die Prüfungen.
@@ -89,7 +90,12 @@ node dwg.mjs validate "<Name>.Report"
 - Generierte Dateien nicht von Hand ändern: `src/dwg/**` und `src/vendor/dwg-visuals/**` in Apps, `visuals/dist/`,
   `layout/pixelgrid.mjs`, `mockup/vendor/`. Änderungen an Vorlagen in `app/templates/`, dann neu erzeugen.
 - Ist gegen Plan nur über denselben Zeitraum vergleichen („PL bis Ist“ oder Periodenfeld), sonst lügt die Abweichung.
-- Bei Nicht-Währungsdaten im P&L-Visual `numbers.unitText` setzen und `columns.pctRevenue: false`.
+- Bei Nicht-Währungsdaten im P&L-Visual `numbers.unitText` setzen und `columns.pctRevenue: false`, ebenso bei Bilanz
+  und Cashflow (`pctRevenue: false`, kein Umsatz als Bezug).
+- Bestände im P&L-Visual (ab 1.7, Templates T05A Bilanz und T05B Cashflow): Zeilentyp mit Token `stock` (Stand am
+  Periodenende, z. B. `Account stock`) bzw. `opening` (Anfangsbestand), Formel für den Endbestand `Formula stock`;
+  `statement.stockMode` aus dem Template übernehmen (T05A `allStock`, T05B `auto`), Periode binden (das Visual wählt
+  den Stand am Stichtag) und `showItemsWithNoData: true` für Formel- und KPI-Zeilen.
 - IBCS nur als „an IBCS angelehnt“, keine Zertifizierung suggerieren; deutsche UI-Texte ohne Gedankenstriche.
 - Keine Schlüssel, Workspace-IDs oder Kundendaten in Specs und Repo.
 - Vor einem Push: `npm test`.

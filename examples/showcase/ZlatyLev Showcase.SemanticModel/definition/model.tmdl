@@ -10,4 +10,8 @@ ref table Produkt
 ref table Kunde
 ref table Konto
 ref table Fakten
+ref table Bilanzkonto
+ref table Bilanz
+ref table Cashflowkonto
+ref table Cashflow
 

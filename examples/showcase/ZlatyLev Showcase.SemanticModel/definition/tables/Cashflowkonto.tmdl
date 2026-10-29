@@ -1,0 +1,105 @@
+table Cashflowkonto
+	lineageTag: 4c495242-6209-5d77-9bd6-c9b4f35e5155
+	sourceLineageTag: [dbo].[cashflowkonto]
+
+	column KontoID
+		dataType: string
+		isKey
+		lineageTag: e6066e5b-56ca-526f-ac92-d90900b6c398
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column Konto
+		dataType: string
+		lineageTag: 5f9380d4-cb6e-5883-ba0b-9c55b6362b52
+		sourceLineageTag: Konto
+		summarizeBy: none
+		sourceColumn: Konto
+
+	column L1
+		dataType: string
+		lineageTag: 9e7e0d8a-180e-5c65-b157-2b07420f4f96
+		sourceLineageTag: L1
+		summarizeBy: none
+		sourceColumn: L1
+		sortByColumn: 'L1 Sort'
+
+	column 'L1 Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 18401f35-d8b1-594f-87ff-a73dd7dd4bfb
+		sourceLineageTag: L1Sort
+		summarizeBy: none
+		sourceColumn: L1Sort
+
+	column L2
+		dataType: string
+		lineageTag: a1acef8a-b5b5-5805-a75f-69626cff63ab
+		sourceLineageTag: L2
+		summarizeBy: none
+		sourceColumn: L2
+		sortByColumn: SortOrder
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: d97bae31-f1e6-59f4-918d-a626e6798339
+		sourceLineageTag: SortOrder
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+	/// Zeilentyp mit Token für das P&L-Visual (ab 1.7): stock = Stand am Periodenende, opening = Stand am Periodenbeginn.
+	column RowType
+		dataType: string
+		lineageTag: 3592d756-9ec3-565e-8cf6-35b26dd76e0a
+		sourceLineageTag: RowType
+		summarizeBy: none
+		sourceColumn: RowType
+
+	/// Formel des P&L-Visuals über Kontonamen und Ebene 1.
+	column FormulaDef
+		dataType: string
+		lineageTag: 54d9bfca-384a-51eb-9453-4fbf53693086
+		sourceLineageTag: FormulaDef
+		summarizeBy: none
+		sourceColumn: FormulaDef
+
+	/// Überall 1: Bilanzwerte positiv wie gebucht, Cashflows mit Vorzeichen (Auszahlungen negativ).
+	column SignConvention
+		dataType: int64
+		formatString: 0
+		lineageTag: c7022cd5-1b3e-5d8d-a983-28e50c99c64d
+		sourceLineageTag: SignConvention
+		summarizeBy: none
+		sourceColumn: SignConvention
+
+	column DisplayInvert
+		dataType: string
+		lineageTag: a98b67d9-69cc-587c-b3d5-6d7a5ed630d1
+		sourceLineageTag: DisplayInvert
+		summarizeBy: none
+		sourceColumn: DisplayInvert
+
+	column VarianceInvert
+		dataType: string
+		lineageTag: a81e06c1-2ed8-552c-940a-9c581cbed99b
+		sourceLineageTag: VarianceInvert
+		summarizeBy: none
+		sourceColumn: VarianceInvert
+
+	column Kommentar
+		dataType: string
+		lineageTag: 0f575caf-9c40-58a5-b5f9-23db6e8f2c3e
+		sourceLineageTag: Kommentar
+		summarizeBy: none
+		sourceColumn: Kommentar
+
+	partition Cashflowkonto = entity
+		mode: directLake
+		source
+			entityName: cashflowkonto
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

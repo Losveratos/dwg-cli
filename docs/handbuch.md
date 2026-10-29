@@ -109,7 +109,7 @@ npm run test:all
 | `filters` (Kachel) | TREATAS nur in dieser Abfrage | Visual-Filter |
 | Klick in einer Kachel | TREATAS für die anderen Kacheln, Filter-Chip | Querfilter von Power BI |
 | `sortBy` | ORDER BY | nur Prüfung: „Nach Spalte sortieren" muss im Modell stehen |
-| `showItemsWithNoData` | ADDMISSINGITEMS | `showAll` je Gruppierungsrolle |
+| `showItemsWithNoData` | ADDMISSINGITEMS (mit Filtern in CALCULATETABLE: aufgefüllt wird nur innerhalb der Filter) | `showAll` je Gruppierungsrolle |
 | `rect` | Position, skaliert auf die Breite; unter 900 px untereinander | Position auf der Seite |
 | `slicers` (Spec) | Filter-Panel links (`DwgShell`), TREATAS in jeder Kachel aller Seiten | Slicer im Filter-Panel je Seite, Sync-Gruppe |
 | `resolution`, `visualHeaders`, `footer` (Spec) | Seite als Ganzes skaliert, Kopfzeilen der Visuals, Fußleiste | Seite 1920 × 1080, Fußtext |
@@ -262,12 +262,22 @@ Kacheln und native Karten haben in dwg kein Gegenstück.
 
 ## Templates und Kacheln aus der Kommandozeile
 
-Die 28 Templates (ChartKitchen C01–C13, P&L T01A–12H) stehen als Katalog in `visuals/dist/templates.json`. Ihn erzeugt
+Die 30 Templates (ChartKitchen C01–C13, P&L T01A–12H und ab P&L 1.7 Bilanz T05A und Cashflow T05B) stehen als Katalog
+in `visuals/dist/templates.json`. Ihn erzeugt
 `dwg visuals build` aus dem Code der Visuals ([`visuals/templates.mjs`](visuals/templates.mjs)): die Schalter, die ein
 Template beim Anwenden setzt (ChartKitchen `CHART_TEMPLATES`, P&L `templateSwitches()`), Gruppe, Titel und Zweck in DE
 und EN aus den Sprachressourcen, dazu die Datenrollen als Pflicht, empfohlen oder optional. Die Rollen leitet dwg aus den
 Schaltern ab (Vergleich mit dem Vorjahr → PY Pflicht, zweiter Block → Periode empfohlen, GuV-Statement → Kontologik
 empfohlen); geprüft gegen die abgenommenen Showcase-Kacheln. Derselbe Katalog ist für MockupKitchen gedacht.
+
+**Bestände (P&L 1.7, Gruppe „Bilanz & Cashflow“).** T05A und T05B schreiben zusätzlich `statement.stockMode`
+(T05A `allStock`, T05B `auto`). Das Visual liest Bestand oder Fluss aus Token im Zeilentyp: `stock` (Stand am
+Periodenende, z. B. `Account stock`), `opening` (Stand am Periodenbeginn, `Account opening`), ohne Token Fluss.
+Bestände summiert es nicht über die Monate, sondern zeigt den Stand am Stichtag. Rollen: Periode empfohlen (den
+Stichtag wählt das Visual aus den Monatswerten), Zeilentyp bei T05B Pflicht (Anfangs- und Endbestand), bei T05A
+empfohlen (ohne Token setzt das Template „Alle Zeilen Bestand“). Beispiel: Showcase-Seiten T05A und T05B auf
+'Bilanzkonto'/'Bilanz' und 'Cashflowkonto'/'Cashflow' (`examples/showcase/CONTRACT.md`). Hat ein Modell mehrere
+Kontentabellen mit Ebenen und Zeilentyp, nimmt `tile add` die, die mit der Tabelle der Kennzahl verbunden ist.
 
 ```bash
 node dwg.mjs templates                 # Übersicht nach Zweck, mit Pflichtrollen
@@ -297,7 +307,7 @@ Kachel bekommt die Schalter des Templates, Sortierspalte und Anzeigenamen (Chart
 einer leeren Seite den ganzen Inhaltsbereich; daneben braucht sie `--rect`. Danach gelten `checkSpec`, `dwg lint`,
 `app page` und `pbip pages` wie für jede Spec.
 
-Tests: `templates/test/unit.mjs` (17: Katalog, Schalter und Pflichtrollen gegen die 28 Showcase-Kacheln, Vorschläge
+Tests: `templates/test/unit.mjs` (26: Katalog, Schalter und Pflichtrollen gegen die 30 Showcase-Kacheln, Vorschläge
 treffen deren Felder, Kurzangaben, Kommandozeile). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
 schemagültiger Bericht (`pbip pages`, `validate`) und im Browser-Testrahmen gerendert, Zahlen wie die Showcase-Seiten;
 Gegenprobe auf dem Modell „ChartKitchen byDatenWG Demo“ (L1..L6, Measures ohne Stamm).

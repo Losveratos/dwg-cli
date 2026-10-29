@@ -42,7 +42,7 @@ Navigation `specs/showcase.json` (Abschnitt „App-Rahmen“ unten).
 | `tiles[].bindings` | Rolle → Feld. Spalten immer mit Tabelle: `'Tabelle'[Spalte]`. Kennzahlen: Modell-Measure `'Tabelle'[Measure]` (Pflicht für Power BI) oder ein DAX-Ausdruck (nur App) |
 | `tiles[].filters` | feste Filter nur dieser Kachel, zusätzlich zu den Seitenfiltern (App: TREATAS in dieser Abfrage; Power BI: Visual-Filter), z. B. nur die echten GuV-Blöcke einer Kontendimension |
 | `tiles[].sortBy` | Sortierspalte je gruppierender Spalte (App: ORDER BY; Power BI: muss im Modell als „Nach Spalte sortieren“ stehen) |
-| `tiles[].showItemsWithNoData` | Elemente ohne Daten behalten (App: ADDMISSINGITEMS; Power BI: `showAll`), z. B. GuV-Formelzeilen |
+| `tiles[].showItemsWithNoData` | Elemente ohne Daten behalten (App: ADDMISSINGITEMS, mit Filtern in CALCULATETABLE, aufgefüllt wird nur innerhalb der Filter; Power BI: `showAll`), z. B. GuV-Formelzeilen |
 | `tiles[].displayNames` | Anzeigename je Ergebnisspalte; Measure-Spalten heißen im Ergebnis wie die Rolle, z. B. `[actual]` |
 | `tiles[].objects` | Formatbereich-Objekte des Visuals, Namen wie in `capabilities.json` bzw. PBIR `visual.json` |
 
@@ -172,6 +172,21 @@ Zwei Wege: **reine Hierarchie** (nur `levels` + Kennzahlen, z. B. Unit → Proje
 Häufige Objekte: `titleBlock.measureLine` / `periodLine`, `numbers.unitText` (Standard „EUR“; bei Stunden „h“),
 `columns.pctRevenue` (bei Nicht-GuV-Daten `false`), `columns.preset`, `style.fontPreset` (`hd` `fullhd` `uhd`),
 `style.appearance`. Vollständige Liste: `pnlByDatenWG/capabilities.json`, Doku `pnl-doku.html`.
+
+**Bestände (ab P&L 1.7): Objekt `statement`.** `statement.stockMode`: `auto` (Standard; Bestand oder Fluss aus Token
+im Zeilentyp), `allStock` (jede Zeile ein Bestand, Bilanz ohne Token-Spalte), `allFlow` (jede Zeile ein Fluss, wie vor
+1.7). Token im Zeilentyp: `stock` (auch `bestand`, `balance`, `stichtag`) = Stand am Periodenende, `opening` (auch
+`anfangsbestand`, `eröffnung`) = Stand am Periodenbeginn, z. B. `Account stock`, `Account opening`, `Formula stock`.
+Bestände summiert das Visual nicht über die Monate, YTD zeigt den Stand am Stichtag, Δ vergleicht Stände desselben
+Stichtags; dafür `period` binden. Die Templates T05A (Bilanz, schreibt `allStock`) und T05B (Cashflow-Brücke, `auto`)
+setzen es; in der Spec wie alle Template-Schalter explizit übernehmen:
+
+```json
+"objects": {
+  "columns": { "template": "T05B", "templateApplied": "T05B", "valueCascade": true, "secondBlock": true, "pctRevenue": false },
+  "statement": { "stockMode": "auto" }
+}
+```
 
 ## Was daraus wird
 

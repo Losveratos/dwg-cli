@@ -94,5 +94,5 @@ export declare const ROLES: {
 };
 export declare const VERSIONS: {
     readonly chartkitchen: "1.53.0.0";
-    readonly pnl: "1.5.3.0";
+    readonly pnl: "1.7.0.0";
 };

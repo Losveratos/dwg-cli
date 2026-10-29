@@ -57,7 +57,16 @@ Fixes from the first public review (fresh clone, full test run, code review):
   adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
   Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
 - `dwg check` reads the spec with the same file-name errors as the other commands.
-- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.53.0.0 (from 1.52.3.0) and P&L 1.5.3.0.
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.53.0.0 and P&L 1.7.0.0 (from 1.5.3.0).
+- **P&L 1.7 balance sheet and cash flow:** the catalog has 19 P&L templates (T05A balance sheet at the reporting date,
+  T05B cash-flow bridge, group `balance`) and writes `statement.stockMode` (T05A `allStock`, T05B `auto`); period is
+  recommended for both, the row type is required for T05B (opening and closing balance need the `stock`/`opening`
+  tokens). The showcase has 30 pages: new tables 'Bilanzkonto'/'Bilanz' and 'Cashflowkonto'/'Cashflow' derived from
+  the P&L (assets = liabilities every month, closing cash = cash in the balance sheet), 13 new measures, fixed measure
+  lineage tags. `tile add` picks the account table linked to the measure's table when a model has several.
+- **`showItemsWithNoData` with filters:** the app query wraps ADDMISSINGITEMS in CALCULATETABLE with the filters, so it
+  only fills in items inside them (before: periods of other years, accounts outside a tile filter or a click came back
+  as empty rows). Mini-DAX fills in across several tables and handles several fact tables.
 
 ## 0.1.1 (2026-10-23) · public
 

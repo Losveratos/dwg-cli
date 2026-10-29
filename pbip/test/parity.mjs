@@ -205,6 +205,8 @@ const distinct = r => {
     return [...new Set(t.rows.map(x => x[t.columns.indexOf(m[2])]).filter(v => v != null && v !== ""))];
 };
 const L1 = distinct("'Konto'[L1]");
+// oberste Ebene der Kachel (GuV: Konto, Bilanz und Cashflow: ihre eigenen Kontentabellen)
+const topLevel = job => (job.levels.length ? distinct(job.levels[0]) : L1);
 for (const job of jobs) {
     const s = byKey.get(`${job.page}/${job.tile}`);
     if (!s) { fail(job, "nicht gerendert"); continue; }
@@ -214,7 +216,7 @@ for (const job of jobs) {
         // Befund 1: Formelzeilen finden ihre Bezugszeilen, L1-Gruppen sind da
         const bad = s.texts.filter(t => /unbekannte Referenz|unknown reference/.test(t));
         if (bad.length) { fail(job, `Formelfehler: ${bad[0]}`); }
-        if (job.roles.includes("account") && !L1.filter(n => s.texts.includes(n)).length) { fail(job, "keine L1-Gruppenzeile"); }
+        if (job.roles.includes("account") && !topLevel(job).filter(n => s.texts.includes(n)).length) { fail(job, "keine L1-Gruppenzeile"); }
         // Befund 2: die unterste Ebene kommt an (Werte, die es auf der obersten nicht gibt: Region, Kunde)
         if (job.levels.length >= 2 && !job.roles.includes("account")) {
             const top = new Set(distinct(job.levels[0]));

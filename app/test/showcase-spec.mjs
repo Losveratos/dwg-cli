@@ -1,9 +1,10 @@
 // Test der Showcase-Spec specs/showcase.json (je Template eine Seite, Modell „ZlatyLev Showcase“):
-//   1. Aufbau: 28 Seiten, Gruppe, Kennung, Beschreibung, Layout-Vertrag (Kacheln ab x = 300, ganz auf der Seite),
+//   1. Aufbau: 30 Seiten, Gruppe, Kennung, Beschreibung, Layout-Vertrag (Kacheln ab x = 300, ganz auf der Seite),
 //      Template-Objekte (template = templateApplied, Preset-Schalter wie im Visual), Rollen, die das Template braucht.
 //   2. Felder gegen das TMDL showcase/ZlatyLev Showcase.SemanticModel (Bindungen, Sortierung, Filter, Slicer).
 //   3. Mini-DAX je Kachel auf datasets/showcase.mjs mit den Slicer-Standards: Abfrage läuft, DataView passt,
-//      Werte gegen die Kontrollwerte, Querfilter per Klick, executeQuery-Grenzen.
+//      Werte gegen die Kontrollwerte, Querfilter per Klick, executeQuery-Grenzen; Bilanz und Cashflow (T05A, T05B):
+//      Aktiva = Passiva je Monat, Kasse = Endbestand, Karten am Stichtag.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -64,16 +65,21 @@ const PNL = {
     "12A": "ac py min cascade dPyBar dPyPin sub noPct headline 2/1",
     "12G": "ac py min cascade dPyBar dPyPin sub noPct fy headline 2/1",
     "12H": "pl py min cascade dPyBar dPyPin sub noPct headline 2/1",
+    // 1.7 Bestände: Bilanz (Stand gegen Vorjahresstichtag) und Cashflow-Brücke (Monat | YTD, Kaskaden)
+    T05A: "ac py min dPyAbs dPyPct sub 2/1",
+    T05B: "ac py min cascade dPyAbs dPyPct second sub 2/1",
 };
+// statement.stockMode der Bestands-Templates (hub.ts templateSwitches ohne gebundene Daten)
+const STOCK_TEMPLATES = { T05A: "allStock", T05B: "auto" };
 const SWITCHES = ["dPyAbs", "dPyBar", "dPyWaterfall", "dPyPct", "dPyPin", "dPlAbs", "dPlBar", "dPlWaterfall", "dPlPct", "dPlPin"];
 const GUV_TEMPLATES = ["T03A", "T03B", "T04A", "T04B", "T04C", "T04D", "T04E", "12A", "12G", "12H"];
 const TEMPLATES = [...Object.keys(CK), ...Object.keys(PNL)];
 
 // ---------------------------------------------------------------- 1. Aufbau
-test("28 Seiten, je Template genau eine, mit Gruppe, Kennung und Beschreibung", () => {
+test("30 Seiten, je Template genau eine, mit Gruppe, Kennung und Beschreibung", () => {
     assert.equal(spec.name, "ChartKitchen & P&L Showcase");
     assert.ok(spec.about?.length > 50);
-    assert.equal(spec.pages.length, 28);
+    assert.equal(spec.pages.length, 30);
     assert.deepEqual([...spec.pages.map(p => p.template)].sort(), [...TEMPLATES].sort());
     for (const p of spec.pages) {
         assert.match(p.group, /^(ChartKitchen|P&L) · \S/, `${p.template}: Gruppe`);
@@ -149,8 +155,9 @@ test("P&L: template = templateApplied, Preset-Schalter und Dezimalen wie im Visu
         const [d, pd] = words.at(-1).split("/").map(Number);
         assert.equal(nb.decimals, d, `${p.template}: decimals`); assert.equal(nb.pctDecimals, pd, `${p.template}: pctDecimals`);
         assert.equal(t.objects.titleBlock.headline === true, words.includes("headline"), `${p.template}: headline`);
-        // Rollen: Minuend und Referenzen gebunden. Periode nur bei Struktur-Templates mit AC-Minuend (Monat | YTD,
-        // periodengleich); GuV-Templates mit AC nutzen „bis Ist“-Measures, FC- und PL-Templates zeigen das Gesamtjahr
+        // Rollen: Minuend und Referenzen gebunden. Periode nur bei Struktur- und Bestands-Templates mit AC-Minuend
+        // (Monat | YTD periodengleich, Bestände am Stichtag); GuV-Templates mit AC nutzen „bis Ist“-Measures, FC- und
+        // PL-Templates zeigen das Gesamtjahr
         for (const r of [c.minuend, ...(c.showPY ? ["py"] : []), ...(c.showPL ? ["pl"] : [])]) { assert.ok(t.bindings[r], `${p.template}: Rolle ${r}`); }
         assert.ok(t.bindings.ac, `${p.template}: AC ist Pflicht`);
         const guv = GUV_TEMPLATES.includes(p.template);
@@ -164,6 +171,13 @@ test("P&L: template = templateApplied, Preset-Schalter und Dezimalen wie im Visu
                 assert.ok(t.bindings[r], `${p.template}: GuV-Rolle ${r}`);
             }
             assert.equal(t.showItemsWithNoData, true, `${p.template}: Summen und Formeln ohne Faktenzeilen`);
+        } else if (STOCK_TEMPLATES[p.template]) {
+            for (const r of ["account", "rowType", "formulaDef", "signConvention", "displayInvert", "varianceInvert", "sortOrder"]) {
+                assert.ok(t.bindings[r], `${p.template}: Rolle ${r}`);
+            }
+            assert.equal(t.objects.statement?.stockMode, STOCK_TEMPLATES[p.template], `${p.template}: statement.stockMode`);
+            assert.equal(t.showItemsWithNoData, true, `${p.template}: Formel- und KPI-Zeilen ohne Faktenzeilen`);
+            assert.equal(c.pctRevenue, false, `${p.template}: kein % vom Umsatz bei Bilanz und Cashflow`);
         } else {
             assert.ok(!t.bindings.account && t.bindings.levels?.length, `${p.template}: Strukturdimension über Ebenen`);
             assert.equal(c.pctRevenue, false, `${p.template}: kein % vom Umsatz bei Strukturdaten`);
@@ -414,6 +428,42 @@ test("Querfilter: Klick auf eine Kanal-Karte filtert die Hauptkachel, die Kanäl
     near(parts, total, "Summe der Kanäle");
     const g = run(P.T03A, main(P.T03A), [{ column: "'Kunde'[Kanal]", values: [kanaele[0]] }]).table;
     assert.ok(sum(g, "[ac]") < C26["GuV AC"], "GuV folgt dem Querfilter");
+});
+
+test("Bilanz und Cashflow: Monatsstände je Konto, Aktiva = Passiva, Kasse = Endbestand, Karten am Stichtag", () => {
+    const S = CONTROL["Bilanz und Cashflow 2026"];
+    const b = run(P.T05A, main(P.T05A)).table;
+    const per = colIdx(b, "Kalender[Periode]"), l1 = colIdx(b, "Bilanzkonto[L1]"), ac = colIdx(b, "[ac]"), py = colIdx(b, "[py]");
+    const ids = new Set(b.rows.map(r => r[colIdx(b, "Bilanzkonto[KontoID]")]));
+    assert.equal(ids.size, 9, "8 Positionen und die Eigenkapitalquote (KPI ohne Fakten)");
+    // aufgefüllt (ADDMISSINGITEMS) nur innerhalb des Jahres-Slicers: 12 Perioden 2026 je Konto, keine leeren Perioden 2025
+    const periods = new Set(b.rows.map(r => r[per]));
+    assert.deepEqual([...periods].sort(), Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, "0")}`));
+    assert.equal(b.rows.length, 9 * 12, "Konto × Periode");
+    const side = (p, s, i) => b.rows.filter(r => r[per] === p && r[l1] === s).reduce((x, r) => x + (r[i] ?? 0), 0);
+    for (const p of [...new Set(b.rows.map(r => r[per]).filter(Boolean))]) {
+        assert.equal(side(p, "Aktiva", py), side(p, "Passiva", py), `${p}: Aktiva = Passiva (PY)`);
+        if (p <= "2026-08") { assert.equal(side(p, "Aktiva", ac), side(p, "Passiva", ac), `${p}: Aktiva = Passiva (AC)`); }
+    }
+    near(side("2026-08", "Aktiva", ac), S["Aktiva AC"], "Bilanzsumme AC am Stichtag");
+    near(side("2026-08", "Aktiva", py), S["Aktiva PY"], "Bilanzsumme PY am Stichtag");
+    const karten = run(P.T05A, P.T05A.tiles.find(x => x.id === "karten")).table;
+    const card = n => karten.rows.find(r => r[0] === n)?.[colIdx(karten, "[actual]")];
+    assert.equal(karten.rows.length, 3, "drei Bilanzkarten (Sachanlagen, Kasse, Eigenkapital)");
+    near(card("Kasse und Bank"), S["Kasse und Bank AC"], "Karte Kasse");
+    near(card("Eigenkapital"), S["Eigenkapital AC"], "Karte Eigenkapital");
+
+    const c = run(P.T05B, main(P.T05B)).table;
+    assert.equal(new Set(c.rows.map(r => r[colIdx(c, "Cashflowkonto[KontoID]")])).size, 10, "9 Positionen und der Endbestand (Formel)");
+    const cid = colIdx(c, "Cashflowkonto[KontoID]"), cper = colIdx(c, "Kalender[Periode]"), cac = colIdx(c, "[ac]");
+    const anf = c.rows.find(r => r[cid] === "CF-ANF" && r[cper] === "2026-01")[cac];
+    const flows = c.rows.filter(r => !["CF-ANF", "CF-END"].includes(r[cid]) && r[cper] <= "2026-08").reduce((x, r) => x + (r[cac] ?? 0), 0);
+    near(anf + flows, S["Endbestand AC"], "Anfangsbestand Januar + Cashflows Jan..Aug = Endbestand August");
+    near(S["Endbestand AC"], S["Kasse und Bank AC"], "Endbestand = Kasse der Bilanz");
+    const ck = run(P.T05B, P.T05B.tiles.find(x => x.id === "karten")).table;
+    assert.equal(ck.rows.length, 3, "drei Cashflow-Bereiche");
+    near(sum(ck, "[actual]"), S["Operativer Cashflow AC"] + S["Investiver Cashflow AC"] + S["Finanzierungs-Cashflow AC"], "Karten AC");
+    near(sum(ck, "[previousYear]"), S["Operativer Cashflow PY bis Ist"] + S["Investiver Cashflow PY bis Ist"] + S["Finanzierungs-Cashflow PY bis Ist"], "Karten PY bis Ist");
 });
 
 console.log(`\nShowcase-Spec: ${n}/${n} grün`);

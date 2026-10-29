@@ -1,6 +1,7 @@
-// Template-Katalog und dwg tile add, geprüft gegen die Showcase-Spec (28 Seiten, je Template eine von Hand gebaute
-// und im Dienst abgenommene Kachel) und das Showcase-Modell:
-//   1. Katalog: 11 ChartKitchen- und 17 P&L-Templates, Titel DE/EN, jede Rolle gibt es im Visual
+// Template-Katalog und dwg tile add, geprüft gegen die Showcase-Spec (30 Seiten, je Template eine von Hand gebaute
+// Kachel; T05A/T05B ab P&L 1.7 noch nicht im Dienst abgenommen) und das Showcase-Modell:
+//   1. Katalog: 11 ChartKitchen- und 19 P&L-Templates, Titel DE/EN, jede Rolle gibt es im Visual; Bestands-Templates
+//      (T05A Bilanz, T05B Cashflow) mit statement.stockMode und Zeilentyp-Regel
 //   2. Was das Template im Visual einstellt, steht genauso in der Showcase-Kachel (Extraktion stimmt)
 //   3. Jede Pflichtrolle ist in der Showcase-Kachel gebunden (Rollen-Regeln nicht zu streng)
 //   4. Vorschläge mit dem Kennzahlen-Stamm der Showcase-Kachel treffen deren Felder (Varianten wie „bis Ist“ als Alternative)
@@ -35,9 +36,24 @@ const ok = (label, fn) => {
 };
 
 // 1 · Katalog
-ok("Katalog: 11 ChartKitchen- und 17 P&L-Templates", () => {
+ok("Katalog: 11 ChartKitchen- und 19 P&L-Templates", () => {
     assert.equal(cat.templates.filter(t => t.visual === "chartkitchen").length, 11);
-    assert.equal(cat.templates.filter(t => t.visual === "pnl").length, 17);
+    assert.equal(cat.templates.filter(t => t.visual === "pnl").length, 19);
+});
+ok("Bestands-Templates (P&L 1.7): Gruppe balance, statement.stockMode, Zeilentyp bei T05B Pflicht, Periode empfohlen", () => {
+    const need = (t, r) => t.roles.find(x => x.role === r).need;
+    const a = findTemplate(cat, "T05A"), b = findTemplate(cat, "T05B");
+    for (const t of [a, b]) {
+        assert.equal(t.group.id, "balance");
+        assert.equal(t.data, "balance");
+        assert.equal(need(t, "period"), "recommended", `${t.id}: Periode`);
+    }
+    assert.deepEqual(a.objects.statement, { stockMode: "allStock" });
+    assert.deepEqual(b.objects.statement, { stockMode: "auto" });
+    assert.equal(need(a, "rowType"), "recommended", "T05A: ohne Token setzt das Template allStock");
+    assert.equal(need(b, "rowType"), "required", "T05B: Anfangs- und Endbestand brauchen die Token");
+    // die GuV-Templates bleiben ohne statement
+    assert.ok(cat.templates.filter(t => t.visual === "pnl" && t.group.id !== "balance").every(t => !t.objects.statement));
 });
 ok("jedes Template mit Titel DE/EN, Gruppe und Rollen, die es im Visual gibt", () => {
     for (const t of cat.templates) {
@@ -132,6 +148,18 @@ ok("P&L ohne Stamm nimmt die GuV-Familie und die Ebenen der Kontotabelle", () =>
     assert.equal(r.stem, "guv");
     assert.deepEqual(r.rows.find(x => x.role === "levels").value, ["'Konto'[L1]", "'Konto'[L2]"]);
     assert.deepEqual(r.rows.find(x => x.role === "rowType").value, ["'Konto'[RowType]"]);
+});
+ok("Mehrere Kontentabellen: Ebenen aus der Tabelle, die mit der Kennzahl verbunden ist (Bilanz, Cashflow)", () => {
+    for (const [tpl, stem, table] of [["T05A", "Bilanz", "Bilanzkonto"], ["T05B", "Cashflow", "Cashflowkonto"]]) {
+        const r = suggestBindings(model, findTemplate(cat, tpl), {}, stem);
+        assert.deepEqual(r.problems, [], `${tpl}: ${r.problems.join("; ")}`);
+        assert.deepEqual(r.rows.find(x => x.role === "levels").value, [`'${table}'[L1]`, `'${table}'[L2]`], tpl);
+        assert.deepEqual(r.rows.find(x => x.role === "rowType").value, [`'${table}'[RowType]`], tpl);
+        assert.deepEqual(r.rows.find(x => x.role === "period").value, ["'Kalender'[Periode]"], tpl);
+    }
+    // ohne Stamm: zwei Bestands-Familien (Bilanz, Cashflow), dwg fragt nach
+    const r = suggestBindings(model, findTemplate(cat, "T05B"), {}, null);
+    assert.match(r.problems.join("\n"), /Pflichtrolle ac .*--measure/);
 });
 
 // 5 · Namen und Kurzangaben

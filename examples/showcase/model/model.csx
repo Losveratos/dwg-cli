@@ -37,11 +37,22 @@ foreach (var t in new[] { p, c, a }) foreach (var col in t.Columns) col.Summariz
 foreach (var col in k.Columns) col.SummarizeBy = AggregateFunction.None;
 
 // --- Measures -------------------------------------------------------------------------------------------------
-Action<string, string, string, string, string> M = (name, expr, fmt, folder, desc) => {
-    var m = f.AddMeasure(name, expr, folder);
+// Feste LineageTags (UUID v5 aus Tabelle und Name, wie gen_model.py), damit ein Neuaufbau keinen Git-Diff ergibt
+Func<string, string> Uuid5 = name => {
+    var ns = new byte[] { 0x6b, 0xa7, 0xb8, 0x11, 0x9d, 0xad, 0x11, 0xd1, 0x80, 0xb4, 0x00, 0xc0, 0x4f, 0xd4, 0x30, 0xc8 };
+    var h = System.Security.Cryptography.SHA1.Create().ComputeHash(ns.Concat(System.Text.Encoding.UTF8.GetBytes(name)).ToArray());
+    h[6] = (byte)((h[6] & 0x0F) | 0x50);
+    h[8] = (byte)((h[8] & 0x3F) | 0x80);
+    var x = BitConverter.ToString(h, 0, 16).Replace("-", "").ToLowerInvariant();
+    return x.Substring(0, 8) + "-" + x.Substring(8, 4) + "-" + x.Substring(12, 4) + "-" + x.Substring(16, 4) + "-" + x.Substring(20, 12);
+};
+Action<Table, string, string, string, string, string> MT = (t, name, expr, fmt, folder, desc) => {
+    var m = t.AddMeasure(name, expr, folder);
     m.FormatString = fmt;
     m.Description = desc;
+    m.LineageTag = Uuid5("ZlatyLev Showcase/" + t.Name + "/measure/" + name);
 };
+Action<string, string, string, string, string> M = (name, expr, fmt, folder, desc) => MT(f, name, expr, fmt, folder, desc);
 const string EUR = "#,##0";
 const string HL = "#,##0.0";
 const string PCT = "0.0 %";
@@ -96,3 +107,33 @@ foreach (var b in bisIst) {
     M(b + " bis Ist", "CALCULATE ( [" + b + "], 'Kalender'[Ist] = TRUE () )", src.FormatString, "04 Bis Ist",
       src.Description.TrimEnd('.') + ", nur Monate mit Ist (bis August 2026).");
 }
+
+// --- Bilanz und Cashflow (Bestände für die P&L-Templates T05A und T05B) ----------------------------------------
+// Eigene Konten- und Faktentabellen, 'Konto' bleibt die GuV. Measures in der jeweiligen Faktentabelle.
+var bi = Model.Tables["Bilanz"];
+var cf = Model.Tables["Cashflow"];
+foreach (var t in new[] { bi, cf }) foreach (var col in t.Columns) col.IsHidden = true;
+bi.Columns["Stichtag"].Description = "WAHR im letzten Ist-Monat jedes Jahres (Dezember 2025, August 2026), für Stände am Stichtag.";
+foreach (var t in new[] { Model.Tables["Bilanzkonto"], Model.Tables["Cashflowkonto"] }) {
+    t.Columns["KontoID"].IsKey = true;
+    t.Columns["L1"].SortByColumn = t.Columns["L1 Sort"];
+    t.Columns["L2"].SortByColumn = t.Columns["SortOrder"];
+    t.Columns["L1 Sort"].IsHidden = true;
+    foreach (var n in new[] { "L1 Sort", "SortOrder", "SignConvention" }) t.Columns[n].FormatString = "0";
+    t.Columns["RowType"].Description = "Zeilentyp mit Token für das P&L-Visual (ab 1.7): stock = Stand am Periodenende, opening = Stand am Periodenbeginn.";
+    t.Columns["FormulaDef"].Description = "Formel des P&L-Visuals über Kontonamen und Ebene 1.";
+    t.Columns["SignConvention"].Description = "Überall 1: Bilanzwerte positiv wie gebucht, Cashflows mit Vorzeichen (Auszahlungen negativ).";
+    foreach (var col in t.Columns) col.SummarizeBy = AggregateFunction.None;
+}
+foreach (var s in sc)
+    MT(bi, "Bilanz " + s.Key, "SUM ( 'Bilanz'[" + s.Key + "] )", EUR, "05 Bilanz",
+       s.Value + " je Bilanzposition: Stand am Monatsende. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periodenfeld (Zeilentyp stock) oder als Bilanz Stichtag.");
+foreach (var s in new[] { "AC", "PY", "PL" })
+    MT(bi, "Bilanz Stichtag " + s, "CALCULATE ( [Bilanz " + s + "], 'Bilanz'[Stichtag] = TRUE () )", EUR, "05 Bilanz",
+       sc[s] + " am Stichtag: Stand im letzten Ist-Monat des Jahres (2026: August).");
+foreach (var s in sc)
+    MT(cf, "Cashflow " + s.Key, "SUM ( 'Cashflow'[" + s.Key + "] )", EUR, "06 Cashflow",
+       s.Value + " je Cashflow-Position: Flüsse mit Vorzeichen (Auszahlungen negativ), Anfangsbestand je Monat (Zeilentyp opening).");
+foreach (var s in new[] { "PY", "PL" })
+    MT(cf, "Cashflow " + s + " bis Ist", "CALCULATE ( [Cashflow " + s + "], 'Kalender'[Ist] = TRUE () )", EUR, "06 Cashflow",
+       sc[s] + " je Cashflow-Position, nur Monate mit Ist (bis August 2026).");

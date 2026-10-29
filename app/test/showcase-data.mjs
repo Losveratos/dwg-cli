@@ -1,9 +1,10 @@
 // Showcase-Datensatz: Mini-DAX rechnet die Measures des Modells „ZlatyLev Showcase“ (wörtlich aus dem TMDL exportiert)
 // auf den Fixtures und trifft die Kontrollwerte aus showcase/CONTRACT.md. Dazu Kurztests der Mini-DAX-Erweiterungen
-// (Plus/Minus, Zahlen, DIVIDE, AVERAGEX). Aufruf: node app/test/showcase-data.mjs (im Ordner dwg)
+// (Plus/Minus, Zahlen, DIVIDE, AVERAGEX, mehrere Faktentabellen). Bilanz und Cashflow: Aktiva = Passiva, Kasse =
+// Endbestand, Anfangsbestand = Endbestand des Vormonats, Abschreibungen aus der GuV. Aufruf: node app/test/showcase-data.mjs
 import assert from "node:assert/strict";
 import { createEngine, splitSigned } from "./minidax.mjs";
-import { model, CONTROL } from "./datasets/showcase.mjs";
+import { model, CONTROL, CONTROL_STOCK } from "./datasets/showcase.mjs";
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log(`  ok  ${name}`); };
@@ -48,10 +49,12 @@ const value = (measure, filters = []) => {
     return r.rows[0]?.[0] ?? null;
 };
 
-test("Fixtures: 14.124 Faktzeilen 2026, 21 Konten, 50 Measures aus dem Modell", () => {
+test("Fixtures: 14.124 Faktzeilen 2026, 21 Konten, 63 Measures aus dem Modell (50 GuV, 13 Bilanz und Cashflow)", () => {
     assert.equal(model.tables.Fakten.rows.length, CONTROL.rows);
     assert.equal(CONTROL.accounts, 21);
-    assert.equal(Object.keys(model.measures).length, 50);
+    assert.equal(Object.keys(model.measures).length, 63);
+    assert.equal(model.tables.Bilanz.rows.length, 12 * 8, "Bilanz 2026: 8 Positionen × 12 Monate");
+    assert.equal(model.tables.Cashflow.rows.length, 12 * 9, "Cashflow 2026: 9 Positionen × 12 Monate (Endbestand ohne Faktzeilen)");
 });
 
 test("Kontrollwerte 2026: GuV roh, FY, Umsatz, DB, Kosten, EBIT, Absatz", () => {
@@ -112,6 +115,71 @@ test("GuV ± über alle Konten = EBIT, Umsatz = Nettoumsatz mit Vorzeichen der R
     const rabatt = value("GuV AC", [`TREATAS({"4100"}, 'Konto'[KontoID])`]);
     const sonst = value("GuV AC", [`TREATAS({"4200"}, 'Konto'[KontoID])`]);
     near(brutto - rabatt + sonst, CONTROL["Umsatz AC"], "Brutto - Rabatte + Sonstige");
+});
+
+// ---------------------------------------------------------------- Bilanz und Cashflow
+
+const byPeriod = (measure, filters = []) => {
+    const f = [`TREATAS({2026}, 'Kalender'[Jahr])`, ...filters].join(", ");
+    const r = engine.query(`EVALUATE SUMMARIZECOLUMNS('Kalender'[Periode], ${f}, "v", [${measure}]) ORDER BY 'Kalender'[Periode]`);
+    return Object.fromEntries(r.rows.map(([p, v]) => [p, v]));
+};
+const L1 = (t, v) => `TREATAS({"${v}"}, '${t}'[L1])`;
+const S = CONTROL_STOCK;
+
+test("Bilanz: Aktiva = Passiva in jedem Monat und Szenario, Stand am Stichtag = Kontrollwert", () => {
+    for (const s of ["AC", "PY", "PL", "FC"]) {
+        const a = byPeriod(`Bilanz ${s}`, [L1("Bilanzkonto", "Aktiva")]), p = byPeriod(`Bilanz ${s}`, [L1("Bilanzkonto", "Passiva")]);
+        assert.equal(Object.keys(a).length, s === "AC" ? 8 : 12, `${s}: Monate`);
+        for (const per of Object.keys(a)) { assert.equal(a[per], p[per], `${s} ${per}: Aktiva = Passiva`); }
+    }
+    near(value("Bilanz Stichtag AC", [L1("Bilanzkonto", "Aktiva")]), S["Aktiva AC"], "Aktiva AC am Stichtag");
+    near(value("Bilanz Stichtag AC", [L1("Bilanzkonto", "Passiva")]), S["Passiva AC"], "Passiva AC am Stichtag");
+    near(value("Bilanz Stichtag PY", [L1("Bilanzkonto", "Aktiva")]), S["Aktiva PY"], "Aktiva PY am Stichtag");
+    near(value("Bilanz Stichtag PL", [L1("Bilanzkonto", "Aktiva")]), S["Aktiva PL"], "Aktiva PL am Stichtag");
+    near(value("Bilanz AC", [`TREATAS({"2026-08"}, 'Kalender'[Periode])`, L1("Bilanzkonto", "Aktiva")]), S["Aktiva AC"], "Stichtag = August");
+});
+
+test("Cashflow: Endbestand = Anfangsbestand + Cashflows = Kasse der Bilanz, Anfangsbestand = Endbestand des Vormonats", () => {
+    const id = v => `TREATAS({"${v}"}, 'Cashflowkonto'[KontoID])`;
+    for (const s of ["AC", "PY", "PL", "FC"]) {
+        const anf = byPeriod(`Cashflow ${s}`, [id("CF-ANF")]);
+        const flows = Object.fromEntries(Object.keys(anf).map(p => [p, 0]));
+        for (const blk of ["Operativer Cashflow", "Investiver Cashflow", "Finanzierungs-Cashflow"]) {
+            for (const [p, v] of Object.entries(byPeriod(`Cashflow ${s}`, [L1("Cashflowkonto", blk)]))) { flows[p] += v; }
+        }
+        const kasse = byPeriod(`Bilanz ${s}`, [`TREATAS({"A-KASSE"}, 'Bilanzkonto'[KontoID])`]);
+        const pers = Object.keys(anf).sort();
+        assert.equal(pers.length, s === "AC" ? 8 : 12, `${s}: Monate`);
+        pers.forEach((p, i) => {
+            assert.equal(anf[p] + flows[p], kasse[p], `${s} ${p}: Endbestand = Kasse`);
+            if (i > 0) { assert.equal(anf[p], kasse[pers[i - 1]], `${s} ${p}: Anfangsbestand = Endbestand Vormonat`); }
+        });
+    }
+    near(value("Cashflow AC", [L1("Cashflowkonto", "Operativer Cashflow")]), S["Operativer Cashflow AC"], "operativ AC");
+    near(value("Cashflow PY bis Ist", [L1("Cashflowkonto", "Operativer Cashflow")]), S["Operativer Cashflow PY bis Ist"], "operativ PY bis Ist");
+    near(value("Cashflow AC", [L1("Cashflowkonto", "Investiver Cashflow")]), S["Investiver Cashflow AC"], "investiv AC");
+    near(value("Cashflow AC", [L1("Cashflowkonto", "Finanzierungs-Cashflow")]), S["Finanzierungs-Cashflow AC"], "finanziell AC");
+    near(S["Anfangsbestand AC"] + S["Operativer Cashflow AC"] + S["Investiver Cashflow AC"] + S["Finanzierungs-Cashflow AC"],
+        S["Endbestand AC"], "Brücke Jan bis Aug");
+});
+
+test("Cashflow aus der GuV: Abschreibungen = Konto 7000, Jahresüberschuss = EBIT nach Zinsen und Steuern", () => {
+    const afa = value("Cashflow AC", [`TREATAS({"CF-AFA"}, 'Cashflowkonto'[KontoID])`]);
+    near(afa, value("GuV AC", [`TREATAS({"7000"}, 'Konto'[KontoID])`]), "Abschreibungen");
+    near(afa, S["Abschreibungen AC"], "Abschreibungen Kontrollwert");
+    const jue = value("Cashflow AC", [`TREATAS({"CF-JUE"}, 'Cashflowkonto'[KontoID])`]);
+    near(jue, S["Jahresüberschuss AC"], "Jahresüberschuss");
+    assert.ok(jue > 0.5 * CONTROL["EBIT AC"] && jue < 0.75 * CONTROL["EBIT AC"], `Jahresüberschuss ${jue} zu EBIT ${CONTROL["EBIT AC"]}`);
+});
+
+test("Mini-DAX mit mehreren Faktentabellen: Faktentabelle der Measures, Filter ohne Beziehung wirken nicht", () => {
+    const all = value("Bilanz Stichtag AC", [L1("Bilanzkonto", "Aktiva")]);
+    near(value("Bilanz Stichtag AC", [L1("Bilanzkonto", "Aktiva"), `TREATAS({"Polen"}, 'Kunde'[Region])`]), all, "Kunde filtert die Bilanz nicht");
+    assert.throws(() => engine.query(`EVALUATE SUMMARIZECOLUMNS('Bilanzkonto'[L1], "a", [GuV AC])`), /keine Beziehung zu 'Bilanzkonto'/);
+    assert.throws(() => engine.query(`EVALUATE SUMMARIZECOLUMNS("a", [GuV AC], "b", [Bilanz AC])`), /mehreren Faktentabellen/);
+    const r = engine.query(`EVALUATE ADDMISSINGITEMS('Cashflowkonto'[KontoID], SUMMARIZECOLUMNS('Cashflowkonto'[KontoID], TREATAS({2026}, 'Kalender'[Jahr]), "ac", [Cashflow AC]), 'Cashflowkonto'[KontoID])`);
+    assert.equal(r.rows.length, 10, "alle 10 Cashflow-Zeilen inkl. Endbestand (Formel ohne Fakten)");
 });
 
 console.log(`showcase-data: ${n} Tests grün`);

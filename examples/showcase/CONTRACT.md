@@ -1,13 +1,14 @@
 # Datenvertrag Showcase · Modell „ZlatyLev Showcase“
 
-Stand 23.10.2026. Verbindlich für `specs/showcase.json` und die dwg-Tests.
+Stand 23.10.2026, ergänzt am 29.10.2026 um Bilanz und Cashflow (P&L-Templates T05A und T05B ab P&L 1.7).
+Verbindlich für `specs/showcase.json` und die dwg-Tests.
 Namen werden ab jetzt **nicht mehr umbenannt**, nur ergänzt. Alle Zahlen sind synthetisch (Namen aus dem
 Brauerei-Case ZLATÝ LEV, Werte per Zufallsgenerator mit festem Seed, `examples/showcase/data/gen_showcase.py`). Kunden und Biere sind erfunden.
 
 | | |
 |---|---|
 | Workspace | dein Fabric-Workspace |
-| Lakehouse | `ZlatyLev_Showcase` mit SQL-Endpunkt, Tabellen kalender, produkt, kunde, konto, fakten |
+| Lakehouse | `ZlatyLev_Showcase` mit SQL-Endpunkt, Tabellen kalender, produkt, kunde, konto, fakten, dazu seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow (**noch hochzuladen**, siehe Neuaufbau) |
 | Semantikmodell | `ZlatyLev Showcase`, Direct Lake über den SQL-Endpunkt |
 | TMDL im Repo | `examples/showcase/ZlatyLev Showcase.SemanticModel` (aus `examples/showcase/model/gen_model.py` + `model.csx`, siehe unten) |
 | Mini-DAX-Testdaten | `app/test/datasets/showcase.mjs` (+ `showcase/`-JSON) |
@@ -128,7 +129,68 @@ Beziehungen: alle n:1, einfach gerichtet, von 'Fakten' zu 'Kalender'[Datum], 'Ko
 **Achtung P&L-Visual:** Summen-, Formel- und KPI-Konten haben **keine** Faktenzeilen (anders als im Kitchen-Modell).
 Die Statement-Abfrage braucht deshalb ADDMISSINGITEMS über die Konto-Spalten (Mini-DAX kann das).
 
-## Measures (alle in 'Fakten')
+### Bilanz und Cashflow (seit 29.10.2026)
+
+Bestände für die P&L-Templates T05A (Bilanz zum Stichtag) und T05B (Cashflow-Brücke), ab P&L Statement 1.7.
+Eigene Konten- und Faktentabellen wie `demoData/bilanz-*` und `demoData/cashflow-*` im Kitchen-Repo, nicht als
+Erweiterung von 'Konto': die GuV-Kacheln binden 'Konto' ohne Filter und mit „Elemente ohne Daten anzeigen“, neue
+Konten erschienen dort als leere Zeilen. Zwei getrennte Tabellenpaare statt einer gemeinsamen Bestandsdimension, damit
+keine Kachel einen Filter „Bilanz oder Cashflow“ braucht und eine Faktzeile nie in die Leerzeile einer fremden
+Dimension fällt. Abgeleitet aus der GuV (Jahresüberschuss = EBIT der Fakten minus 4 % Zinsen p. a. auf die
+Bankverbindlichkeiten minus 25 % Steuer, Abschreibungen = Konto 7000), Working Capital aus Umsatz und Wareneinsatz
+des Monats, eigener Zufallsstrom (Seed 1882, Strom 1702), die GuV-Zahlen bleiben unverändert.
+
+**'Bilanzkonto'** (9 Zeilen) und **'Cashflowkonto'** (10 Zeilen), gleiche Spalten:
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| KontoID | string | Schlüssel. Bilanz `A-…` (Aktiva), `P-…` (Passiva), `K-EKQ`; Cashflow `CF-…` |
+| Konto | string | Anzeigename, in [FormulaDef] referenziert |
+| L1 | string | Ebene 1: Aktiva, Passiva bzw. Anfangsbestand Zahlungsmittel, Operativer Cashflow, Investiver Cashflow, Finanzierungs-Cashflow, Endbestand Zahlungsmittel; bei KPI, Anfangs- und Endbestand der eigene Name · sortiert nach [L1 Sort] |
+| L1 Sort | int64 | Reihenfolge der Ebene 1 (ausgeblendet) |
+| L2 | string | Ebene 2: Kontoname (nur Konten, nicht beim Anfangsbestand) · sortiert nach [SortOrder] |
+| SortOrder | int64 | Reihenfolge |
+| RowType | string | mit Token für das P&L-Visual: Bilanzkonten `Account stock`, Anfangsbestand `Account opening`, Flüsse `Account`, Endbestand `Formula stock`, Eigenkapitalquote `KPI` |
+| FormulaDef | string | `[Eigenkapital] / [Passiva]` (K-EKQ), `[Anfangsbestand Zahlungsmittel] + [Operativer Cashflow] + [Investiver Cashflow] + [Finanzierungs-Cashflow]` (CF-END) |
+| SignConvention | int64 | überall 1 |
+| DisplayInvert | string | überall „false“ |
+| VarianceInvert | string | „true“ bei Vorräten, Forderungen, Rückstellungen und Verbindlichkeiten (höher = ungünstig), sonst „false“ |
+| Kommentar | string | Kurzkommentar, meist leer |
+
+Kontenplan Bilanz: Aktiva = Sachanlagen (A-SACH), Vorräte (A-VORR), Forderungen LuL (A-FORD), Kasse und Bank
+(A-KASSE); Passiva = Eigenkapital (P-EK), Rückstellungen (P-RUECK), Verbindlichkeiten Kreditinstitute (P-BANK),
+Verbindlichkeiten LuL (P-VLL); dazu die KPI-Zeile Eigenkapitalquote (K-EKQ). Cashflow: Anfangsbestand Zahlungsmittel
+(CF-ANF) · Operativer Cashflow = Jahresüberschuss (CF-JUE), Abschreibungen (CF-AFA), Veränderung Working Capital (CF-WC)
+· Investiver Cashflow = Investitionen Sachanlagen (CF-INV), Anlagenabgänge (CF-ABG) · Finanzierungs-Cashflow =
+Aufnahme Darlehen (CF-AUF), Tilgung Darlehen (CF-TIL), Dividende (CF-DIV) · Endbestand Zahlungsmittel (CF-END).
+
+**'Bilanz'** und **'Cashflow'** (Körnung Monat × Konto, 2025 und 2026, nur Konten mit RowType `Account…`):
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| Datum | dateTime | Monatserster → 'Kalender'[Datum] (der Wert gilt für das Monatsende) |
+| KontoID | string | → 'Bilanzkonto'[KontoID] bzw. 'Cashflowkonto'[KontoID] |
+| AC | double | Bilanz: Stand am Monatsende; Cashflow: Fluss des Monats mit Vorzeichen (Auszahlungen negativ), Anfangsbestand = Stand am Monatsbeginn. **Leer ab September 2026** |
+| PY | double | derselbe Wert ein Jahr früher (2026 = AC 2025, 2025 aus dem Ist 2024) |
+| PL | double | Plan, alle Monate, ab dem Ist-Stand Dezember des Vorjahres |
+| FC | double | in Ist-Monaten = AC, danach Hochrechnung ab dem Stand August 2026 |
+| Stichtag | boolean | nur 'Bilanz': WAHR im letzten Ist-Monat jedes Jahres (Dezember 2025, August 2026) |
+
+Alle Spalten der Faktentabellen sind ausgeblendet. Bilanz 192 Zeilen (8 Konten × 24 Monate), Cashflow 216 (9 × 24);
+Eigenkapitalquote und Endbestand haben keine Faktenzeilen (ADDMISSINGITEMS wie die GuV-Formeln).
+Beziehungen: 'Bilanz' und 'Cashflow' n:1 zu 'Kalender'[Datum] und zu ihrer Kontentabelle, einfach gerichtet.
+
+Fachlich geprüft (Generator und `app/test/showcase-data.mjs`): Aktiva = Passiva in jedem Monat und Szenario;
+Endbestand = Anfangsbestand + operativ + investiv + finanziell; Endbestand eines Monats = Anfangsbestand des
+Folgemonats; Kasse und Bank = Endbestand Zahlungsmittel; Abschreibungen = Konto 7000 der GuV.
+Geschichten: Im Juni 2026 kommt die neue Abfüllanlage (3,2 Mio. EUR, Plan 2,8 Mio. EUR), finanziert mit einem
+Darlehen über 3,0 Mio. EUR; die Dividende im Mai 2026 fällt mit 0,3 Mio. EUR niedriger aus als geplant (0,5 Mio. EUR).
+
+**Für das P&L-Visual:** Periode `'Kalender'[Periode]` binden. Das Visual wählt den Stand am Stichtag aus den
+Monatswerten (Token `stock`/`opening`), ohne Periode bekäme es die Summe der Monate. „Elemente ohne Daten anzeigen“
+für Formel und KPI; die App füllt dabei nur innerhalb der Filter auf (CALCULATETABLE um ADDMISSINGITEMS).
+
+## Measures (GuV in 'Fakten', Bilanz und Cashflow in ihren Faktentabellen)
 
 Anzeigeordner in Klammern. Formatstring Beträge `#,##0`, Abweichungen `+#,##0;-#,##0;0`, Prozent `0.0 %`.
 
@@ -185,6 +247,23 @@ Ist gibt es bis August 2026, Plan und Vorjahr für das ganze Jahr. Für faire Ve
 Alternativ filtert die Seite auf `'Kalender'[Ist] = TRUE` (Filter-Panel), dann reichen die normalen Measures.
 Monatsreihen (Jan bis Dez) nutzen die normalen Measures: AC endet im August, PL und FC laufen weiter.
 
+**05 Bilanz (in 'Bilanz')**
+
+| Measure | DAX |
+|---|---|
+| Bilanz AC / PY / PL / FC | `SUM('Bilanz'[AC])` usw.: Stand je Monat. Über mehrere Monate summiert, deshalb im P&L-Visual mit Periode |
+| Bilanz Stichtag AC / PY / PL | `CALCULATE([Bilanz AC], 'Bilanz'[Stichtag] = TRUE())`: Stand im letzten Ist-Monat des Jahres, für Karten |
+
+**06 Cashflow (in 'Cashflow')**
+
+| Measure | DAX |
+|---|---|
+| Cashflow AC / PY / PL / FC | `SUM('Cashflow'[AC])` usw. |
+| Cashflow PY bis Ist / Cashflow PL bis Ist | `CALCULATE([Cashflow PY], 'Kalender'[Ist] = TRUE())` |
+
+Zusammen 63 Measures (50 GuV, 13 Bilanz und Cashflow). Die LineageTags der Measures sind seit 29.10.2026 fest
+(UUID v5 aus Tabelle und Name, `model.csx`), ein Neuaufbau ergibt keinen Git-Diff mehr.
+
 ## Hinweise für die Templates (Abgleich mit der Wunschliste der Templates-Session)
 
 - **Vorzeichen-Trio:** Konten mit Aufwand haben `SignConvention -1 · DisplayInvert true · VarianceInvert false`.
@@ -235,6 +314,26 @@ Aus dem Generator (`examples/showcase/data/control.json`), alle Kunden, Produkte
 Bestätigt am 19.10.2026 per DAX gegen das Modell im Service: alle 30 Werte dieser Tabelle und der Geschichten
 stimmen (`python examples/showcase/model/check.py`). Die Mini-DAX trifft dieselben Werte (`node app/test/showcase-data.mjs` in `dwg/`).
 
+**Bilanz und Cashflow 2026** (`control.json`, Schlüssel „Bilanz und Cashflow 2026“; Stichtag 31.08.2026, Cashflow Jan
+bis Aug). Mini-DAX bestätigt; im Service erst nach dem Upload der vier Tabellen (`check.py` prüft sie mit).
+
+| Wert | AC | PY |
+|---|---:|---:|
+| Bilanzsumme (Aktiva = Passiva) | 39.993.754 | 36.847.730 |
+| Bilanzsumme PL | 40.801.910 | |
+| Eigenkapital | 24.498.007 | 23.622.741 |
+| Eigenkapitalquote | 61,3 % | |
+| Sachanlagen | 29.467.439 | |
+| Verbindlichkeiten Kreditinstitute | 12.080.000 | |
+| Anfangsbestand Zahlungsmittel (1.1.) | 4.326.188 | 3.983.655 |
+| Operativer Cashflow | 1.419.128 | 1.370.549 |
+| Investiver Cashflow | −4.193.822 | −870.644 |
+| Finanzierungs-Cashflow | 2.220.000 | −880.000 |
+| Endbestand = Kasse und Bank | 3.771.494 | 3.603.560 |
+| Jahresüberschuss | 784.426 | |
+| Abschreibungen (= Konto 7000) | 2.016.011 | |
+| Endbestand FC Dezember 2026 | 5.480.869 | |
+
 ## Dateien und Neuaufbau
 
 | Datei | Zweck |
@@ -242,10 +341,10 @@ stimmen (`python examples/showcase/model/check.py`). Die Mini-DAX trifft dieselb
 | `examples/showcase/data/gen_showcase.py` | Datensatz (Seed 1882) → `examples/showcase/data/parquet/*.parquet`, `control.json`, Mini-DAX-Fixtures |
 | `examples/showcase/model/gen_model.py` | Direct-Lake-Gerüst als TMDL (Tabellen, Partitionen, Beziehungen) |
 | `examples/showcase/model/model.csx` | Measures, Sortierung, Formate, Beschreibungen (`te script`) |
-| `examples/showcase/model/export_measures.csx` | Measures (50) wörtlich nach `app/test/datasets/showcase/measures.json` |
+| `examples/showcase/model/export_measures.csx` | Measures (63) wörtlich nach `app/test/datasets/showcase/measures.json` (aus dem Repo aufrufen) |
 | `examples/showcase/model/check.py` | Kontrollwerte per DAX gegen den Service |
-| `app/test/datasets/showcase.mjs` | Mini-DAX-Modell (Fakten 2026) |
-| `app/test/showcase-data.mjs` | Test: Kontrollwerte, Geschichten, FY, ADDMISSINGITEMS, Mini-DAX-Erweiterungen |
+| `app/test/datasets/showcase.mjs` | Mini-DAX-Modell (Fakten, Bilanz und Cashflow 2026; Mini-DAX nimmt je Abfrage die Faktentabelle der Measures) |
+| `app/test/showcase-data.mjs` | Test: Kontrollwerte, Geschichten, FY, ADDMISSINGITEMS, Bilanz und Cashflow, Mini-DAX-Erweiterungen |
 
 Neuaufbau (aus dem Repo, PowerShell):
 
@@ -253,6 +352,8 @@ Neuaufbau (aus dem Repo, PowerShell):
 python examples/showcase/data/gen_showcase.py
 # Upload: fab cp <abs. Pfad>\<t>.parquet ".../ZlatyLev_Showcase.Lakehouse/Files/showcase/<t>/" -f
 # fab table load ".../Tables/<t>" --file ".../Files/showcase/<t>" --format format=parquet --mode overwrite
+# <t> = kalender, produkt, kunde, konto, fakten und seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow
+# (die vier neuen hat noch niemand hochgeladen; die fünf alten sind unverändert)
 python examples/showcase/model/gen_model.py
 te script -m "examples/showcase/ZlatyLev Showcase.SemanticModel" --file examples/showcase/model/model.csx --save
 te validate -m "examples/showcase/ZlatyLev Showcase.SemanticModel" --errors-only

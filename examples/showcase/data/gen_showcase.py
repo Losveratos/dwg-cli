@@ -3,6 +3,9 @@
 Brauerei-Case ZLATÝ LEV: Biere, Kunden und Zahlen sind erfunden
 (fester Seed, deterministisch). Vertrag: examples/showcase/CONTRACT.md.
 
+Dazu Bilanz und Cashflow (Bestände für die P&L-Templates T05A und T05B, seit P&L-Visual 1.7): eigene Konten- und
+Faktentabellen, abgeleitet aus dem GuV-EBIT, deterministisch ohne den Zufallsstrom der GuV.
+
 Ausgabe:
   examples/showcase/data/parquet/<tabelle>.parquet          Quellen für das Lakehouse (Spaltennamen ohne Leerzeichen)
   examples/showcase/data/control.json                    Kontrollwerte
@@ -109,6 +112,54 @@ ACCOUNTS = [k[0] for k in KONTEN if k[3] == "Account"]
 
 SAISON = np.array([0.74, 0.76, 0.88, 0.97, 1.08, 1.22, 1.32, 1.28, 1.04, 0.93, 0.84, 0.94])
 
+# ---------------------------------------------------------------- Bilanz und Cashflow (Bestände)
+# Eigene Tabellen wie demoData/bilanz-* und cashflow-* im Kitchen-Repo: 'Konto' bleibt die reine GuV, die GuV-Kacheln
+# binden 'Konto' ohne Filter. Bilanzwerte positiv wie gebucht (Aktiva und Passiva, SignConvention 1), Cashflow mit
+# Vorzeichen (Auszahlungen negativ). Zeilentyp mit Token: Bilanz „Account stock“, Anfangsbestand „Account opening“,
+# Endbestand „Formula stock“ (ohne Faktzeilen, ADDMISSINGITEMS wie die GuV-Formeln).
+
+# KontoID, Konto, L1, L1 Sort, SortOrder, RowType, FormulaDef, VarianceInvert, Kommentar
+BILANZKONTEN = [
+    ("A-SACH", "Sachanlagen", "Aktiva", 10, 11, "Account stock", None, "false", "Neue Abfüllanlage im Juni 2026"),
+    ("A-VORR", "Vorräte", "Aktiva", 10, 12, "Account stock", None, "true", None),
+    ("A-FORD", "Forderungen LuL", "Aktiva", 10, 13, "Account stock", None, "true", None),
+    ("A-KASSE", "Kasse und Bank", "Aktiva", 10, 14, "Account stock", None, "false", "Gleich dem Endbestand Zahlungsmittel im Cashflow"),
+    ("P-EK", "Eigenkapital", "Passiva", 20, 21, "Account stock", None, "false", "Dividende 2026 im Mai, niedriger als geplant"),
+    ("P-RUECK", "Rückstellungen", "Passiva", 20, 22, "Account stock", None, "true", None),
+    ("P-BANK", "Verbindlichkeiten Kreditinstitute", "Passiva", 20, 23, "Account stock", None, "true",
+     "Darlehen für die Abfüllanlage im Juni 2026"),
+    ("P-VLL", "Verbindlichkeiten LuL", "Passiva", 20, 24, "Account stock", None, "true", None),
+    ("K-EKQ", "Eigenkapitalquote", "Eigenkapitalquote", 30, 30, "KPI", "[Eigenkapital] / [Passiva]", "false", None),
+]
+CASHFLOWKONTEN = [
+    ("CF-ANF", "Anfangsbestand Zahlungsmittel", "Anfangsbestand Zahlungsmittel", 10, 10, "Account opening", None, "false",
+     "Stand am Periodenbeginn"),
+    ("CF-JUE", "Jahresüberschuss", "Operativer Cashflow", 20, 21, "Account", None, "false", "EBIT der GuV nach Zinsen und Steuern"),
+    ("CF-AFA", "Abschreibungen", "Operativer Cashflow", 20, 22, "Account", None, "false", None),
+    ("CF-WC", "Veränderung Working Capital", "Operativer Cashflow", 20, 23, "Account", None, "false", None),
+    ("CF-INV", "Investitionen Sachanlagen", "Investiver Cashflow", 30, 31, "Account", None, "false", "Abfüllanlage im Juni 2026"),
+    ("CF-ABG", "Anlagenabgänge", "Investiver Cashflow", 30, 32, "Account", None, "false", None),
+    ("CF-AUF", "Aufnahme Darlehen", "Finanzierungs-Cashflow", 40, 41, "Account", None, "false", None),
+    ("CF-TIL", "Tilgung Darlehen", "Finanzierungs-Cashflow", 40, 42, "Account", None, "false", None),
+    ("CF-DIV", "Dividende", "Finanzierungs-Cashflow", 40, 43, "Account", None, "false", None),
+    ("CF-END", "Endbestand Zahlungsmittel", "Endbestand Zahlungsmittel", 50, 50, "Formula stock",
+     "[Anfangsbestand Zahlungsmittel] + [Operativer Cashflow] + [Investiver Cashflow] + [Finanzierungs-Cashflow]", "false",
+     "Gleich Kasse und Bank in der Bilanz"),
+]
+STICHTAGE = {(2025, 12), LAST_ACTUAL}     # letzter Ist-Monat je Jahr: Stand für die Karten („Bilanz Stichtag …“)
+ZINS = 0.040                              # p.a. auf die Verbindlichkeiten Kreditinstitute des Vormonats
+STEUER = 0.25                             # pauschal auf das Ergebnis nach Zinsen
+CAPEX_QUOTE = 0.50                        # laufende Investitionen in Prozent der Abschreibungen
+TILGUNG = 60_000                          # je Monat
+START = {"A-SACH": 28_000_000, "A-KASSE": 4_500_000, "P-BANK": 11_000_000}   # Stand 31.12.2023
+# Ereignisse je Szenario (Monat → EUR)
+INVEST = {"AC": {(2024, 9): 900_000, (2025, 10): 1_400_000, (2026, 6): 3_200_000},
+          "PL": {(2025, 10): 1_200_000, (2026, 6): 2_800_000}}
+ABGANG = {"AC": {(2025, 3): 60_000, (2026, 2): 85_000}, "PL": {}}
+DARLEHEN = {"AC": {(2026, 6): 3_000_000}, "PL": {(2026, 6): 3_000_000}}
+DIVIDENDE = {"AC": {(2024, 5): 300_000, (2025, 5): 400_000, (2026, 5): 300_000},
+             "PL": {(2025, 5): 400_000, (2026, 5): 500_000}}
+
 
 def months(year):
     return [(year, m) for m in range(1, 13)]
@@ -192,6 +243,168 @@ def overhead(y, m, scenario):
         if y == 2026 and m in (5, 6):
             marketing *= 1.18       # Sommerkampagne Hazy IPA vorgezogen
     return {"6000": personal, "6100": marketing, "6300": sonstige, "7000": afa}
+
+
+# ---------------------------------------------------------------- Bilanz und Cashflow rechnen
+
+def guv_treiber(fakten):
+    """Monatswerte der GuV je Szenario (gerundete Faktzeilen): EBIT, Abschreibungen, Nettoumsatz, Wareneinsatz.
+    Ist-Zeitreihe Jan 2024 bis Aug 2026 (2024 aus PY der 2025-Zeilen), Plan und Forecast je Jahr."""
+    by_id = {k[0]: k for k in KONTEN}
+    sign = {k[0]: k[6] for k in KONTEN}
+    block = {k[0]: by_id[k[1]][2] for k in KONTEN if k[1]}
+    f = fakten.assign(y=fakten["Datum"].str[:4].astype(int), m=fakten["Datum"].str[5:7].astype(int),
+                      s=fakten["KontoID"].map(sign), blk=fakten["KontoID"].map(block))
+
+    def monate(rows, col, year_shift=0):
+        out = {}
+        for (y, m), g in rows.groupby(["y", "m"]):
+            v = g[col]
+            if v.isna().all():
+                continue
+            out[(int(y) + year_shift, int(m))] = {
+                "ebit": int(round(float((v * g["s"]).sum()))),
+                "afa": int(round(float(v[g["KontoID"] == "7000"].sum()))),
+                "umsatz": int(round(float((v * g["s"])[g["blk"] == "Nettoumsatz"].sum()))),
+                "we": int(round(float(v[g["blk"] == "Wareneinsatz"].sum()))),
+            }
+        return out
+
+    f25, f26 = f[f["y"] == 2025], f[f["y"] == 2026]
+    return {
+        "AC": {**monate(f25, "PY", -1), **monate(f25, "AC"), **monate(f26, "AC")},
+        "PL": {**monate(f25, "PL"), **monate(f26, "PL")},
+        "FC": {**monate(f25, "FC"), **monate(f26, "FC")},
+    }
+
+
+def working_capital(d, m, vorrat=1.0):
+    """Stände aus den Monatswerten der GuV: Vorräte 1,4 und Verbindlichkeiten LuL 0,85 Monate Wareneinsatz,
+    Forderungen ein Monat Nettoumsatz (rund 30 Tage), Rückstellungen wachsen über das Jahr (Boni, Urlaub) und
+    werden im Januar ausgezahlt."""
+    return {"A-VORR": int(round(d["we"] * 1.4 * vorrat)), "A-FORD": int(round(d["umsatz"] * 1.0)),
+            "P-VLL": int(round(d["we"] * 0.85)), "P-RUECK": 1_450_000 + 38_000 * m}
+
+
+def aktiva(s):
+    return s["A-SACH"] + s["A-VORR"] + s["A-FORD"] + s["A-KASSE"]
+
+
+def passiva(s):
+    return s["P-EK"] + s["P-RUECK"] + s["P-BANK"] + s["P-VLL"]
+
+
+def simulieren(start, monate, treiber, scen, rng_b=None):
+    """Monatsstände (Monatsende) und Cashflows ab dem Stand des Vormonats. Jahresüberschuss = EBIT der GuV minus Zinsen
+    minus pauschaler Steuer; Abschreibungen aus Konto 7000 mindern die Sachanlagen; Kasse = Anfangsbestand + Cashflows."""
+    s = dict(start)
+    staende, fluesse = {}, {}
+    for (y, m) in monate:
+        d = treiber[(y, m)]
+        zins = int(round(s["P-BANK"] * ZINS / 12))
+        ebt = d["ebit"] - zins
+        jue = ebt - int(round(ebt * STEUER))
+        laufend = d["afa"] * CAPEX_QUOTE * (rng_b.normal(1.0, 0.12) if rng_b is not None else 1.0)
+        capex = int(round(laufend)) + INVEST.get(scen, {}).get((y, m), 0)
+        abg = ABGANG.get(scen, {}).get((y, m), 0)
+        auf = DARLEHEN.get(scen, {}).get((y, m), 0)
+        div = DIVIDENDE.get(scen, {}).get((y, m), 0)
+        w = working_capital(d, m, rng_b.normal(1.0, 0.03) if rng_b is not None else 1.0)
+        dwc = (-(w["A-VORR"] - s["A-VORR"]) - (w["A-FORD"] - s["A-FORD"]) + (w["P-VLL"] - s["P-VLL"])
+               + (w["P-RUECK"] - s["P-RUECK"]))
+        fl = {"CF-ANF": s["A-KASSE"], "CF-JUE": jue, "CF-AFA": d["afa"], "CF-WC": dwc, "CF-INV": -capex, "CF-ABG": abg,
+              "CF-AUF": auf, "CF-TIL": -TILGUNG, "CF-DIV": -div}
+        s = {**s, **w,
+             "A-SACH": s["A-SACH"] + capex - d["afa"] - abg,
+             "A-KASSE": s["A-KASSE"] + sum(v for k, v in fl.items() if k != "CF-ANF"),
+             "P-BANK": s["P-BANK"] + auf - TILGUNG,
+             "P-EK": s["P-EK"] + jue - div}
+        assert aktiva(s) == passiva(s), f"Bilanz {y}-{m:02d} {scen}: Aktiva {aktiva(s)}, Passiva {passiva(s)}"
+        assert s["A-KASSE"] > 0, f"Kasse {y}-{m:02d} {scen} negativ"
+        staende[(y, m)], fluesse[(y, m)] = dict(s), fl
+    return staende, fluesse
+
+
+def bestaende(fakten):
+    """Bilanz und Cashflow 2025 und 2026 (Monatsende), Vorjahr aus dem Ist des Vorjahres, Plan je Jahr ab dem Ist-Stand
+    Dezember des Vorjahres, Forecast ab dem letzten Ist-Monat. Gibt die vier Tabellen und die Kontrollwerte zurück."""
+    rng_b = np.random.default_rng([SEED, 1702])        # eigener Strom: die GuV-Zahlen bleiben unverändert
+    tr = guv_treiber(fakten)
+    ist_monate = [ym for ym in months(2024) + months(2025) + months(2026) if is_actual(*ym)]
+    s0 = {**START, **working_capital(tr["AC"][(2024, 1)], 12)}
+    s0["P-EK"] = aktiva(s0) - s0["P-RUECK"] - s0["P-BANK"] - s0["P-VLL"]
+    ac_st, ac_fl = simulieren(s0, ist_monate, tr["AC"], "AC", rng_b)
+    pl_st, pl_fl = {}, {}
+    fc_st = {k: v for k, v in ac_st.items() if k[0] in YEARS}
+    fc_fl = {k: v for k, v in ac_fl.items() if k[0] in YEARS}
+    for y in YEARS:
+        st, fl = simulieren(ac_st[(y - 1, 12)], months(y), tr["PL"], "PL")
+        pl_st.update(st)
+        pl_fl.update(fl)
+        offen = [ym for ym in months(y) if not is_actual(*ym)]
+        if offen:
+            st, fl = simulieren(ac_st[LAST_ACTUAL], offen, tr["FC"], "FC")
+            fc_st.update(st)
+            fc_fl.update(fl)
+    # Endbestand = Anfangsbestand + Cashflows = Kasse; Endbestand eines Monats = Anfangsbestand des Folgemonats
+    for st, fl in [(ac_st, ac_fl), (pl_st, pl_fl), (fc_st, fc_fl)]:
+        for (y, m), f in fl.items():
+            assert f["CF-ANF"] + sum(v for k, v in f.items() if k != "CF-ANF") == st[(y, m)]["A-KASSE"]
+            nxt = (y, m + 1) if m < 12 else (y + 1, 1)
+            if nxt in fl and (y, m) != (y, 12):
+                assert fl[nxt]["CF-ANF"] == st[(y, m)]["A-KASSE"], f"Anfangsbestand {nxt}"
+
+    def dim(konten):
+        return pd.DataFrame([{
+            "KontoID": k[0], "Konto": k[1], "L1": k[2], "L1Sort": k[3],
+            "L2": k[1] if k[5].startswith("Account") and k[2] != k[1] else None,
+            "SortOrder": k[4], "RowType": k[5], "FormulaDef": k[6], "SignConvention": 1, "DisplayInvert": "false",
+            "VarianceInvert": k[7], "Kommentar": k[8],
+        } for k in konten])
+
+    def fakt(konten, ac, pl, fc, stichtag):
+        rows = []
+        for y in YEARS:
+            for m in range(1, 13):
+                for k in konten:
+                    if not k[5].startswith("Account"):
+                        continue            # Formeln und KPIs ohne Faktzeilen
+                    r = {"Datum": f"{y}-{m:02d}-01", "KontoID": k[0],
+                         "AC": float(ac[(y, m)][k[0]]) if is_actual(y, m) else None,
+                         "PY": float(ac[(y - 1, m)][k[0]]), "PL": float(pl[(y, m)][k[0]]), "FC": float(fc[(y, m)][k[0]])}
+                    if stichtag:
+                        r["Stichtag"] = (y, m) in STICHTAGE
+                    rows.append(r)
+        return pd.DataFrame(rows)
+
+    bilanz = fakt(BILANZKONTEN, ac_st, pl_st, fc_st, True)
+    cashflow = fakt(CASHFLOWKONTEN, ac_fl, pl_fl, fc_fl, False)
+
+    # Kontrollwerte: Stand am Stichtag (letzter Ist-Monat) und Cashflow Jan bis Stichtag
+    st, st_vj = ac_st[LAST_ACTUAL], ac_st[(LAST_ACTUAL[0] - 1, LAST_ACTUAL[1])]
+    ytd = [(LAST_ACTUAL[0], m) for m in range(1, LAST_ACTUAL[1] + 1)]
+
+    def cf(ids, shift=0):
+        return float(sum(ac_fl[(y - shift, m)][i] for y, m in ytd for i in ids))
+
+    op, inv, fin = ["CF-JUE", "CF-AFA", "CF-WC"], ["CF-INV", "CF-ABG"], ["CF-AUF", "CF-TIL", "CF-DIV"]
+    ctrl = {
+        "Stichtag": f"{LAST_ACTUAL[0]}-{LAST_ACTUAL[1]:02d}",
+        "Aktiva AC": float(aktiva(st)), "Passiva AC": float(passiva(st)), "Aktiva PY": float(aktiva(st_vj)),
+        "Aktiva PL": float(aktiva(pl_st[LAST_ACTUAL])),
+        "Eigenkapital AC": float(st["P-EK"]), "Eigenkapital PY": float(st_vj["P-EK"]),
+        "Sachanlagen AC": float(st["A-SACH"]), "Kasse und Bank AC": float(st["A-KASSE"]),
+        "Verbindlichkeiten Kreditinstitute AC": float(st["P-BANK"]),
+        "Eigenkapitalquote AC": st["P-EK"] / passiva(st),
+        "Anfangsbestand AC": float(ac_fl[ytd[0]]["CF-ANF"]), "Anfangsbestand PY": float(ac_fl[(ytd[0][0] - 1, 1)]["CF-ANF"]),
+        "Operativer Cashflow AC": cf(op), "Investiver Cashflow AC": cf(inv), "Finanzierungs-Cashflow AC": cf(fin),
+        "Operativer Cashflow PY bis Ist": cf(op, 1), "Investiver Cashflow PY bis Ist": cf(inv, 1),
+        "Finanzierungs-Cashflow PY bis Ist": cf(fin, 1),
+        "Endbestand AC": float(st["A-KASSE"]), "Endbestand PY": float(st_vj["A-KASSE"]),
+        "Jahresüberschuss AC": cf(["CF-JUE"]), "Abschreibungen AC": cf(["CF-AFA"]),
+        "Endbestand FC Dezember": float(fc_st[(LAST_ACTUAL[0], 12)]["A-KASSE"]),
+    }
+    return dim(BILANZKONTEN), bilanz, dim(CASHFLOWKONTEN), cashflow, ctrl
 
 
 # ---------------------------------------------------------------- Rechnen
@@ -330,6 +543,7 @@ def main():
         "KundeID": k[0], "Kunde": k[1], "Kanal": k[2], "KanalSort": KANAELE.index(k[2]) + 1, "Region": k[3], "Land": k[4],
     } for k in KUNDEN])
     by_id = {k[0]: k for k in KONTEN}
+    bilanzkonto, bilanz, cashflowkonto, cashflow, ctrl_best = bestaende(fakten)
 
     def l1(k):
         if k[3] == "Account":
@@ -361,6 +575,11 @@ def main():
         "kunde": (kunde, {"KanalSort": pa.int64()}),
         "konto": (konto, {"L1Sort": pa.int64(), "SortOrder": pa.int64(), "SignConvention": pa.int64()}),
         "fakten": (fakten, {"Datum": date, **{c: pa.float64() for c in fakten.columns if c not in ("Datum", "KontoID", "KundeID", "ProduktID")}}),
+        "bilanzkonto": (bilanzkonto, {"L1Sort": pa.int64(), "SortOrder": pa.int64(), "SignConvention": pa.int64()}),
+        "bilanz": (bilanz, {"Datum": date, "AC": pa.float64(), "PY": pa.float64(), "PL": pa.float64(), "FC": pa.float64(),
+                            "Stichtag": pa.bool_()}),
+        "cashflowkonto": (cashflowkonto, {"L1Sort": pa.int64(), "SortOrder": pa.int64(), "SignConvention": pa.int64()}),
+        "cashflow": (cashflow, {"Datum": date, "AC": pa.float64(), "PY": pa.float64(), "PL": pa.float64(), "FC": pa.float64()}),
     }
     for name, (df, types) in schemas.items():
         fields = []
@@ -393,7 +612,8 @@ def main():
 
     ytd26 = f26[f26["Datum"] <= "2026-08-01"]
     control = {
-        "rows": {"fakten": len(fakten), "fakten2026": len(f26), "kombinationen": len(combos)},
+        "rows": {"fakten": len(fakten), "fakten2026": len(f26), "kombinationen": len(combos),
+                 "bilanz": len(bilanz), "cashflow": len(cashflow)},
         "2026": {
             "GuV AC": float(f26["AC"].sum()), "GuV PY": float(f26["PY"].sum()), "GuV PL": float(f26["PL"].sum()),
             "GuV FC": float(f26["FC"].sum()),
@@ -427,6 +647,7 @@ def main():
         stories[label] = {"Umsatz AC": umsatz(sub, "AC"), "Umsatz PL": umsatz(sub, "PL"), "Umsatz PY": umsatz(sub, "PY")}
     stories["Logistik"] = {"AC": c26["Logistik AC"], "PL": c26["Logistik PL bis Ist"]}
     control["Geschichten Jan bis Aug 2026"] = stories
+    control["Bilanz und Cashflow 2026"] = ctrl_best
     (HERE / "control.json").write_text(json.dumps(control, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # ------------------------------------------------------------ Mini-DAX-Fixtures (Spaltennamen wie im Modell)
@@ -436,6 +657,10 @@ def main():
         "produkt": {"ProduktSort": "Produkt Sort", "SorteSort": "Sorte Sort", "AlkoholProzent": "Alkohol %"},
         "kunde": {"KanalSort": "Kanal Sort"},
         "konto": {"L1Sort": "L1 Sort", "Brueckentyp": "Brückentyp"},
+        "bilanzkonto": {"L1Sort": "L1 Sort"},
+        "cashflowkonto": {"L1Sort": "L1 Sort"},
+        "bilanz": {},
+        "cashflow": {},
         "fakten": {"HektoliterAC": "Hektoliter AC", "HektoliterPY": "Hektoliter PY", "HektoliterPL": "Hektoliter PL",
                    "HektoliterFC": "Hektoliter FC"},
     }
@@ -454,6 +679,10 @@ def main():
     to_json(kunde, "kunde", "kunde.json")
     to_json(konto, "konto", "konto.json")
     to_json(f26, "fakten", "fakten-2026.json")
+    to_json(bilanzkonto, "bilanzkonto", "bilanzkonto.json")
+    to_json(cashflowkonto, "cashflowkonto", "cashflowkonto.json")
+    to_json(bilanz[bilanz["Datum"].str.startswith("2026")], "bilanz", "bilanz-2026.json")
+    to_json(cashflow[cashflow["Datum"].str.startswith("2026")], "cashflow", "cashflow-2026.json")
 
     print(json.dumps(control, ensure_ascii=False, indent=1))
 

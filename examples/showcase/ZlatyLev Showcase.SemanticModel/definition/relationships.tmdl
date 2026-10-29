@@ -14,3 +14,19 @@ relationship 2d3b4956-1ec2-51ce-829d-a2971fc34ab0
 	fromColumn: Fakten.ProduktID
 	toColumn: Produkt.ProduktID
 
+relationship 870459a6-0f7a-5420-904c-926584bc1a59
+	fromColumn: Bilanz.Datum
+	toColumn: Kalender.Datum
+
+relationship ad1aa23d-2f3e-5e00-9544-30e6958808e7
+	fromColumn: Bilanz.KontoID
+	toColumn: Bilanzkonto.KontoID
+
+relationship b8c9d9d0-d0db-507e-8d55-784a27201fb8
+	fromColumn: Cashflow.Datum
+	toColumn: Kalender.Datum
+
+relationship 0ea3470a-37a6-5c91-afa8-2c1e3bc57c86
+	fromColumn: Cashflow.KontoID
+	toColumn: Cashflowkonto.KontoID
+

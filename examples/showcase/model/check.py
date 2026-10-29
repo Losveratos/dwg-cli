@@ -14,6 +14,7 @@ S = sorted(glob.glob(os.path.expanduser(
     r"~\.claude\plugins\cache\power-bi-agentic-development\fabric-cli\*\skills\fabric-cli\scripts\execute_dax.py")))[-1]
 
 c26, c25, st = CONTROL["2026"], CONTROL["2025"], CONTROL["Geschichten Jan bis Aug 2026"]
+bc = CONTROL["Bilanz und Cashflow 2026"]
 CHECKS = [
     ("2026", "'Kalender'[Jahr] = 2026", {**{k: c26[k] for k in [
         "GuV AC", "GuV PY", "GuV PL", "GuV FC", "GuV FC FY", "GuV PL FY", "Umsatz AC", "Umsatz PY bis Ist",
@@ -29,6 +30,20 @@ CHECKS = [
      {"Umsatz AC": st["Praha Premium 13°"]["Umsatz AC"], "Umsatz PL bis Ist": st["Praha Premium 13°"]["Umsatz PL"]}),
     ("Logistik", "'Kalender'[Jahr] = 2026, 'Konto'[KontoID] = \"6200\"",
      {"Kosten AC": st["Logistik"]["AC"], "Kosten PL bis Ist": st["Logistik"]["PL"]}),
+    # Bilanz und Cashflow (Tabellen bilanz, bilanzkonto, cashflow, cashflowkonto im Lakehouse)
+    ("Aktiva", "'Kalender'[Jahr] = 2026, 'Bilanzkonto'[L1] = \"Aktiva\"",
+     {"Bilanz Stichtag AC": bc["Aktiva AC"], "Bilanz Stichtag PY": bc["Aktiva PY"], "Bilanz Stichtag PL": bc["Aktiva PL"]}),
+    ("Passiva", "'Kalender'[Jahr] = 2026, 'Bilanzkonto'[L1] = \"Passiva\"", {"Bilanz Stichtag AC": bc["Passiva AC"]}),
+    ("Kasse", "'Kalender'[Jahr] = 2026, 'Bilanzkonto'[KontoID] = \"A-KASSE\"",
+     {"Bilanz Stichtag AC": bc["Kasse und Bank AC"], "Bilanz Stichtag PY": bc["Endbestand PY"]}),
+    ("CF oper.", "'Kalender'[Jahr] = 2026, 'Cashflowkonto'[L1] = \"Operativer Cashflow\"",
+     {"Cashflow AC": bc["Operativer Cashflow AC"], "Cashflow PY bis Ist": bc["Operativer Cashflow PY bis Ist"]}),
+    ("CF invest.", "'Kalender'[Jahr] = 2026, 'Cashflowkonto'[L1] = \"Investiver Cashflow\"",
+     {"Cashflow AC": bc["Investiver Cashflow AC"], "Cashflow PY bis Ist": bc["Investiver Cashflow PY bis Ist"]}),
+    ("CF finanz.", "'Kalender'[Jahr] = 2026, 'Cashflowkonto'[L1] = \"Finanzierungs-Cashflow\"",
+     {"Cashflow AC": bc["Finanzierungs-Cashflow AC"], "Cashflow PY bis Ist": bc["Finanzierungs-Cashflow PY bis Ist"]}),
+    ("CF Anf.", "'Kalender'[Periode] = \"2026-01\", 'Cashflowkonto'[KontoID] = \"CF-ANF\"",
+     {"Cashflow AC": bc["Anfangsbestand AC"], "Cashflow PY": bc["Anfangsbestand PY"]}),
 ]
 
 bad = 0

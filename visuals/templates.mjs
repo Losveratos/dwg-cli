@@ -5,6 +5,7 @@
 //                 sind nicht exportiert; sie werden per TypeScript-Parser herausgelöst (reine Literale), der Visual-Code
 //                 bleibt unverändert.
 //   P&L:          src/hub.ts (templateSwitches, HUB_GALLERY) und MEGA_PRESETS aus src/megatable.ts, gebündelt für Node.
+//                 Ab 1.7 schreibt ein Template auch statement.stockMode (T05A Bilanz, T05B Cashflow).
 // Titel und Zweck in DE und EN aus den stringResources der Visuals. Die Rollen-Regeln stehen unten (ckRoles, pnlRoles).
 import esbuild from "esbuild";
 import fs from "node:fs";
@@ -141,9 +142,16 @@ async function chartKitchen(dir) {
  *   empfohlen (ohne sie zeigt das Visual nur den Hauptblock); der FY-Ausblick (12G) braucht FC Gesamtjahr, PL Gesamtjahr wird empfohlen.
  *   T01/T02 sind Strukturtabellen (Regionen, Produkte); T03, T04 und die 12er sind GuV-Statements, dort werden die
  *   Logikspalten (Zeilentyp, Formel, Vorzeichen, Umkehr, Sortierung) empfohlen.
+ *   Bestände (1.7, Templates mit statement.stockMode): Das Visual liest Bestand oder Fluss aus Token im Zeilentyp
+ *   (`Account stock`, `Account opening`). T05B (Cashflow, stockMode auto) braucht den Zeilentyp: ohne Token summiert es
+ *   den Anfangsbestand über die Monate. T05A (Bilanz) setzt ohne Token „Alle Zeilen Bestand“ (allStock), dort reicht die
+ *   Empfehlung. Den Stand am Stichtag wählt das Visual aus den Monatswerten, deshalb ist die Periode bei beiden empfohlen
+ *   (ohne sie muss jedes Measure selbst den Stand am Stichtag liefern).
  */
 function pnlRoles(id, sw, preset, info) {
     const c = sw.cols;
+    const stockMode = sw.stmt?.stockMode;
+    const rowTypeNeed = stockMode === "auto" ? "required" : null;
     const out = [role(info, "levels", "required", { alt: ["account", "parent"] }), role(info, "ac", "required")];
     const usesPy = c.showPY || c.dPyAbs || c.dPyBar || c.dPyWaterfall || c.dPyPct || c.dPyPin || c.minuend === "py";
     const usesPl = c.showPL || c.dPlAbs || c.dPlBar || c.dPlWaterfall || c.dPlPct || c.dPlPin || c.minuend === "pl";
@@ -152,10 +160,10 @@ function pnlRoles(id, sw, preset, info) {
     out.push(role(info, "pl", usesPl ? "required" : "optional"));
     out.push(role(info, "fc", usesFc ? "required" : preset.blockKind === "fy" ? "recommended" : "optional"));
     if (preset.blockKind === "fy") { out.push(role(info, "fcFy", "required"), role(info, "plFy", "recommended")); }
-    out.push(role(info, "period", c.secondBlock ? "recommended" : "optional"));
+    out.push(role(info, "period", c.secondBlock || stockMode ? "recommended" : "optional"));
     const statement = !/^T0[12]/.test(id);
     for (const r of ["account", "accountName", "sortOrder", "rowType", "formulaDef", "signConvention", "displayInvert", "varianceInvert"]) {
-        out.push(role(info, r, statement ? "recommended" : "optional"));
+        out.push(role(info, r, r === "rowType" && rowTypeNeed ? rowTypeNeed : statement ? "recommended" : "optional"));
     }
     // Eltern-ID: nur mit Konto-ID zusammen als Ersatz für die Ebenen (alt von levels)
     out.push(role(info, "parent", "optional"));
@@ -174,10 +182,12 @@ async function pnl(dir) {
             const sw = hub.templateSwitches(t.tpl);
             const objects = { columns: { template: t.tpl, templateApplied: t.tpl, ...sw.cols }, numbers: { ...sw.nums } };
             if (Object.keys(sw.title).length) { objects.titleBlock = { ...sw.title }; }
+            if (Object.keys(sw.stmt ?? {}).length) { objects.statement = { ...sw.stmt }; }
             out.push({
                 id: t.tpl, visual: "pnl",
-                // T01/T02: Strukturtabellen (Ebenen = Regionen, Kunden, Produkte), sonst GuV-Statement (Ebenen = Konten)
-                data: /^T0[12]/.test(t.tpl) ? "structure" : "statement",
+                // T01/T02: Strukturtabellen (Ebenen = Regionen, Kunden, Produkte), Bestands-Templates (1.7, Gruppe balance):
+                // Bilanz und Cashflow (Ebenen = Bestandskonten), sonst GuV-Statement (Ebenen = Konten)
+                data: /^T0[12]/.test(t.tpl) ? "structure" : g.id === "balance" ? "balance" : "statement",
                 group: { id: g.id, title: text(loc, g.title) },
                 title: text(loc, t.title), use: text(loc, t.use),
                 objects,
