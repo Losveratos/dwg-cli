@@ -5,12 +5,17 @@
 //   dwg/pages/<slug>.ts   Seiten-Spec als TypeScript, <slug>.dax alle Abfragen zum Prüfen
 //   dwg/apps/<slug>.ts    ganze Spec für DwgShell: Slicer (Filter-Panel), Seiten in Navigationsreihenfolge
 //   vendor/dwg-pixelgrid/ Pixelraster (layout/pixelgrid.mjs) für die Shell
+//   vendor/dwg-fonts/     Geist und JetBrains Mono (woff2 + OFL), in packages/frontend/index.html eingebunden;
+//                         Links zu Schrift-Diensten (aus der Rayfin-Vorlage) fliegen dort raus
+// Mit --model zusätzlich <App>/fabscan.json: Konnektor → Modell für den Governance-Scanner fabscan.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readModel, resolveField, parseRef } from "../../pbip/lib/tmdl.mjs";
 import { valueProblem } from "../../pbip/lib/pbir.mjs";
 import { zones as gridZones, inside, DWG_CHROME } from "../../layout/pixelgrid.mjs";
+import { installFonts } from "./fonts.mjs";
+import { writeFabscanConfig } from "./fabscan.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(HERE, "../../visuals/dist");
@@ -219,6 +224,8 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     fs.copyFileSync(path.join(PIXELGRID, "pixelgrid.mjs"), path.join(gridDir, "pixelgrid.js"));
     fs.copyFileSync(path.join(PIXELGRID, "pixelgrid.d.ts"), path.join(gridDir, "pixelgrid.d.ts"));
     written.push("src/vendor/dwg-pixelgrid/");
+    // Schriften lokal statt fonts.googleapis.com (index.html der Rayfin-Vorlage)
+    written.push(...installFonts(front));
     for (const f of fs.readdirSync(TEMPLATES)) {
         fs.mkdirSync(path.join(src, "dwg"), { recursive: true });
         fs.copyFileSync(path.join(TEMPLATES, f), path.join(src, "dwg", f));
@@ -320,5 +327,11 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     if (problems.length) {
         throw new Error(`Felder passen nicht zum Modell:\n  ${problems.join("\n  ")}`);
     }
-    return { written, connector: con.name, app: appName, slicers: slicers.length };
+    // Modell für fabscan auffindbar machen (Abfragen gegen das Modell prüfen statt LIN-NO-MODEL)
+    let fabscan = null;
+    if (modelDir) {
+        fabscan = writeFabscanConfig({ appDir, connector: con.name, modelDir });
+        written.push(`../../fabscan.json (Konnektor ${con.name} → Modell „${fabscan.model}“, für fabscan)`);
+    }
+    return { written, connector: con.name, app: appName, slicers: slicers.length, fabscan: fabscan?.file ?? null };
 }

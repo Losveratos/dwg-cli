@@ -191,7 +191,7 @@ clear (several measure families, a structure axis), it stops and lists candidate
 | `pbip new`, `pbip register`, `pbip pages` | create a PBIP report, register the `.pbiviz`, write the pages |
 | `validate [<X.Report>]` | validate a report against the PBIR schemas |
 | `lint --spec … [--strict] [--json]` | pixel grid and accessibility |
-| `check --spec … [--model …] [--json]` | check a spec without an app or a report: structure, filters, roles and bindings per tile, with `--model` also the fields; exit 1 on problems |
+| `check --spec … [--model …] [--app …] [--json] [--strict]` | check a spec without an app or a report: structure, filters, roles and bindings per tile, with `--model` also the fields; exit 1 on problems. Hints: fixed year, month or date filters (a slicer with a default is usually better), with `--app` fonts loaded from third-party servers |
 | `mockup build`, `mockup import --in … --out …` | MockupKitchen building blocks and import |
 
 Run `node dwg.mjs` for the full help.

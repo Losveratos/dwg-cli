@@ -28,9 +28,10 @@ const CASES = {
     "dwg-spike": {
         mock: "mock-query.ts", dataset: null,
         click: { tile: "umsatz", group: 2 }, filter: `TREATAS({"Mär"}, 'Calender'[Month Name Short])`, chip: "Mär",
+        fixed: ["Year: 2026"],
     },
-    "guv-statement": { mock: "mock-minidax.ts", dataset: path.join(HERE, "datasets", "guv.mjs"), click: null },
-    "guv-baum": { mock: "mock-minidax.ts", dataset: path.join(HERE, "datasets", "guv.mjs"), click: null },
+    "guv-statement": { mock: "mock-minidax.ts", dataset: path.join(HERE, "datasets", "guv.mjs"), click: null, fixed: ["Year: 2026", "Month: 1 bis 8"] },
+    "guv-baum": { mock: "mock-minidax.ts", dataset: path.join(HERE, "datasets", "guv.mjs"), click: null, fixed: ["Year: 2026", "Month: 1 bis 8"] },
 };
 const C = CASES[PAGE];
 if (!C) { console.error(`Unbekannte Seite ${PAGE}. Möglich: ${Object.keys(CASES).join(", ")}`); process.exit(1); }
@@ -112,6 +113,10 @@ check("keine Kachel meldet einen Fehler", !(await page.$("[data-dwg-tile] [role=
     await page.$$eval("[data-dwg-tile] [role=alert]", els => els.map(e => e.textContent).join(" | ")));
 const q0 = await page.evaluate(() => window.__dwgQueries.length);
 check("eine DAX-Abfrage je Kachel", q0 === ids.length, `${q0} Abfragen für ${ids.length} Kacheln`);
+// feste Filter der Spec als Chips über den Kacheln, nicht klickbar
+const fixed = await page.$$eval("[data-dwg-fixed-filter]", els => els.map(e => ({ text: e.textContent.trim(), tag: e.tagName, button: !!e.closest("button") || !!e.querySelector("button") })));
+check("feste Filter als Chips sichtbar", fixed.map(f => f.text).join("|") === C.fixed.join("|"), fixed.map(f => f.text).join(" | "));
+check("Chips der festen Filter sind nicht klickbar", fixed.every(f => f.tag === "LI" && !f.button));
 await page.screenshot({ path: path.join(OUT, "1-hell.png"), fullPage: true });
 
 let after = [], back = [];

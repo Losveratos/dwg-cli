@@ -4,3 +4,4 @@
 *.pbiviz binary
 *.parquet binary
 *.zip binary
+*.woff2 binary

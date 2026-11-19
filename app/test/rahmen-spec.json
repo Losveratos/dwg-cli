@@ -150,6 +150,15 @@
       "description": "Welche Länder treiben die Abweichung zum Plan? Sortiert nach Wirkung.",
       "width": 1920,
       "height": 1080,
+      "filters": [
+        {
+          "column": "'Calender'[Year]",
+          "values": [
+            2025,
+            2026
+          ]
+        }
+      ],
       "tiles": [
         {
           "id": "laender",

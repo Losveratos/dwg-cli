@@ -1,6 +1,7 @@
 // dwg: eine Seite aus der App-Spec. Jede Kachel fragt das Semantikmodell per DAX ab
 // (daxQuery), ein Klick in einer Kachel filtert die anderen (TREATAS), der Filter-Chip
-// hebt die Auswahl auf. Filter von außen (Slicer im Filter-Panel von DwgShell) gelten für
+// hebt die Auswahl auf. Feste Filter der Spec (Seite und Kacheln) stehen als nicht klickbare Chips davor
+// (FixedFilterChips; DwgShell zeigt sie im Seitenkopf). Filter von außen (Slicer im Filter-Panel von DwgShell) gelten für
 // alle Kacheln. Mit `fixedWidth` liegt die Seite in Bühnenpixeln (DwgShell skaliert sie als Ganzes),
 // sonst skaliert sie auf die gemessene Breite. Von `dwg app page` geschrieben, wird bei jedem Lauf ersetzt.
 
@@ -10,6 +11,8 @@ import { useSemanticModelQuery } from '@/hooks/use-semantic-model-query';
 
 import { daxQuery, type DaxFilter, type SelectionKey } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
+  fixedChipText,
+  fixedFilterChips,
   pageHeight,
   pageRegion,
   selectionLabel,
@@ -17,6 +20,7 @@ import {
   tileFilters,
   withoutHeaders,
   type DwgBox,
+  type DwgFixedChip,
   type DwgPageSpec,
   type DwgSelection,
   type DwgTileSpec,
@@ -121,6 +125,62 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
 
 const NO_FILTERS: DaxFilter[] = [];
 
+interface ChipProps {
+  page: DwgPageSpec;
+  isDark: boolean;
+  /** Skalierung von Schrift und Abständen (Bühne der Shell) */
+  k?: number;
+  /** Farben, Standard nach isDark */
+  colors?: { text: string; muted: string; border: string; surface: string };
+  style?: CSSProperties;
+}
+
+/**
+ * Feste Filter aus der App-Spec (page.filters, tile.filters) als Chips, nicht klickbar: Sie gelten immer und
+ * stehen nur in der Spec. Wer sie ändern können soll, braucht einen Slicer mit Vorgabe (spec.slicers, default).
+ */
+export function FixedFilterChips({ page, isDark, k = 1, colors, style }: ChipProps) {
+  const chips = useMemo(() => fixedFilterChips(page), [page]);
+  if (!chips.length) return null;
+  const c = colors ?? (isDark
+    ? { text: '#e8eaed', muted: '#9aa0a6', border: '#2c3138', surface: '#16191d' }
+    : { text: '#1f2328', muted: '#5f6670', border: '#d0d4d9', surface: '#ffffff' });
+  return (
+    <ul
+      aria-label="Feste Filter"
+      data-dwg-fixed-filters=""
+      style={{ display: 'flex', flexWrap: 'wrap', gap: 6 * k, margin: 0, padding: 0, listStyle: 'none', ...style }}
+    >
+      {chips.map((chip: DwgFixedChip) => {
+        const { text, scope, title } = fixedChipText(chip);
+        return (
+          <li
+            key={`${chip.column}|${chip.values}|${scope ?? ''}`}
+            data-dwg-fixed-filter={chip.column}
+            title={title}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'baseline',
+              gap: 4 * k,
+              padding: `${2 * k}px ${8 * k}px`,
+              border: `1px solid ${c.border}`,
+              borderRadius: 999,
+              background: c.surface,
+              color: c.text,
+              font: `500 ${11 * k}px/${15 * k}px 'Geist', 'Segoe UI', system-ui, sans-serif`,
+              whiteSpace: 'nowrap',
+              cursor: 'default',
+            }}
+          >
+            {text}
+            {scope && <span style={{ fontWeight: 400, color: c.muted }}>· {scope}</span>}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 interface PageProps {
   page: DwgPageSpec;
   connection: string;
@@ -137,6 +197,8 @@ interface PageProps {
   chipStyle?: CSSProperties;
   /** Titelblöcke und Bedienleisten der Visuals ausblenden */
   hideVisualHeaders?: boolean;
+  /** feste Filter der Spec als Chips in der Chip-Zeile zeigen (DwgShell zeigt sie im Seitenkopf und setzt false) */
+  showFixedFilters?: boolean;
 }
 
 export function DwgPage({
@@ -149,6 +211,7 @@ export function DwgPage({
   tileStyle,
   chipStyle,
   hideVisualHeaders = false,
+  showFixedFilters = true,
 }: PageProps) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -197,6 +260,7 @@ export function DwgPage({
   return (
     <div className="flex flex-col gap-300">
       <div className="flex min-h-[32px] flex-wrap items-center gap-200" aria-live="polite" style={chipStyle}>
+        {showFixedFilters && <FixedFilterChips page={page} isDark={isDark} />}
         {label && (
           <button
             type="button"

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { generateAppPages, connectorsOf, slug, checkSpec } from "../lib/app.mjs";
 import { layoutOf } from "../lib/app.mjs";
@@ -232,9 +232,10 @@ const checkTmp = fs.mkdtempSync(path.join(os.tmpdir(), "dwg-check-"));
 await test("dwg check: showcase.json gegen das Showcase-Modell ist grün", () => {
     const r = dwg("check", "--spec", SHOWCASE, "--model", SHOWCASE_MODEL);
     assert.equal(r.status, 0, r.stdout + r.stderr);
-    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, 0 Probleme$/m);
+    // Kachelfilter 'Kalender'[Ist] = true ist ein Flag, kein fester Zeitraum; das Jahr ist ein Slicer mit Vorgabe
+    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, 0 Probleme, 0 Hinweise$/m);
     const j = JSON.parse(dwg("check", "--spec", SHOWCASE, "--json").stdout);
-    assert.deepEqual(j, { pages: 30, tiles: 60, problems: [] });
+    assert.deepEqual(j, { pages: 30, tiles: 60, problems: [], warnings: [] });
 });
 
 await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel", () => {
@@ -251,7 +252,7 @@ await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel",
     assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t1.id}: visual „chartKitchen“ gibt es nicht`), r.stdout);
     assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t2.id}: `) && /gibtsnicht/.test(r.stdout), r.stdout);
     assert.ok(r.stdout.includes(`Seite „${spec.pages[1].name}“, Kachel ${spec.pages[1].tiles[0].id}, Rolle ${firstRole}`), r.stdout);
-    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, [3-9] Probleme$/m);
+    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, [3-9] Probleme, 0 Hinweise$/m);
     const j = JSON.parse(dwg("check", "--spec", file, "--model", SHOWCASE_MODEL, "--json").stdout);
     assert.equal(j.pages, 30);
     assert.ok(j.problems.length >= 3);
@@ -262,6 +263,139 @@ await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel",
     assert.match(r.stdout, /pages fehlt oder ist keine Liste/);
     assert.doesNotMatch(r.stdout + r.stderr, /TypeError|Cannot read/);
     assert.equal(dwg("check").status, 1);
+});
+
+await test("dwg check: feste Jahres- und Monatsfilter als Hinweis, Flags und Szenarien nicht", () => {
+    const spec = structuredClone(SPEC);
+    spec.pages[0].filters = [
+        { column: "'Calender'[Year]", values: [2026] },
+        { column: "'Calender'[Month]", values: [1, 2, 3] },
+        { column: "'Sales Demo'[Scenario]", values: ["Actual"] },
+        { column: "'Calender'[Is Current]", values: [true] },
+    ];
+    spec.pages[0].tiles[0].filters = [{ column: "'Calender'[Geschäftsjahr]", values: [2025] }];
+    const file = path.join(checkTmp, "zeit.json");
+    fs.writeFileSync(file, JSON.stringify(spec));
+    let r = dwg("check", "--spec", file, "--json");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    let j = JSON.parse(r.stdout);
+    assert.equal(j.problems.length, 0, j.problems.join("\n"));
+    assert.equal(j.warnings.length, 3, j.warnings.join("\n"));
+    assert.match(j.warnings[0], /'Calender'\[Year\] = 2026: fester Jahreswert[^]*"default": \[2026\] \}\]/);
+    assert.match(j.warnings[1], /fester Monatswert[^]*"default": \[1, 2, 3\], "multi": true/);
+    assert.ok(j.warnings[2].includes(`Kachel ${SPEC.pages[0].tiles[0].id}, Filter 'Calender'[Geschäftsjahr] = 2025: fester Jahreswert`), j.warnings[2]);
+    assert.ok(!j.warnings.some(w => /Scenario|Is Current/.test(w)), j.warnings.join("\n"));
+    assert.equal(dwg("check", "--spec", file, "--strict").status, 1, "--strict: Hinweise ergeben Exit 1");
+    // Spalte schon als Slicer: Schnittmenge, Hinweis auf default
+    spec.slicers = [{ column: "'Calender'[Year]", label: "Jahr", default: [2026] }];
+    fs.writeFileSync(file, JSON.stringify(spec));
+    j = JSON.parse(dwg("check", "--spec", file, "--json").stdout);
+    assert.match(j.warnings[0], /auch Slicer[^]*Schnittmenge/);
+    r = dwg("check", "--spec", file);
+    assert.match(r.stdout, /^  Hinweis: Seite „dwg Spike“, Filter 'Calender'\[Year\]/m);
+    // mit Slicern gilt der Rahmen, die Spike-Kacheln liegen dann im Filter-Panel (Probleme); hier zählen die Hinweise
+    assert.match(r.stdout, /^1 Seiten, 4 Kacheln, \d+ Probleme, 3 Hinweise$/m);
+});
+
+const GOOGLE_INDEX = `<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <title>App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+`;
+
+await test("app page liefert die Schriften lokal mit und entfernt die Google-Links aus index.html", async () => {
+    const app = fakeApp();
+    const index = path.join(app, "packages/frontend/index.html");
+    fs.writeFileSync(index, GOOGLE_INDEX);
+    let r = dwg("check", "--app", app);
+    assert.equal(r.status, 0, "Hinweise ohne --strict: Exit 0");
+    assert.match(r.stdout, /index\.html:6: Schrift von einem fremden Server/);
+    assert.match(r.stdout, /^0 Probleme, 3 Hinweise$/m);
+    const gen = await generateAppPages({ appDir: app, spec: SPEC, connector: "guv" });
+    assert.ok(gen.written.includes("index.html (3 Links zu Schrift-Diensten entfernt, Schriften lokal eingebunden)"), gen.written.join("\n"));
+    const html = fs.readFileSync(index, "utf8");
+    assert.doesNotMatch(html, /googleapis|gstatic/);
+    assert.equal((html.match(/dwg-fonts\.css/g) ?? []).length, 1);
+    assert.match(html, /<link rel="stylesheet" href="\/src\/vendor\/dwg-fonts\/dwg-fonts\.css" \/>\n  <\/head>/);
+    const fonts = path.join(app, "packages/frontend/src/vendor/dwg-fonts");
+    for (const f of ["dwg-fonts.css", "OFL-Geist.txt", "OFL-JetBrainsMono.txt", "geist-normal-100-900-latin.woff2", "jetbrains-mono-normal-100-800-latin.woff2"]) {
+        assert.ok(fs.existsSync(path.join(fonts, f)), f);
+    }
+    const css = fs.readFileSync(path.join(fonts, "dwg-fonts.css"), "utf8");
+    assert.equal((css.match(/@font-face/g) ?? []).length, 4);
+    for (const m of css.matchAll(/url\(([^)]+)\)/g)) { assert.ok(fs.existsSync(path.join(fonts, m[1])), m[1]); }
+    // zweiter Lauf ändert index.html nicht mehr
+    const again = await generateAppPages({ appDir: app, spec: SPEC, connector: "guv" });
+    assert.ok(!again.written.some(w => w.startsWith("index.html")));
+    assert.equal(fs.readFileSync(index, "utf8"), html);
+    r = dwg("check", "--app", app, "--strict");
+    assert.equal(r.status, 0, r.stdout);
+    assert.match(r.stdout, /^0 Probleme, 0 Hinweise$/m);
+    // fremde Schrift an anderer Stelle (CSS der App) meldet check, app page lässt sie stehen
+    fs.writeFileSync(path.join(app, "packages/frontend/src/extra.css"), "@import url('https://fonts.googleapis.com/css2?family=Inter');\n");
+    r = dwg("check", "--app", app, "--strict");
+    assert.equal(r.status, 1);
+    assert.match(r.stdout, /src\/extra\.css:1: Schrift von einem fremden Server/);
+});
+
+await test("app page --model schreibt fabscan.json (Konnektor → Modell) und behält eigene Einträge", async () => {
+    const app = fakeApp();
+    const cfg = path.join(app, "fabscan.json");
+    await generateAppPages({ appDir: app, spec: SPEC, connector: "guv" });
+    assert.ok(!fs.existsSync(cfg), "ohne --model keine fabscan.json");
+    fs.writeFileSync(cfg, JSON.stringify({ connectors: { "andere:x": "Y" }, models: ["../Y.SemanticModel"], ausnahmen: [{ id: "SEC-CDN" }] }));
+    const r = await generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL });
+    assert.equal(r.fabscan, cfg);
+    const j = JSON.parse(fs.readFileSync(cfg, "utf8"));
+    const rel = path.relative(fs.realpathSync.native(app), path.dirname(MODEL)).split(path.sep).join("/");
+    assert.deepEqual(j.connectors, { "andere:x": "Y", [`${path.basename(app)}:guv`]: "ChartKitchen byDatenWG Demo" });
+    assert.deepEqual(j.models, ["../Y.SemanticModel", rel]);
+    assert.deepEqual(j.ausnahmen, [{ id: "SEC-CDN" }]);
+    assert.ok(fs.existsSync(path.resolve(app, rel, path.basename(MODEL))), "Ordner des Modells relativ zur App");
+    assert.ok(r.written.some(w => w.includes("fabscan.json (Konnektor guv → Modell „ChartKitchen byDatenWG Demo“")), r.written.join("\n"));
+    // zweiter Lauf: kein doppelter Modellpfad
+    await generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL });
+    assert.deepEqual(JSON.parse(fs.readFileSync(cfg, "utf8")).models, ["../Y.SemanticModel", rel]);
+    fs.writeFileSync(cfg, "{ kaputt");
+    await assert.rejects(generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL }), /fabscan\.json: .*reparieren oder löschen/);
+});
+
+await test("feste Filter als Chips (fixedFilterChips, fixedChipText)", async () => {
+    const app = fakeApp();
+    await generateAppPages({ appDir: app, spec: SPEC, connector: "guv" });
+    const out = path.join(app, "chips.mjs");
+    const { default: esbuild } = await import("esbuild");
+    await esbuild.build({ entryPoints: [path.join(app, "packages/frontend/src/dwg/dwg-page.ts")], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "error" });
+    const { fixedFilterChips, fixedChipText } = await import(pathToFileURL(out).href);
+    const tile = (id, filters, title) => ({ id, visual: "chartkitchen", rect: [0, 0, 10, 10], bindings: {}, ...(title ? { title } : {}), ...(filters ? { filters } : {}) });
+    const page = {
+        name: "P", width: 1920, height: 1080,
+        filters: [{ column: "'Calender'[Year]", values: [2026] }, { column: "Calender[Month]", values: [3, 1, 2, 4, 5, 6, 7, 8] }],
+        tiles: [
+            tile("a", [{ column: "'Sales'[Scenario]", values: ["Actual"] }, { column: "'Sales'[Region]", values: ["Nord", "Süd", "Ost", "West"] }], "Umsatz"),
+            tile("b", [{ column: "'Sales'[Scenario]", values: ["Actual"] }]),
+        ],
+    };
+    const chips = fixedFilterChips(page);
+    assert.deepEqual(chips.map(c => [c.label, c.values, c.tiles]), [
+        ["Year", "2026", null],
+        ["Month", "1 bis 8", null],
+        ["Scenario", "Actual", null],                 // beide Kacheln: gilt für die ganze Seite
+        ["Region", "Nord, Süd, Ost +1", ["Umsatz"]],
+    ]);
+    assert.deepEqual(fixedChipText(chips[3]), { text: "Region: Nord, Süd, Ost +1", scope: "nur Umsatz", title: "Fester Filter aus der App-Spec ('Sales'[Region]), gilt für Umsatz" });
+    assert.equal(fixedChipText(chips[0]).scope, null);
+    assert.deepEqual(fixedFilterChips({ ...page, filters: [], tiles: [tile("a")] }), []);
 });
 
 console.log(`app unit: ${n} Tests grün`);

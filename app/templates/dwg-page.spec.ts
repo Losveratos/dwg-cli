@@ -5,6 +5,8 @@ import { daxQuery } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
   combineFilters,
   findPage,
+  fixedChipText,
+  fixedFilterChips,
   formatSlicerValue,
   isEmptyValue,
   MIN_STAGE_WIDTH,
@@ -269,5 +271,17 @@ describe('dwg-page · Navigation', () => {
     expect(findPage(app, '#ohne-gruppe').name).toBe('Ohne Gruppe');
     expect(findPage(app, '#gibtsnicht').name).toBe('Karten');
     expect(findPage(app, '').name).toBe('Karten');
+  });
+
+  it('zeigt feste Filter als Chips, Kachelfilter mit Kacheln', () => {
+    const p2: DwgPageSpec = {
+      ...page,
+      filters: [...(page.filters ?? []), { column: "'Calender'[Month]", values: [1, 2, 3, 4] }],
+      tiles: [{ ...page.tiles[0], title: 'Umsatz', filters: [{ column: "'Sales Demo'[Scenario]", values: ['Actual'] }] }, page.tiles[1]],
+    };
+    const chips = fixedFilterChips(p2);
+    expect(chips.map((c) => fixedChipText(c).text)).toEqual(['Year: 2026', 'Month: 1 bis 4', 'Scenario: Actual']);
+    expect(fixedChipText(chips[2]).scope).toBe('nur Umsatz');
+    expect(fixedChipText(chips[0]).scope).toBeNull();
   });
 });

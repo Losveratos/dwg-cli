@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+Three findings from fabscan 0.6.0 on the four dwg apps (Fabric-Apps-Demo, 19 Nov 2026):
+
+- **Fonts ship with the app (fabscan SEC-CDN, 4 of 4 apps).** The Rayfin app template loads Geist and JetBrains Mono
+  from fonts.googleapis.com. `dwg app page` now copies both fonts (woff2, latin + latin-ext, with `OFL-*.txt`) to
+  `src/vendor/dwg-fonts/`, removes the links to font services (stylesheet and `preconnect`) from
+  `packages/frontend/index.html` and links `/src/vendor/dwg-fonts/dwg-fonts.css` there instead; Vite bundles CSS and
+  woff2 into `dist/assets/` (checked with a Vite build). Idempotent, a second run leaves `index.html` alone.
+  **`dwg check --app <Rayfin-App>`** (also without `--spec`) reports remaining references to font services in
+  `index.html` and under `src/` (Google Fonts, Typekit, Bunny Fonts, Fontsource CDNs and others).
+- **Fixed filters are visible (fabscan QRY-HARDCODED, 3 of 4 apps).** `pages[].filters` and `tiles[].filters` used to
+  end up silently in every query. The app now shows them as non-clickable chips: in the page header of `DwgShell`
+  (right of the title), in the chip row of a plain `DwgPage` (`showFixedFilters`, default on). Ranges of whole numbers
+  read „Month: 1 bis 8“; a tile filter names its tile („nur Umsatz“) unless all tiles share it. `dwg check` adds
+  **hints** for fixed year, quarter, month, week or date values (by column name, with `--model` also `dateTime`
+  columns) with the matching slicer and `default`, and says when the column is a slicer too (both apply, the slicer
+  cannot leave the fixed value). Flags like `'Kalender'[Ist] = true` and scenario filters do not count. Hints do not
+  change the exit code unless `--strict`; `--json` gains `warnings`. Before this there were slicers with `default`
+  (filter panel, PBIP slicer) but nothing that pointed to them.
+- **The model is findable for checks (fabscan LIN-NO-MODEL, 2 of 4 apps).** `dwg app page --model` writes
+  `fabscan.json` into the app folder: `{ "connectors": { "<app folder>:<connector>": "<model name>" }, "models":
+  ["<folder that holds the model, relative to the app>"] }` (fabscan looks for `*.SemanticModel` folders inside
+  `models` entries, so the entry is the model's parent folder). The model name is the `displayName` from `.platform`,
+  as fabscan reads it. Existing entries stay; a broken file is an error with the file name.
+
 Fixes from the first public review (fresh clone, full test run, code review):
 
 - **Visual state survives app updates.** The adapter keeps the `persistProperties` packets a visual writes and replays

@@ -127,6 +127,16 @@ Unter `packages/frontend/src/`, bei jedem Lauf ersetzt (nicht von Hand ändern):
 - `dwg/pages/<seite>.ts` (Seiten-Spec) und `dwg/pages/<seite>.dax` (alle Abfragen zum Prüfen in der DAX-Abfrageansicht)
 - `dwg/DwgShell.tsx` und `dwg/apps/<spec>.ts` (ganze Spec: Slicer, Seiten in Navigationsreihenfolge), bei Slicern
   `dwg/apps/<spec>.dax` mit den Wertelisten-Abfragen
+- `vendor/dwg-fonts/`: Geist und JetBrains Mono als woff2 mit `OFL-*.txt` und `dwg-fonts.css`. Die Rayfin-Vorlage lädt
+  beide Schriften von Google Fonts; `app page` entfernt diese Links (auch `preconnect`) aus `packages/frontend/index.html`
+  und bindet dort `/src/vendor/dwg-fonts/dwg-fonts.css` ein. Vite bündelt CSS und woff2 nach `dist/assets/`, die App
+  lädt keine Schriften von fremden Servern. Andere Stellen (z. B. ein `@import` in `global.css`) meldet `dwg check --app`.
+
+Mit `--model` schreibt `app page` außerdem `fabscan.json` in den App-Ordner (neben `rayfin/`):
+`{ "connectors": { "<App-Ordner>:<Konnektor>": "<Modellname>" }, "models": ["<Ordner mit dem Modell, relativ zur App>"] }`
+(fabscan sucht unter `models` nach `*.SemanticModel`-Ordnern, daher der Elternordner).
+Damit findet der Governance-Scanner fabscan (`fabscan <App-Ordner>`) das Modell und prüft die Abfragen dagegen, auch
+wenn das Modell in einem anderen Repo liegt. Vorhandene Einträge der Datei bleiben stehen.
 
 Eingebunden wird die Seite in der App selbst (`App.tsx` gehört der App):
 
@@ -216,9 +226,10 @@ node dwg.mjs mockup import --in mockup-spec.json --out specs/vertrieb.json \
   zweite Farbtabelle.
 - Gleiche Befunde auf vielen Seiten stehen einmal mit Seitenliste.
 
-**`dwg check --spec <datei> [--model <X.SemanticModel>] [--json]`** prüft eine App-Spec, ohne dass eine Rayfin-App oder
-ein Bericht dafür nötig ist. Je Problem eine Zeile mit Seite und Kachel, am Ende „n Seiten, m Kacheln, k Probleme“,
-Exit 1 bei Problemen; `--json` liefert `{ pages, tiles, problems }`. Geprüft wird:
+**`dwg check --spec <datei> [--model <X.SemanticModel>] [--app <Rayfin-App>] [--json] [--strict]`** prüft eine App-Spec,
+ohne dass eine Rayfin-App oder ein Bericht dafür nötig ist. Je Problem eine Zeile mit Seite und Kachel, danach die
+Hinweise, am Ende „n Seiten, m Kacheln, k Probleme, h Hinweise“. Exit 1 bei Problemen, mit `--strict` auch bei Hinweisen;
+`--json` liefert `{ pages, tiles, problems, warnings }`. Geprüft wird:
 - *Aufbau* (`checkSpec`): `pages` und `tiles` sind Listen, jede Seite hat einen `name`, jede Kachel eine `id` (je Seite
   eindeutig), ein `visual` aus `chartkitchen` oder `pnl` (genau so klein geschrieben) und `bindings` als Objekt;
   `filters` auf Seite und Kachel sind Listen von `{ "column": "'T'[Spalte]", "values": [mindestens ein Wert] }`; dazu
@@ -226,6 +237,13 @@ Exit 1 bei Problemen; `--json` liefert `{ pages, tiles, problems }`. Geprüft wi
 - *Rollen und Bindungen* je Kachel mit `daxQuery` aus dem Adapter, derselbe Aufruf wie in `dwg app page`, nur ohne zu
   schreiben: unbekannte Rollen, falsche Anzahl Felder, ungültige Spaltenreferenzen.
 - *Felder* (nur mit `--model`): Bindungen, Filter und Slicer müssen im Modell vorkommen.
+- *Hinweis feste Zeitfilter*: `pages[].filters` oder `tiles[].filters` auf Jahr, Quartal, Monat, Woche oder Datum
+  (nach dem Spaltennamen, mit `--model` auch `dateTime`-Spalten) stehen still in jeder Abfrage und lassen sich in der App
+  nicht ändern; dort erscheinen sie nur als Chip im Seitenkopf. Der Hinweis nennt den passenden Slicer mit Vorgabe
+  (`slicers[].default`). Ist die Spalte schon Slicer, gelten beide zusammen und der Slicer kommt nicht über den festen
+  Wert hinaus. Flags wie `'Kalender'[Ist] = true` und Szenario-Filter gelten nicht als feste Zeitfilter.
+- *Hinweis fremde Schriften* (mit `--app`, geht auch ohne `--spec`): Verweise auf Schrift-Dienste (Google Fonts, Typekit
+  u. a.) in `index.html` und unter `src/` der App.
 
 `dwg app page` ruft denselben Aufbau-Test und zeigt bei ungültigen Specs diese Meldungen.
 

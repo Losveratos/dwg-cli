@@ -36,11 +36,11 @@ Navigation `specs/showcase.json` (Abschnitt „App-Rahmen“ unten).
 | Feld | Bedeutung |
 | --- | --- |
 | `pages[].width/height` | Seitengröße in Pixeln wie in Power BI; die App skaliert auf die Breite, unter 900 px stapelt sie |
-| `pages[].filters` | feste Seitenfilter (`TREATAS` in der App, Seitenfilter in Power BI) |
+| `pages[].filters` | feste Seitenfilter (`TREATAS` in der App, Seitenfilter in Power BI). Die App zeigt feste Filter als nicht klickbare Chips im Seitenkopf. Für wählbare Zeiträume besser ein Slicer mit `default`; `dwg check` weist auf feste Jahres-, Monats- und Datumswerte hin |
 | `tiles[].visual` | `chartkitchen` oder `pnl` |
 | `tiles[].rect` | `[x, y, Breite, Höhe]` in Seitenpixeln |
 | `tiles[].bindings` | Rolle → Feld. Spalten immer mit Tabelle: `'Tabelle'[Spalte]`. Kennzahlen: Modell-Measure `'Tabelle'[Measure]` (Pflicht für Power BI) oder ein DAX-Ausdruck (nur App) |
-| `tiles[].filters` | feste Filter nur dieser Kachel, zusätzlich zu den Seitenfiltern (App: TREATAS in dieser Abfrage; Power BI: Visual-Filter), z. B. nur die echten GuV-Blöcke einer Kontendimension |
+| `tiles[].filters` | feste Filter nur dieser Kachel, zusätzlich zu den Seitenfiltern (App: TREATAS in dieser Abfrage, Chip im Seitenkopf mit „nur <Kachel>“; Power BI: Visual-Filter), z. B. nur die echten GuV-Blöcke einer Kontendimension |
 | `tiles[].sortBy` | Sortierspalte je gruppierender Spalte (App: ORDER BY; Power BI: muss im Modell als „Nach Spalte sortieren“ stehen) |
 | `tiles[].showItemsWithNoData` | Elemente ohne Daten behalten (App: ADDMISSINGITEMS, mit Filtern in CALCULATETABLE, aufgefüllt wird nur innerhalb der Filter; Power BI: `showAll`), z. B. GuV-Formelzeilen |
 | `tiles[].displayNames` | Anzeigename je Ergebnisspalte; Measure-Spalten heißen im Ergebnis wie die Rolle, z. B. `[actual]` |

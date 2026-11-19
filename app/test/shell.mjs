@@ -109,6 +109,7 @@ const heading = await page.$eval("[data-dwg-title]", e => e.textContent);
 check("Seitentitel mit Kennung", heading === "C03 Säulen im Zeitverlauf", heading);
 const desc = await page.$eval("[data-dwg-description]", e => e.textContent).catch(() => "");
 check("Erklärtext sichtbar", desc.startsWith("Wie entwickelt sich der Umsatz"));
+check("Seite ohne feste Filter zeigt keine Filter-Chips", (await page.$$("[data-dwg-fixed-filter]")).length === 0);
 const years = await page.$$eval('[data-dwg-slicer="Jahr"] button[data-value]', els => els.map(e => e.textContent.trim()));
 const countries = await page.$$eval('[data-dwg-slicer="Land"] button[data-value]', els => els.map(e => e.textContent.trim()));
 check("Slicer-Werte kommen aus dem Modell", years.join(",") === "2025,2026" && countries.length === 6, `Jahr ${years.join(", ")} · Land ${countries.length} Werte`);
@@ -214,6 +215,10 @@ const ids2 = await tileIds();
 check("Seitenwechsel fragt nur die Kacheln der neuen Seite ab", ids2.join() === "laender" && q.length === 1, `${q.length} Abfragen, Kacheln ${ids2.join(", ")}`);
 check("Slicer gelten auch auf der neuen Seite", q.every(x => x.includes(`TREATAS({"Germany"}, 'Sales Demo'[Country])`)));
 check("Link und Titel der neuen Seite", (await page.evaluate(() => location.hash)) === "#c07" && (await page.$eval("[data-dwg-title]", e => e.textContent)) === "C07 Abweichung nach Land");
+// fester Seitenfilter (Spec) als Chip im Seitenkopf, nicht über den Kacheln; Seite 1 ohne feste Filter hat keinen
+const chips = await page.$$eval("[data-dwg-fixed-filter]", els => els.map(e => ({ text: e.textContent.trim(), head: !!e.parentElement.parentElement.querySelector("[data-dwg-title]"),tile: !!e.closest("section") })));
+check("fester Filter als Chip im Seitenkopf", chips.length === 1 && chips[0].text === "Year: 2025, 2026" && chips[0].head && !chips[0].tile, JSON.stringify(chips));
+check("fester Filter und Slicer gelten zusammen (Schnittmenge)", q.every(x => x.includes("TREATAS({2026}, 'Calender'[Year])")));
 await page.screenshot({ path: path.join(OUT, "3-seite.png"), fullPage: true });
 await page.goto(`http://localhost:${server.address().port}/index.html#c05`);
 await page.waitForSelector(slicerButton("Jahr", "2026"), { timeout: 30000 });

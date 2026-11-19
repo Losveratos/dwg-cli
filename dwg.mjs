@@ -8,7 +8,7 @@
 //   node dwg.mjs pbip new|register|pages …                         Power-BI-Projekt (siehe dwg pbip)
 //   node dwg.mjs validate [<X.Report> …]                           PBIR gegen die offiziellen Schemas prüfen
 //   node dwg.mjs lint --spec <app-spec.json> [--json] [--strict]     Raster und Barrierefreiheit prüfen
-//   node dwg.mjs check --spec <app-spec.json> [--model <X.SemanticModel>] [--json]   Spec ohne App und Bericht prüfen
+//   node dwg.mjs check --spec <app-spec.json> [--model <X.SemanticModel>] [--app <Rayfin-App>] [--json] [--strict]   Spec ohne App und Bericht prüfen
 //   node dwg.mjs mockup build [--kitchen <pfad>] [--check]          Pixelraster, Prüfungen, Skill-Konverter holen
 //   node dwg.mjs mockup import --in <mockup-spec.json> --out <app-spec.json> [--model <Y.SemanticModel>]
 //   node dwg.mjs templates [<ID>] [--visual chartkitchen|pnl] [--lang en] [--json]  Template-Katalog
@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { main as pbip, args } from "./pbip/dwg-pbip.mjs";
 import { generateAppPages } from "./app/lib/app.mjs";
-import { checkSpecFile, formatCheck } from "./app/lib/check.mjs";
+import { checkSpecFile, fontWarnings, formatCheck } from "./app/lib/check.mjs";
 import { lintSpec, formatFindings } from "./mockup/lib/lint.mjs";
 import { importMockup } from "./mockup/lib/import.mjs";
 import { findTemplate, formatList, formatTemplate, loadCatalog } from "./templates/lib/catalog.mjs";
@@ -36,15 +36,18 @@ const HELP = `dwg · eine App-Spec für Fabric App und Power BI
                                          Neues Visual-Release einspielen: Kitchen-Stand nach .kitchen/, Adapter bauen,
                                          .pbiviz übernehmen, Beispielberichte und Doku heben, CHANGELOG, npm test
   app page --app <Rayfin-App> --spec <datei> --connector <name> [--model <Y.SemanticModel>]
-                                         Seiten in eine Rayfin-App schreiben
+                                         Seiten in eine Rayfin-App schreiben; Schriften lokal statt Google Fonts,
+                                         mit --model auch fabscan.json (Konnektor → Modell für fabscan)
   pbip new|register|pages …              Power-BI-Projekt erzeugen (dwg pbip ohne Argumente: Hilfe)
   validate [<X.Report> …]                PBIR gegen die offiziellen Schemas prüfen
   lint --spec <datei> [--json] [--strict]
                                          Pixelraster (bündig, Zwischenräume) und Barrierefreiheit (Kontrast,
                                          Mindestgrößen, Titel) prüfen; Exit 1 bei Fehlern (--strict: auch Warnungen)
-  check --spec <datei> [--model <X.SemanticModel>] [--json]
+  check --spec <datei> [--model <X.SemanticModel>] [--app <Rayfin-App>] [--json] [--strict]
                                          Spec ohne App und Bericht prüfen: Aufbau, Rollen und Bindungen je Kachel,
-                                         mit --model auch die Felder; Exit 1 bei Problemen
+                                         mit --model auch die Felder; Exit 1 bei Problemen (--strict: auch Hinweise).
+                                         Hinweise: feste Jahres-, Monats- oder Datumsfilter (besser Slicer mit
+                                         Vorgabe); mit --app fremde Schriften in der App (auch ohne --spec)
   mockup build [--kitchen <pfad>] [--check]
                                          Pixelraster, Prüfungen und Skill-Konverter aus dem Kitchen-Repo holen
   mockup import --in <mockup-spec.json> --out <app-spec.json> [--model <Y.SemanticModel>] [--width 1920 --height 1080]
@@ -100,10 +103,15 @@ try {
         process.exit(res.counts.error || (a.strict && res.counts.warn) ? 1 : 0);
     } else if (cmd === "check") {
         const a = args([sub, ...rest].filter(Boolean));
-        if (!a.spec || a.spec === true) { throw new Error("--spec fehlt."); }
-        const res = await checkSpecFile(readSpec(a.spec), { modelDir: a.model === true ? undefined : a.model });
+        const specFile = a.spec && a.spec !== true ? a.spec : null;
+        const appDir = a.app && a.app !== true ? a.app : null;
+        if (!specFile && !appDir) { throw new Error("--spec oder --app fehlt."); }
+        const res = specFile
+            ? await checkSpecFile(readSpec(specFile), { modelDir: a.model === true ? undefined : a.model })
+            : { pages: null, tiles: null, problems: [], warnings: [] };
+        if (appDir) { res.warnings.push(...fontWarnings(appDir)); }
         console.log(a.json ? JSON.stringify(res, null, 2) : formatCheck(res));
-        process.exit(res.problems.length ? 1 : 0);
+        process.exit(res.problems.length || (a.strict && res.warnings.length) ? 1 : 0);
     } else if (cmd === "mockup" && sub === "build") {
         node("mockup/build.mjs", rest);
     } else if (cmd === "mockup" && sub === "import") {

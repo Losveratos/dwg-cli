@@ -48,12 +48,15 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
    Kandidaten; dann mit `--<rolle>` angeben, nicht raten. Strukturtabellen (P&L T01/T02): Ebenen angeben (Region, Kunde).
 4. **Prüfen:** `node dwg.mjs lint --spec <spec>` (Raster, Barrierefreiheit) und
    `node dwg.mjs check --spec <spec> --model <X>.SemanticModel` (Aufbau, Filter, Rollen, Felder; ohne App und Bericht, Exit 1 bei Problemen).
+   Hinweise auf feste Jahres- oder Monatsfilter nicht still übergehen: dem Nutzer den Slicer mit Vorgabe vorschlagen.
 
 ## Ablauf B · Fabric App
 
 1. **Erzeugen:** `node dwg.mjs app page --app <Rayfin-App> --spec <spec> --connector <name> [--model <X>.SemanticModel]`.
    Der Konnektor (Typ `fabric-semanticmodel`) muss in `rayfin/rayfin.yml` stehen, der Hook
-   `use-semantic-model-query` (Pack `analytics`) in der App.
+   `use-semantic-model-query` (Pack `analytics`) in der App. Immer mit `--model`, wenn das Modell als PBIP vorliegt:
+   dann schreibt dwg `fabscan.json` für den Governance-Scanner. Schriften liefert dwg lokal mit (Google-Links in
+   `index.html` fliegen raus); `node dwg.mjs check --app <Rayfin-App>` meldet übrige fremde Schriften.
 2. **Einbinden** in `src/App.tsx` (gehört der App): `<DwgPage page={page} connection="<name>" isDark={isDark} />`,
    viele Seiten mit Navigation und Filter-Panel: `<DwgShell app={app} connection="<name>" isDark={isDark} />`.
 3. **Prüfen** in der App: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.

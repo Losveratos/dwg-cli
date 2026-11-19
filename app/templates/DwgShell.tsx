@@ -1,6 +1,6 @@
 // dwg: App-Rahmen für eine ganze Spec. Kopfleiste oben (bleibt beim Scrollen stehen) mit Navigation (Gruppen,
 // Seiten mit Template-Kennung) und Schaltern, darunter die Seite mit ihren Zonen nach dem Pixelraster
-// (MockupKitchen): Kopf mit Seitentitel und Erklärtext, Filter-Panel links (Slicer, Werte per DAX), Kacheln,
+// (MockupKitchen): Kopf mit Seitentitel, festen Filtern der Spec (Chips, nicht klickbar) und Erklärtext, Filter-Panel links (Slicer, Werte per DAX), Kacheln,
 // Fußleiste. Die Slicer-Auswahl wirkt per TREATAS auf alle Kacheln aller Seiten, zusammen mit dem Querfilter
 // per Klick. Filterwechsel fragt die Kacheln der Seite neu ab, Seitenwechsel nur die neue Seite.
 //
@@ -41,7 +41,7 @@ import {
   type DwgSlicerSpec,
   type DwgSlicerState,
 } from './dwg-page';
-import { DwgPage } from './DwgPage';
+import { DwgPage, FixedFilterChips } from './DwgPage';
 
 const FONT = "'Geist', 'Segoe UI', system-ui, sans-serif";
 
@@ -325,16 +325,23 @@ function FilterPanel({ app, state, setState, connection, c, k, style }: PanelPro
   );
 }
 
-/** Kopf der Seite: Kennung + Name, Gruppe, Erklärtext */
-function PageHeader({ page, c, k, style }: { page: DwgPageSpec; c: Palette; k: number; style?: CSSProperties }) {
+/** Kopf der Seite: Kennung + Name, Gruppe, feste Filter (rechts), Erklärtext */
+function PageHeader({ page, c, k, isDark, style }: { page: DwgPageSpec; c: Palette; k: number; isDark: boolean; style?: CSSProperties }) {
   return (
     <div style={{ boxSizing: 'border-box', overflow: 'hidden', ...style }}>
-      <p style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: 12 * k, flexWrap: 'wrap' }}>
+      <div style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: 12 * k, flexWrap: 'wrap' }}>
         <span data-dwg-title="" style={{ font: `700 ${15 * k}px/${20 * k}px ${FONT}`, letterSpacing: '-0.01em', color: c.text }}>
           {pageLabel(page)}
         </span>
         {page.group && <span style={{ font: `600 ${11 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.04em', color: c.accent }}>{page.group}</span>}
-      </p>
+        <FixedFilterChips
+          page={page}
+          isDark={isDark}
+          k={k * 0.9}
+          colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }}
+          style={{ marginLeft: 'auto', alignSelf: 'center' }}
+        />
+      </div>
       {page.description && (
         <p data-dwg-description="" style={{ margin: `${3 * k}px 0 0`, font: `400 ${10.5 * k}px/${15 * k}px ${FONT}`, color: c.muted }}>
           {page.description}
@@ -557,6 +564,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
           >
             <PageHeader
               page={page}
+              isDark={isDark}
               c={c}
               k={scaled ? k : 1.25}
               style={
@@ -602,6 +610,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                 isDark={isDark}
                 filters={filters}
                 hideVisualHeaders={!headers}
+                showFixedFilters={false}
                 fixedWidth={scaled ? base : undefined}
                 region={scaled ? undefined : pageRegion(page, true)}
                 chipStyle={

@@ -201,6 +201,69 @@ export function selectionLabel(sel: DwgSelection | null): string {
   return `${parts[1]}: ${values.slice(0, 3).join(', ')}${more}`;
 }
 
+/** Fester Filter aus der Spec als Chip im Seitenkopf (nicht klickbar): gilt immer, ohne Slicer. */
+export interface DwgFixedChip {
+  /** Spaltenname ohne Tabelle, z. B. „Year“ */
+  label: string;
+  /** Werte als Text, z. B. „2026“, „1 bis 8“, „Actual, Plan“ */
+  values: string;
+  /** `'Tabelle'[Spalte]` */
+  column: string;
+  /** Kacheln, für die der Filter gilt; null = ganze Seite */
+  tiles: string[] | null;
+}
+
+/** „1 bis 8“ für lückenlose ganze Zahlen ab drei Werten, sonst bis zu drei Werte und „+n“. */
+function fixedValuesText(values: DaxValue[]): string {
+  const ints = values.every((v) => typeof v === 'number' && Number.isInteger(v));
+  if (ints && values.length >= 3) {
+    const sorted = [...(values as number[])].sort((a, b) => a - b);
+    if (sorted.every((v, i) => i === 0 || v === sorted[i - 1] + 1)) return `${sorted[0]} bis ${sorted[sorted.length - 1]}`;
+  }
+  const shown = values.slice(0, 3).map((v) => formatSlicerValue(v));
+  return values.length > 3 ? `${shown.join(', ')} +${values.length - 3}` : shown.join(', ');
+}
+
+/**
+ * Feste Filter der Seite und ihrer Kacheln als Chips. Seitenfilter gelten für alle Kacheln; ein Kachelfilter, den
+ * alle Kacheln gleich haben, zählt ebenso für die ganze Seite. Sonst nennt der Chip die Kacheln (Titel bzw. id).
+ */
+export function fixedFilterChips(page: DwgPageSpec): DwgFixedChip[] {
+  const chips = new Map<string, DwgFixedChip & { ids: Set<string> }>();
+  const add = (f: DaxFilter, tile: DwgTileSpec | null) => {
+    const column = normColumn(f.column);
+    const type = f.type ?? columnType(page.columnTypes, f.column);
+    const key = `${column}|${f.values.map((v) => valueKey(filterValue(v, type), type)).join('|')}`;
+    const parts = splitColumn(column);
+    const chip = chips.get(key) ?? {
+      label: parts ? parts[1] : column,
+      values: fixedValuesText(f.values.map((v) => filterValue(v, type))),
+      column,
+      tiles: [],
+      ids: new Set<string>(),
+    };
+    if (!tile) chip.tiles = null;
+    else if (chip.tiles && !chip.ids.has(tile.id)) {
+      chip.ids.add(tile.id);
+      chip.tiles.push(tile.title ?? tile.id);
+    }
+    chips.set(key, chip);
+  };
+  for (const f of page.filters ?? []) add(f, null);
+  for (const t of page.tiles) for (const f of t.filters ?? []) add(f, t);
+  return [...chips.values()].map(({ ids, ...chip }) =>
+    chip.tiles && ids.size === page.tiles.length ? { ...chip, tiles: null } : chip
+  );
+}
+
+/** Beschriftung eines Chips: „Year: 2026“, bei Kachelfiltern mit „nur <Kachel>“ bzw. „<n> Kacheln“. */
+export function fixedChipText(chip: DwgFixedChip): { text: string; scope: string | null; title: string } {
+  const text = `${chip.label}: ${chip.values}`;
+  const scope = !chip.tiles ? null : chip.tiles.length === 1 ? `nur ${chip.tiles[0]}` : `${chip.tiles.length} Kacheln`;
+  const where = chip.tiles ? `gilt für ${chip.tiles.join(', ')}` : 'gilt für alle Kacheln der Seite';
+  return { text, scope, title: `Fester Filter aus der App-Spec (${chip.column}), ${where}` };
+}
+
 /**
  * Filter einer Kachel: Seitenfilter, eigene Kachelfilter, Filter von außen (Slicer im Filter-Panel)
  * und die Auswahl aus einer anderen Kachel.
