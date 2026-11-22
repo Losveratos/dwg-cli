@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Template catalog ready for P&L 1.8 and ChartKitchen 1.57.** `visuals/templates.mjs` now knows the P&L gallery's
+  view presets (`VIEW_PRESETS`, P&L 1.8: ROI tree 11A). Such a tile has no mega template: its catalog entry carries
+  `view: "tree"`, the card switches in `columns` (no `template`) and the view in `state.uiState`
+  (`{"view":"tree","treeV":2}`), with its own roles (levels and AC required; PL, period, row type and formula
+  recommended). The P&L hub is bundled with `export *`, so `VIEW_PRESETS` is optional and older P&L versions build as
+  before. Probe: the current sources (ChartKitchen 1.53, P&L 1.7) give a byte-identical `templates.json`; P&L 1.8.3
+  (Kitchen `main`) with ChartKitchen 1.57 (branch `claude/ck-ibcs-backlog-4`) builds 47 templates (24 + 23), 17 of them
+  new. The release itself (`visuals update`) follows once ChartKitchen 1.57 is live.
+
 Three findings from fabscan 0.6.0 on the four dwg apps (Fabric-Apps-Demo, 19 Nov 2026):
 
 - **Fonts ship with the app (fabscan SEC-CDN, 4 of 4 apps).** The Rayfin app template loads Geist and JetBrains Mono

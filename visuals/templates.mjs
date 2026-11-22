@@ -5,7 +5,9 @@
 //                 sind nicht exportiert; sie werden per TypeScript-Parser herausgelöst (reine Literale), der Visual-Code
 //                 bleibt unverändert.
 //   P&L:          src/hub.ts (templateSwitches, HUB_GALLERY) und MEGA_PRESETS aus src/megatable.ts, gebündelt für Node.
-//                 Ab 1.7 schreibt ein Template auch statement.stockMode (T05A Bilanz, T05B Cashflow).
+//                 Ab 1.7 schreibt ein Template auch statement.stockMode (T05A Bilanz, T05B Cashflow). Ab 1.8 kennt die
+//                 Galerie Ansichts-Vorlagen ohne Mega-Template (VIEW_PRESETS, ROI-Baum 11A): sie schreiben nur
+//                 Karten-Schalter (columns.*) und die Ansicht (state.uiState), kein columns.template.
 // Titel und Zweck in DE und EN aus den stringResources der Visuals. Die Rollen-Regeln stehen unten (ckRoles, pnlRoles).
 import esbuild from "esbuild";
 import fs from "node:fs";
@@ -41,7 +43,8 @@ async function constsOf(file, names) {
 async function pnlHub(dir) {
     const r = await esbuild.build({
         stdin: {
-            contents: 'export { templateSwitches, HUB_GALLERY } from "./hub";\nexport { MEGA_PRESETS, MEGA_PRESET_KEYS } from "./megatable";\n',
+            // export * statt einer Namensliste: VIEW_PRESETS gibt es erst ab P&L 1.8
+            contents: 'export * from "./hub";\nexport { MEGA_PRESETS, MEGA_PRESET_KEYS } from "./megatable";\n',
             resolveDir: path.join(dir, "src"), loader: "ts",
         },
         bundle: true, platform: "node", format: "esm", write: false,
@@ -171,6 +174,22 @@ function pnlRoles(id, sw, preset, info) {
     return out;
 }
 
+/**
+ * Rollen einer Ansichts-Vorlage (P&L 1.8, ROI-Baum 11A): ein Werttreiberbaum über Formel- und KPI-Zeilen. Ebenen und AC
+ * sind Pflicht; PL wird empfohlen (die Planjahre), die Periode auch (Jahre als Spalten jeder Karte). Zeilentyp und Formel
+ * tragen den Baum (Operatoren, KPI-Format Faktor/Betrag im Zeilentyp) und werden empfohlen.
+ */
+function pnlViewRoles(info) {
+    const out = [role(info, "levels", "required", { alt: ["account", "parent"] }), role(info, "ac", "required"),
+        role(info, "pl", "recommended"), role(info, "py", "optional"), role(info, "fc", "optional"),
+        role(info, "period", "recommended")];
+    for (const r of ["account", "accountName", "sortOrder", "rowType", "formulaDef", "signConvention", "displayInvert", "varianceInvert"]) {
+        out.push(role(info, r, r === "rowType" || r === "formulaDef" ? "recommended" : "optional"));
+    }
+    out.push(role(info, "parent", "optional"), role(info, "comment", "optional"), role(info, "colCategory", "optional"));
+    return out;
+}
+
 async function pnl(dir) {
     const hub = await pnlHub(dir);
     const loc = locales(dir);
@@ -179,6 +198,18 @@ async function pnl(dir) {
     for (const g of hub.HUB_GALLERY) {
         for (const t of g.tiles) {
             if (t.tpl === "off") { continue; }
+            // 1.8 Ansichts-Vorlage (ROI-Baum 11A): Karten-Schalter und Ansicht, das Mega-Template bleibt, wie es ist
+            const vp = hub.VIEW_PRESETS?.[t.tpl];
+            if (vp) {
+                out.push({
+                    id: t.tpl, visual: "pnl", data: "statement", view: vp.view,
+                    group: { id: g.id, title: text(loc, g.title) },
+                    title: text(loc, t.title), use: text(loc, t.use),
+                    objects: { columns: { ...vp.cols }, state: { uiState: JSON.stringify({ view: vp.view, treeV: 2 }) } },
+                    roles: pnlViewRoles(info),
+                });
+                continue;
+            }
             const sw = hub.templateSwitches(t.tpl);
             const objects = { columns: { template: t.tpl, templateApplied: t.tpl, ...sw.cols }, numbers: { ...sw.nums } };
             if (Object.keys(sw.title).length) { objects.titleBlock = { ...sw.title }; }
