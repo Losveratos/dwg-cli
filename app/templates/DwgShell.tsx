@@ -684,7 +684,11 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       let extra = 0;
       for (const [id, h] of Object.entries(needs.tiles)) {
         const t = fitted.tiles.find((x) => x.id === id);
-        if (t && h > t.rect[3]) extra = Math.max(extra, Math.ceil(((h - t.rect[3]) * content.h) / t.rect[3]) + 2);
+        if (!t || h <= t.rect[3]) continue;
+        // die Hauptkachel wächst um den fehlenden Betrag (absorbHeight); sonst wächst jede Rasterzeile anteilig
+        const exact = h - t.rect[3] + 2;
+        const grown = stagePage(page, base, app.chrome, { height: fit + exact, collapsed }).tiles.find((x) => x.id === id);
+        extra = Math.max(extra, grown && grown.rect[3] >= h ? exact : Math.ceil(((h - t.rect[3]) * content.h) / t.rect[3]) + 2);
       }
       need = Math.min(fit + extra, Math.round(nominal * 1.6));
     }

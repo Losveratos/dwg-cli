@@ -178,8 +178,9 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   und `aria-controls` an beiden Knöpfen, Fokus wandert zum Gegenknopf, × mit `aria-label` („Filter Jahr: 2026
   entfernen“).
 - **Ganze Seite im Fenster:** In `fullhd` und `hd` passt sich die Bühne der Fensterhöhe unter der Kopfleiste an
-  (höchstens die Seitenhöhe, mindestens 60 % davon, `fitHeight`); die Kacheln werden über das Raster neu verteilt,
-  die Hauptkachel bekommt die restliche Höhe. P&L-Kacheln laufen in der App mit `layout.maximize` (Schrift und Zeilen
+  (höchstens die Seitenhöhe, mindestens 60 % davon, `fitHeight`). Den Unterschied nimmt die Hauptkachel (größte
+  Fläche) allein auf, Kacheln darüber bleiben, Kacheln darunter rücken nach (`absorbHeight`); KPI-Karten behalten so
+  ihre Höhe. Nur wenn eine Kachel das Band der Hauptkachel teilweise überdeckt, wird gleichmäßig im Raster gestaucht. P&L-Kacheln laufen in der App mit `layout.maximize` (Schrift und Zeilen
   auf die Kachelhöhe, `fitToTile`; Power BI behält den Wert der Spec). Braucht ein P&L trotzdem mehr Platz (Bildlauf im
   Visual, z. B. der ROI-Baum 11A), meldet die Kachel die nötige Höhe, die Bühne wird um diesen Betrag höher und
   skaliert als Ganzes etwas kleiner, damit sie ins Fenster passt (höchstens dreimal je Seite; bis 4 px Überlauf gelten
@@ -198,7 +199,8 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   Kopf, Mindestfaktor, Kopfzeilen ohne Abfrage, leere Werte, Querfilter, Dark Mode, schmal, ganze Seite bei 1920 × 1080
   und 1366 × 768, Panel einklappen per Tastatur und Taste F, Chips mit ×, Fokus, Zustand nach dem Neuladen).
   `app/test/showcase-e2e.mjs` prüft je Seite zusätzlich, dass die Bühne ins Fenster passt und kein P&L über seine
-  Kachel läuft; `--width/--height`, `--panel closed` und `--dark` für die Varianten.
+  Kachel läuft und keine Beschriftung einer ChartKitchen-Kachel aus der Kachel ragt; `--width/--height`,
+  `--panel closed` und `--dark` für die Varianten.
 
 ![Showcase-Rahmen: Filter-Panel, Navigation, Slicer und Querfilter](../app/docs/shell-filter.png)
 

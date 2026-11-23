@@ -9,14 +9,15 @@
   reopen the panel and „Zurücksetzen“. The state is kept per browser (`localStorage` `dwg-filter-panel`), toggling
   sends no query; ARIA `aria-expanded`/`aria-controls`, focus moves to the counterpart button, × has an `aria-label`.
   In `fullhd`/`hd` the stage fits the window height below the top bar (`fitHeight`: at most the page height, at least
-  60 %), tiles are redistributed on the grid, so the main tile takes the remaining height and the whole page is visible
-  without scrolling (1920 × 1080 and 1366 × 768). P&L tiles run with `layout.maximize` in the app (`fitToTile`, PBIP
+  60 %); the main tile (largest area) absorbs the difference alone (`absorbHeight`), so KPI cards keep their height and
+  the whole page is visible without scrolling (1920 × 1080 and 1366 × 768). Layouts where a tile only partly overlaps
+  the main tile's band fall back to an even squeeze on the grid. P&L tiles run with `layout.maximize` in the app (`fitToTile`, PBIP
   unchanged); if a P&L still needs more room (it scrolls, e.g. the ROI tree 11A), the tile reports its height and the
   stage grows by that amount and scales down a little to stay in the window (at most three steps per page, up to 4 px
   overflow count as rounding of the fill). The top bar stays two rows: groups and pages each scroll horizontally
   instead of wrapping (at 1366 px it took four rows before), the active entries are scrolled into view. New helpers `slicerChips`,
   `templateCount`, `stageChrome`. Tests: shell 65 checks (was 46), Vitest for the new helpers, `showcase-e2e.mjs`
-  checks fit and P&L overflow per page and takes `--panel closed` and `--dark`. The showcase subtitle counts the
+  checks fit, P&L overflow and clipped ChartKitchen labels per page and takes `--panel closed` and `--dark`. The showcase subtitle counts the
   templates from the spec (47) instead of the hard-coded 30.
 - **Showcase review fixes (23.11.2026).** C24 gets small multiples per country (sheet 10G): the catalog lists the
   optional role `multiples` for C24, bubble size and share show in thousand hl via `formats`. C20: the liquidity

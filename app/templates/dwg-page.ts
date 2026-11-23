@@ -357,6 +357,31 @@ export function fitHeight(available: number, scale: number, nominal: number): nu
   return Math.max(Math.round(nominal * MIN_FIT), Math.min(nominal, Math.floor(available / scale)));
 }
 
+type Rect = DwgTileSpec['rect'];
+
+/**
+ * Höhenunterschied (Inhaltsunterkante `bottom` → `nextBottom`) über die Hauptkachel (größte Fläche) ausgleichen: Kacheln
+ * in ihrem Zeilenband wachsen bzw. schrumpfen mit, Kacheln darunter rücken, Kacheln darüber bleiben. null, wenn eine
+ * Kachel das Band nur teilweise überdeckt oder die Hauptkachel unter 40 % ihrer Höhe fiele (dann gleichmäßig im Raster).
+ */
+export function absorbHeight(rects: Rect[], bottom: number, nextBottom: number): Rect[] | null {
+  if (!rects.length) return null;
+  const delta = nextBottom - bottom;
+  if (delta === 0) return rects;
+  const main = rects.reduce((a, b) => (b[2] * b[3] > a[2] * a[3] ? b : a));
+  const [, y0, , h0] = main;
+  const y1 = y0 + h0;
+  if (h0 + delta < 0.4 * h0) return null;
+  const out: Rect[] = [];
+  for (const [x, y, w, h] of rects) {
+    if (y + h <= y0) out.push([x, y, w, h]);
+    else if (y >= y1) out.push([x, y + delta, w, h]);
+    else if (y === y0 && h === h0) out.push([x, y, w, h + delta]);
+    else return null;
+  }
+  return out;
+}
+
 /**
  * Seite in einer anderen Basisbreite (z. B. HD 1280 statt Full HD 1920), auf eine andere Höhe eingepasst oder mit
  * eingeklapptem Filter-Panel: Zonen aus dem Pixelraster dieser Bühne, Kacheln über das Raster übertragen (pixelgenau,
@@ -370,7 +395,24 @@ export function stagePage(page: DwgPageSpec, base: number, chrome?: Chrome, opts
   if (base === page.width && height === page.height && !collapsed) return page;
   if (chrome?.header && chrome.footer && page.zones) {
     const from = gridZones({ w: page.width, h: page.height }, chrome);
-    const to = gridZones({ w: base, h: height }, stageChrome(chrome, collapsed));
+    const target = stageChrome(chrome, collapsed);
+    const to = gridZones({ w: base, h: height }, target);
+    const nominal = Math.round(page.height * f);
+    if (height !== nominal) {
+      // eingepasste Höhe: die Hauptkachel nimmt den Unterschied allein auf, kleinere Kacheln (KPI-Karten) bleiben
+      const full = gridZones({ w: base, h: nominal }, target);
+      // Ränder lösen sich je Höhe neu (± 3 px): Kacheln an die neue Oberkante des Inhalts hängen
+      const dy = to.content.y - full.content.y;
+      const rects = absorbHeight(
+        page.tiles.map((t) => {
+          const [x, y, w, h] = transfer(t.rect, from, full);
+          return [x, y + dy, w, h] as Rect;
+        }),
+        full.content.y + full.content.h + dy,
+        to.content.y + to.content.h
+      );
+      if (rects) return { ...page, width: base, height, zones: pick(to), tiles: page.tiles.map((t, i) => ({ ...t, rect: rects[i] })) };
+    }
     return { ...page, width: base, height, zones: pick(to), tiles: page.tiles.map((t) => ({ ...t, rect: transfer(t.rect, from, to) })) };
   }
   const fy = height / page.height;

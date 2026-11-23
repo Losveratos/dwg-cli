@@ -164,7 +164,14 @@ for (const p of pages) {
         };
         const pnl = [...document.querySelectorAll(".pnl-root")].map(r => ({ id: r.closest("[data-dwg-tile]")?.dataset.dwgTile,
             over: over(r), h: r.clientHeight }));
-        return { bottom: st ? Math.round(st.getBoundingClientRect().bottom) : 0, scrollH: document.documentElement.scrollHeight, pnl };
+        // Beschriftungen in ChartKitchen-Kacheln (kein eigener Bildlauf): kein Text ragt unten oder oben aus der Kachel
+        const cut = [...document.querySelectorAll("[data-dwg-tile]")].filter(t => !t.querySelector(".pnl-root")).map(t => {
+            const box = t.getBoundingClientRect();
+            const out = [...t.querySelectorAll("svg text")].filter(x => { const r = x.getBoundingClientRect();
+                return r.height > 0 && x.textContent.trim() && (r.bottom > box.bottom + 1 || r.top < box.top - 1); });
+            return { id: t.dataset.dwgTile, n: out.length, sample: out.slice(0, 2).map(x => x.textContent.trim()).join(", ") };
+        }).filter(c => c.n > 0);
+        return { bottom: st ? Math.round(st.getBoundingClientRect().bottom) : 0, scrollH: document.documentElement.scrollHeight, pnl, cut };
     });
     const problems = [
         ...scaleBad.map((s) => `${s.id}: Δ nicht in Basisskala (max. Abweichung ${s.maxDev.toFixed(1)} px über ${s.n} Kategorien${s.zoom !== 1 ? `, Lupe ×${s.zoom}` : ""})`),
@@ -173,6 +180,7 @@ for (const p of pages) {
         ...(desc ? [] : ["kein Erklärtext"]),
         ...(fit.bottom > VIEW.height + 1 ? [`Seite endet bei ${fit.bottom} px, Fenster ${VIEW.height} px`] : []),
         // bis 4 px: Rundung beim Füllen der Kachel (layout.maximize, NEED_TOLERANCE in DwgPage)
+        ...fit.cut.map(c => `${c.id}: ${c.n} Beschriftung(en) ragen aus der Kachel (${c.sample})`),
         ...fit.pnl.filter(t => t.over > 4).map(t => `${t.id}: P&L läuft ${t.over} px über die Kachel (${t.h} px)`),
         ...errors.slice(0, 2).map(e => `Konsole: ${e.slice(0, 120)}`),
     ];

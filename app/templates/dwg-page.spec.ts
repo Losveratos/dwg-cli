@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { daxQuery } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
+  absorbHeight,
   combineFilters,
   FILTER_BAR_H,
   findPage,
@@ -149,18 +150,42 @@ describe('dwg-page', () => {
     expect(stageChrome(chrome, true)).toEqual({ ...chrome, header: { on: true, h: 64 + FILTER_BAR_H }, filter: { ...chrome.filter, on: false } });
     expect(stageChrome(chrome, false)).toBe(chrome);
 
-    // auf die Fensterhöhe eingepasst: Zeilen im Raster gestaucht, Fuß bleibt unten
+    // auf die Fensterhöhe eingepasst: die Hauptkachel nimmt die 120 px auf, die KPI-Karten bleiben, Fuß bleibt unten
     const fit = stagePage(fhd, 1920, chrome, { height: 960 });
     expect([fit.width, fit.height]).toEqual([1920, 960]);
     expect(fit.zones?.footer).toEqual({ x: 0, y: 924, w: 1920, h: 36 });
     expect(fit.tiles.map((t) => t.rect)).toEqual([
-      [327, 123, 1566, 114],
-      [327, 255, 1566, 642],
+      [327, 123, 1566, 134],
+      [327, 275, 1566, 622],
     ]);
     expect(stagePage(fhd, 1920, chrome, { height: 960, collapsed: true }).tiles.map((t) => t.rect)).toEqual([
-      [27, 160, 1866, 108],
-      [27, 286, 1866, 612],
+      [27, 160, 1866, 128],
+      [27, 306, 1866, 592],
     ]);
+    // höher (gemeldeter Platzbedarf): die Hauptkachel wächst
+    expect(stagePage(fhd, 1920, chrome, { height: 1180 }).tiles.map((t) => t.rect)).toEqual([
+      [327, 125, 1566, 134],
+      [327, 277, 1566, 838],
+    ]);
+  });
+
+  it('gleicht die Höhe über die Hauptkachel aus, sonst gleichmäßig im Raster', () => {
+    // Karten oben, Hauptkachel, zwei Kacheln darunter: die unteren rücken nach
+    expect(absorbHeight([[0, 0, 100, 20], [0, 30, 100, 60], [0, 100, 40, 10], [60, 100, 40, 10]], 110, 90)).toEqual([
+      [0, 0, 100, 20],
+      [0, 30, 100, 40],
+      [0, 80, 40, 10],
+      [60, 80, 40, 10],
+    ]);
+    // zwei gleich hohe Kacheln im Band der Hauptkachel schrumpfen mit
+    expect(absorbHeight([[0, 0, 60, 50], [70, 0, 30, 50]], 50, 40)).toEqual([
+      [0, 0, 60, 40],
+      [70, 0, 30, 40],
+    ]);
+    // Kachel ragt teilweise ins Band: kein Ausgleich
+    expect(absorbHeight([[0, 0, 60, 50], [70, 10, 30, 60]], 70, 60)).toBeNull();
+    // Hauptkachel fiele unter 40 %
+    expect(absorbHeight([[0, 0, 100, 50]], 50, 10)).toBeNull();
   });
 
   it('passt die Bühne in die Fensterhöhe: höchstens Seitenhöhe, mindestens MIN_FIT', () => {
