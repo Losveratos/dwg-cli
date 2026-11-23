@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **Showcase review fixes (23.11.2026).** C24 gets small multiples per country (sheet 10G): the catalog lists the
+  optional role `multiples` for C24, bubble size and share show in thousand hl via `formats`. C20: the liquidity
+  measures are semi-additive (flows summed, cash = last month with a value, also across years); Mini-DAX understands
+  `KEEPFILTERS`, `<>` and `LASTNONBLANK` inside `CALCULATE`, the liquidity fixture holds 2025 and 2026. 11A: larger
+  tree (`layout.maximize`, `fontZoom`), invested capital includes leases so the capital turnover moves
+  (0.86 · 0.96 · 0.84). T01D: levels Sorte and Produkt. C18: plan 2026 redistributed between customers of the same
+  channel and region (all sums unchanged). C23 multiples per channel with log axes, C22 and C14 units, texts of
+  T02E/T02F. Model rebuilt with te 0.8.1.1, `te validate` clean.
 - **Showcase with all 47 templates (ChartKitchen 1.57, P&L 1.8.3).** `specs/showcase.json` has 17 new pages, one per
   new template: C07, C14 to C25, T01C, T01D, T02D and the ROI tree 11A, sorted into the navigation groups (new group
   „ChartKitchen · Rangfolgen“ for C14 to C16). Existing page ids and hash links stay. Every tile takes the template

@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "f2dd2a50ab27375e9941",
-  "displayName": "T01D Forecast je Land und Kunde nach Vorjahresabweichung",
+  "displayName": "T01D Forecast je Sorte und Bier nach Vorjahresabweichung",
   "displayOption": "FitToWidth",
   "height": 1080,
   "width": 1920,
