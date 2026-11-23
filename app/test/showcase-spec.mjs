@@ -1,5 +1,5 @@
 // Test der Showcase-Spec specs/showcase.json (je Template eine Seite, Modell „ZlatyLev Showcase“):
-//   1. Aufbau: 30 Seiten, Gruppe, Kennung, Beschreibung, Layout-Vertrag (Kacheln ab x = 300, ganz auf der Seite),
+//   1. Aufbau: 47 Seiten, Gruppe, Kennung, Beschreibung, Layout-Vertrag (Kacheln ab x = 300, ganz auf der Seite),
 //      Template-Objekte (template = templateApplied, Preset-Schalter wie im Visual), Rollen, die das Template braucht.
 //   2. Felder gegen das TMDL showcase/ZlatyLev Showcase.SemanticModel (Bindungen, Sortierung, Filter, Slicer).
 //   3. Mini-DAX je Kachel auf datasets/showcase.mjs mit den Slicer-Standards: Abfrage läuft, DataView passt,
@@ -26,7 +26,7 @@ const tiles = function* () { for (const p of spec.pages) { for (const t of p.til
 const main = p => p.tiles.find(t => t.id === "vorlage");
 
 // ---------------------------------------------------------------- erwartete Presets (Quelle: Kitchen-Repo)
-// ChartKitchen ibcsInspiredChartDeck/src/visual.ts CHART_TEMPLATES (1.51)
+// ChartKitchen ibcsInspiredChartDeck/src/visual.ts CHART_TEMPLATES (1.57); Punkt-Schlüssel (scale.*) stehen in CK_SCALE
 const CK = {
     C01: { orientation: "columns", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false },
     C02: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false },
@@ -39,22 +39,57 @@ const CK = {
     C10: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "mean", scatterColorBy: "single", scatterSizeLegend: true },
     C12: { orientation: "waterfall", comparisonMode: "auto", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false },
     C13: { multiplesTotal: true, multiplesSameScale: true },
+    C07: { orientation: "columns", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false,
+        stackShape: "area", areaTotalLine: true, areaValueLabels: "auto", stackLegendDirect: true, stackLegendPos: "end", showTotal: false, scenarioLabels: true },
+    C14: { orientation: "table", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, showTotal: true,
+        totalRowPosition: "bottom", tableTotalLegend: true, tableSort: "dabs_desc", gridLines: "none", cumulative: false, topN: 0 },
+    C15: { orientation: "table", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, showTotal: true,
+        totalRowPosition: "bottom", tableTotalLegend: true, tableSort: "drel_desc", gridLines: "none", cumulative: false, topN: 0 },
+    C16: { orientation: "table", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, showTotal: true,
+        totalRowPosition: "bottom", tableTotalLegend: true, tableSort: "ac_desc", gridLines: "none", cumulative: false, topN: 0 },
+    C17: { orientation: "catbridge", bridgeOrientation: "bars", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false,
+        pyTriangle: false, groupEvery: 4, driverNote: false },
+    C18: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "off", scatterColorBy: "group", scatterSizeLegend: true, scatterTrend: "off",
+        scatterArrows: false, scatterShapes: false },
+    C19: { orientation: "columns", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, waterfallStyle: false,
+        cumulative: false, yearColumn: true, scenarioLabels: true, pinStyle: "square" },
+    C20: { orientation: "stockflow", sfNet: true, sfArea: true, scenarioLabels: true, showTotal: false, highlightStyle: "ellipse" },
+    C21: { orientation: "line", comparisonMode: "plan", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, cumulative: true,
+        cumulativeKind: "ytd", lineR12: true, linePeriodColumns: "same", lineGapMarkers: "both", lineBasisLabels: true, lineMarkerShape: "square",
+        scenarioLabels: true, showTotal: false },
+    C22: { orientation: "line", lineSeries: true, lineIndex: "base100", lineSeriesLabels: "groups", lineSeriesColor: "tones", lineMarkerShape: "square",
+        showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, cumulative: false, showTotal: false },
+    C23: { orientation: "scatter", comparisonMode: "auto", scatterPath: "line", scatterPathLabels: "auto", scatterColorBy: "group", scatterQuadrant: "off",
+        scatterTrend: "off", scatterArrows: false, scatterPlay: false },
+    C24: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "off", scatterColorBy: "group", scatterSizeLegend: false, scatterValueLabels: true,
+        scatterBubbleOpacity: 100, scatterTotalBubble: true, scatterMaxRadius: 100, scatterTrend: "off", scatterArrows: false, scatterPath: "off", scatterPlay: false },
+    C25: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false,
+        stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true },
 };
+// Preset-Schlüssel der Form „scale.refLine“ gehören ins Objekt scale, nicht in chart
+const CK_SCALE = { C18: { refLine: "0", xRefLine: "0" }, C24: { xRefLine: "1" } };
 // zusätzliche Rollen je ChartKitchen-Vorlage (TEMPLATE_NEEDS bzw. Doku „Dazu binden“)
 const CK_NEEDS = { C01: ["series"], C02: ["series"], C03: ["previousYear"], C04: ["plan"], C05: ["previousYear"], C06: ["previousYear"],
-    C09: ["xValue"], C10: ["xValue", "bubbleSize"], C13: ["multiples"] };
-// P&L pnlByDatenWG/src/megatable.ts MEGA_PRESETS (1.4.2): Minuend, Wertspalten und Δ-Schalter
+    C09: ["xValue"], C10: ["xValue", "bubbleSize"], C13: ["multiples"],
+    C07: ["series"], C14: ["plan"], C15: ["plan"], C16: ["plan"], C17: ["previousYear"], C18: ["xValue", "series"], C19: ["plan"],
+    C20: ["rowType", "series"], C21: ["plan"], C22: ["series"], C23: ["xValue", "series"], C24: ["xValue", "bubbleSize", "bubbleShare"], C25: ["series"] };
+// P&L pnlByDatenWG/src/megatable.ts MEGA_PRESETS (1.8.3): Minuend, Wertspalten und Δ-Schalter; „total“ = structureTotal,
+// „keep“ = keepBlockOrder (beide ab 1.8)
 // Dezimalen bewusst abweichend vom Template-Preset: IBCS höchstens 4 Ziffern in Tabellen, deshalb Mio. EUR mit
 // 2 Nachkommastellen (auch T02C in Tsd. hl, damit Monatswerte nicht auf 0,0 fallen) und Δ% einheitlich mit 1 Nachkommastelle; 12G ohne Margenzeilen,
 // damit die EBIT-Zeile in die Kachel passt (IBCS-Prüfung 19.10.2026).
 const PNL = {
-    T01A: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds noSub 2/1",
-    T01B: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds sub 2/1",
-    T02A: "ac pl min dPlBar dPlPin second sub 2/1",
-    T02B: "ac pl min dPlBar dPlPin second sub sort:min:ytd 2/1",
-    T02C: "ac pl min dPlBar dPlPin second sub sort:delta:period 2/1",
-    T02E: "fc py min dPyBar dPyPin second sub sort:delta:ytd 2/1",
-    T02F: "fc pl min dPlBar dPlPin second sub sort:delta:ytd 2/1",
+    T01A: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds noSub total 2/1",
+    T01B: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds sub total 2/1",
+    T02A: "ac pl min dPlBar dPlPin second sub total 2/1",
+    T02B: "ac pl min dPlBar dPlPin second sub sort:min:ytd total keep 2/1",
+    T02C: "ac pl min dPlBar dPlPin second sub sort:delta:period total keep 2/1",
+    T02E: "fc py min dPyBar dPyPin second sub sort:delta:ytd total keep 2/1",
+    T02F: "fc pl min dPlBar dPlPin second sub sort:delta:ytd total keep 2/1",
+    // 1.8: Zwischensummen-Ranking nach ΔPY, Ranking nach ΔPL %, Forecast-Ranking nach ΔPY % (Gesamtjahr ohne Periode)
+    T01C: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds sub sort:delta:ytd total keep 2/1",
+    T02D: "ac pl min dPlBar dPlPin second sub sort:pct:ytd total keep 2/1",
+    T01D: "fc py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds sub sort:pct:period total keep 2/1",
     T03A: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct sub 2/1",
     T03B: "fc py pl min dPyAbs dPyPct dPlAbs dPlPct sub 2/1",
     T04A: "ac pl min dPlBar dPlPin sub 2/1",
@@ -73,13 +108,15 @@ const PNL = {
 const STOCK_TEMPLATES = { T05A: "allStock", T05B: "auto" };
 const SWITCHES = ["dPyAbs", "dPyBar", "dPyWaterfall", "dPyPct", "dPyPin", "dPlAbs", "dPlBar", "dPlWaterfall", "dPlPct", "dPlPin"];
 const GUV_TEMPLATES = ["T03A", "T03B", "T04A", "T04B", "T04C", "T04D", "T04E", "12A", "12G", "12H"];
-const TEMPLATES = [...Object.keys(CK), ...Object.keys(PNL)];
+// Ansichtsvorlagen (P&L VIEW_PRESETS): kein columns.template, die Ansicht steht in state.uiState
+const VIEWS = { "11A": { view: "tree", treeV: 2 } };
+const TEMPLATES = [...Object.keys(CK), ...Object.keys(PNL), ...Object.keys(VIEWS)];
 
 // ---------------------------------------------------------------- 1. Aufbau
-test("30 Seiten, je Template genau eine, mit Gruppe, Kennung und Beschreibung", () => {
+test("47 Seiten, je Template genau eine, mit Gruppe, Kennung und Beschreibung, nach Gruppen geordnet", () => {
     assert.equal(spec.name, "ChartKitchen & P&L Showcase");
     assert.ok(spec.about?.length > 50);
-    assert.equal(spec.pages.length, 30);
+    assert.equal(spec.pages.length, 47);
     assert.deepEqual([...spec.pages.map(p => p.template)].sort(), [...TEMPLATES].sort());
     for (const p of spec.pages) {
         assert.match(p.group, /^(ChartKitchen|P&L) · \S/, `${p.template}: Gruppe`);
@@ -91,6 +128,9 @@ test("30 Seiten, je Template genau eine, mit Gruppe, Kennung und Beschreibung", 
         assert.ok(!p.name.startsWith(p.template), `${p.template}: Name ohne Kennung`);
     }
     assert.ok(/an IBCS angelehnt/.test(spec.about), "about: IBCS nur angelehnt");
+    // jede Gruppe steht zusammen (die Navigation zeigt Gruppen in der Reihenfolge des ersten Auftretens)
+    const groups = spec.pages.map(p => p.group).filter((g, i, a) => g !== a[i - 1]);
+    assert.equal(new Set(groups).size, groups.length, `Gruppen nicht zusammen: ${groups.join(" | ")}`);
 });
 
 test("Slicer Jahr, Region, Kanal, Sorte im Format {column, label, default, multi}", () => {
@@ -127,6 +167,8 @@ test("ChartKitchen: template = templateApplied, alle Preset-Schalter gesetzt, Ro
         const c = t.objects.chart;
         assert.equal(c.template, p.template); assert.equal(c.templateApplied, p.template);
         for (const [k, v] of Object.entries(CK[p.template])) { assert.equal(c[k], v, `${p.template}: chart.${k}`); }
+        for (const [k, v] of Object.entries(CK_SCALE[p.template] ?? {})) { assert.equal(t.objects.scale?.[k], v, `${p.template}: scale.${k}`); }
+        assert.ok(Object.keys(c).every(k => !k.includes(".")), `${p.template}: Punkt-Schlüssel in chart`);
         for (const r of ["category", "actual", ...(CK_NEEDS[p.template] ?? [])]) { assert.ok(t.bindings[r], `${p.template}: Rolle ${r}`); }
         if (p.template === "C13") { assert.ok(c.orientation, "C13 behält den Chart-Typ: orientation explizit"); }
     }
@@ -148,6 +190,8 @@ test("P&L: template = templateApplied, Preset-Schalter und Dezimalen wie im Visu
         assert.equal(c.thresholds, words.includes("thresholds"), `${p.template}: thresholds`);
         assert.equal(c.structureSubtotals, !words.includes("noSub"), `${p.template}: structureSubtotals`);
         assert.equal(c.showPctRows, !words.includes("noPct"), `${p.template}: showPctRows`);
+        assert.equal(c.structureTotal, words.includes("total"), `${p.template}: structureTotal`);
+        assert.equal(c.keepBlockOrder, words.includes("keep"), `${p.template}: keepBlockOrder`);
         assert.equal(c.blockKind, words.includes("fy") ? "fy" : "ytd");
         assert.equal(c.leftBlockKind, "month");
         const sort = words.find(w => w.startsWith("sort:"))?.split(":") ?? ["sort", "cat", "ytd"];
@@ -182,6 +226,21 @@ test("P&L: template = templateApplied, Preset-Schalter und Dezimalen wie im Visu
             assert.ok(!t.bindings.account && t.bindings.levels?.length, `${p.template}: Strukturdimension über Ebenen`);
             assert.equal(c.pctRevenue, false, `${p.template}: kein % vom Umsatz bei Strukturdaten`);
         }
+    }
+});
+
+test("11A ROI-Baum: Ansichtsvorlage ohne columns.template, Baum über state.uiState, Jahre als Periode, Formel- und KPI-Zeilen", () => {
+    for (const p of spec.pages.filter(x => VIEWS[x.template])) {
+        const t = main(p);
+        assert.equal(t.visual, "pnl");
+        const c = t.objects.columns;
+        assert.equal(c.template, undefined, `${p.template}: kein columns.template`);
+        assert.equal(c.templateApplied, undefined, `${p.template}: kein columns.templateApplied`);
+        assert.deepEqual(JSON.parse(t.objects.state.uiState), VIEWS[p.template], `${p.template}: state.uiState`);
+        assert.deepEqual([c.treeCard, c.treeStatus, c.treeLevel, c.treeAllLabels], ["months", false, 0, true], `${p.template}: Baum-Schalter`);
+        for (const r of ["levels", "account", "rowType", "formulaDef", "ac", "period"]) { assert.ok(t.bindings[r], `${p.template}: Rolle ${r}`); }
+        assert.equal(t.bindings.py, undefined, `${p.template}: ohne PY, sonst nimmt der Baum PY als Referenz`);
+        assert.equal(t.showItemsWithNoData, true, `${p.template}: KPI-Zeilen ohne Faktenzeilen`);
     }
 });
 

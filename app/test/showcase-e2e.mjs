@@ -97,7 +97,7 @@ const results = [];
 let n = 0;
 let persistChecked = false;
 for (const p of pages) {
-    const tpl = (/^(C\d\d|T\d\d[A-Z]|12[A-Z])/.exec(p.label) ?? [p.label.split(/\s+/)[0]])[0];
+    const tpl = (/^(C\d\d|T\d\d[A-Z]|1[12][A-Z])/.exec(p.label) ?? [p.label.split(/\s+/)[0]])[0];
     if (ONLY && !ONLY.has(tpl)) { continue; }
     n++;
     errors = [];
@@ -127,12 +127,18 @@ for (const p of pages) {
             const ac = rects[ai];
             const ref = rects.slice(0, ai).concat(rects.slice(ai + 1)).find((r) =>
                 fill(r) === PY || ((fill(r) === "#FFFFFF" || fill(r) === "WHITE" || fill(r) === "NONE") && r.getAttribute("stroke")));
-            // Balken (waagerecht): AC und Vergleich beginnen am selben x und sind gleich hoch; sonst Säulen
-            const horizontal = ref && Math.abs(num(ac, "x") - num(ref, "x")) < 0.5 && Math.abs(num(ac, "height") - num(ref, "height")) < 0.5;
+            // Balken (waagerecht): AC und Vergleich beginnen am selben x und sind gleich hoch oder flach (C17: PY
+            // schmaler als AC); sonst Säulen
+            const horizontal = ref && Math.abs(num(ac, "x") - num(ref, "x")) < 0.5
+                && (Math.abs(num(ac, "height") - num(ref, "height")) < 0.5 || num(ac, "height") < num(ac, "width"));
             const len = (r) => (horizontal ? num(r, "width") : num(r, "height"));
-            const d = rects.slice(ai + 1).find((r) => [GOOD, BAD].includes(fill(r)) || /^URL\(/.test(fill(r)));
+            // FC-Teil auf dem AC-Sockel (Jahressäule C19: AC + FC schraffiert gegen PL) gehört zur Basis, das Δ ist die
+            // Schraffur in Gut-/Schlecht-Farbe (ICD-HATCH-BAD/-GOOD) bzw. das Teal-/Rot-Rechteck
+            const fcPart = rects.slice(ai + 1).find((r) => /^URL\(#ICD-HATCH-\d/.test(fill(r)));
+            const d = rects.slice(ai + 1).find((r) => [GOOD, BAD].includes(fill(r)) || /^URL\(#ICD-HATCH-(BAD|GOOD)/.test(fill(r))
+                || (/^URL\(/.test(fill(r)) && r !== fcPart));
             if (!ref || !d) { continue; }
-            const want = Math.abs(len(ac) - len(ref)) * zoom, got = len(d);
+            const want = Math.abs(len(ac) + (fcPart ? len(fcPart) : 0) - len(ref)) * zoom, got = len(d);
             if (want < 2 && got < 3) { continue; }            // Mindesthöhe für sehr kleine Abweichungen
             out.push(Math.abs(got - want));
         }

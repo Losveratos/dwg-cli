@@ -1,5 +1,6 @@
-// Template-Katalog und dwg tile add, geprüft gegen die Showcase-Spec (30 Seiten, je Template eine von Hand gebaute
-// Kachel; T05A/T05B ab P&L 1.7 noch nicht im Dienst abgenommen) und das Showcase-Modell:
+// Template-Katalog und dwg tile add, geprüft gegen die Showcase-Spec (47 Seiten, je Template eine von Hand gebaute
+// Kachel; T05A/T05B ab P&L 1.7 und die 17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 noch nicht im Dienst abgenommen)
+// und das Showcase-Modell:
 //   1. Katalog: 24 ChartKitchen- und 23 P&L-Templates (ChartKitchen 1.57, P&L 1.8.3), Titel DE/EN, jede Rolle gibt es im Visual; Bestands-Templates
 //      (T05A Bilanz, T05B Cashflow) mit statement.stockMode und Zeilentyp-Regel
 //   2. Was das Template im Visual einstellt, steht genauso in der Showcase-Kachel (Extraktion stimmt)
@@ -69,9 +70,21 @@ ok("jedes Template mit Titel DE/EN, Gruppe und Rollen, die es im Visual gibt", (
     }
 });
 
-// Showcase-Kacheln mit Template
-const tiles = SPEC.pages.flatMap(p => p.tiles.filter(t => (t.objects?.chart ?? t.objects?.columns)?.template)
-    .map(t => ({ page: p, tile: t, id: (t.objects.chart ?? t.objects.columns).template })));
+// Showcase-Kacheln mit Template: die Hauptkachel der Seite (page.template). Die Ansichtsvorlage 11A (ROI-Baum) schreibt
+// kein columns.template, sondern die Ansicht in state.uiState; deshalb nicht über objects.*.template suchen
+const tiles = SPEC.pages.filter(p => p.template).map(p => ({ page: p, tile: p.tiles.find(t => t.id === "vorlage"), id: p.template }));
+ok("Showcase-Hauptkacheln tragen ihr Template (chart.template, columns.template bzw. 11A die Baum-Ansicht)", () => {
+    for (const { tile, id } of tiles) {
+        assert.ok(tile, `${id}: Hauptkachel "vorlage"`);
+        const own = (tile.objects?.chart ?? tile.objects?.columns)?.template;
+        if (id === "11A") {
+            assert.equal(own, undefined, "11A: Ansichtsvorlage ohne columns.template");
+            assert.deepEqual(JSON.parse(tile.objects.state.uiState), { view: "tree", treeV: 2 }, "11A: Ansicht Baum");
+        } else {
+            assert.equal(own, id, `${id}: Template der Kachel`);
+        }
+    }
+});
 ok(`Showcase hat für jedes Template eine Kachel (${tiles.length})`, () => {
     assert.deepEqual([...new Set(tiles.map(x => x.id))].sort(), cat.templates.map(t => t.id).sort());
 });
@@ -107,7 +120,10 @@ ok("jede Pflichtrolle ist in der Showcase-Kachel gebunden", () => {
 });
 
 // 4 · Vorschläge
-const STRUCT = new Set(["category", "series", "multiples", "xValue", "xPrevious", "bubbleSize", "comment", "comments", "period", "colCategory"]);
+// C18 bindet Abweichungen als Achsen (ΔPL % als y, ΔPY % als x): diese Kennzahlen nennt der Nutzer (--actual), dwg schlägt
+// aus dem Stamm „Umsatz“ sonst Umsatz AC vor
+const USER_MEASURES = { C18: ["actual"] };
+const STRUCT = new Set(["category", "series", "multiples", "xValue", "xPrevious", "bubbleSize", "bubbleShare", "comment", "comments", "period", "colCategory"]);
 ok("Vorschläge treffen die Felder der Showcase-Kacheln (Kennzahlen, Zeitachse, Ebenen, GuV-Logik)", () => {
     const bad = [];
     for (const { tile, id } of tiles) {
@@ -116,8 +132,10 @@ ok("Vorschläge treffen die Felder der Showcase-Kacheln (Kennzahlen, Zeitachse, 
         const stem = parseMeasureName(parseRef(tile.bindings[acRole]).name).stem;
         // Strukturrollen (Achse in Strukturseiten, Serie, X-Achse …) gibt der Nutzer an; die Zeitachse schlägt dwg vor
         // P&L-Strukturtabellen: die Ebenen (Region, Kunde …) gibt der Nutzer an
+        // ChartKitchen-Zeilentyp (C20 Token stock/inflow/outflow, C12 sum/delta) ist eine Strukturspalte des Nutzers; P&L-Zeilentyp schlägt dwg vor
         const given = Object.fromEntries(Object.entries(tile.bindings).filter(([r]) => (STRUCT.has(r) && !(r === "category" && t.group.id === "time"))
-            || (r === "levels" && t.data === "structure")));
+            || (r === "levels" && t.data === "structure") || (r === "rowType" && t.visual === "chartkitchen")
+            || (USER_MEASURES[id] ?? []).includes(r)));
         const r = suggestBindings(model, t, given, stem);
         assert.deepEqual(r.problems, [], `${id}: ${r.problems.join("; ")}`);
         for (const row of r.rows) {
