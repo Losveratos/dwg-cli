@@ -313,6 +313,9 @@ export function suggestBindings(model, template, given = {}, measure = null) {
         }
         alts[r.role] = cands.slice(0, r.kind === "Measure" ? 4 : 6).map(c => refOf(c.field));
         if (!cands.length || r.need === "optional") { continue; }
+        // ChartKitchen-Zeilentyp (C20 Bestand und Fluss: stock/inflow/outflow) ist ein anderer Vertrag als der P&L-Zeilentyp
+        // einer Kontotabelle (Account/Formula): nur Kandidaten nennen, nie selbst wählen
+        if (template.visual === "chartkitchen" && r.role === "rowType") { continue; }
         const [a, b] = cands;
         const scenarioRole = r.kind === "Measure" && ROLE_SCEN[r.role];
         const confident = scenarioRole ? anchor != null && a.field.stem === anchor.stem && (!b || b.field.stem !== anchor.stem || a.score - b.score >= AUTO_MARGIN)

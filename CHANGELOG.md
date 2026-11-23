@@ -10,6 +10,14 @@
   before. Probe: the current sources (ChartKitchen 1.53, P&L 1.7) give a byte-identical `templates.json`; P&L 1.8.3
   (Kitchen `main`) with ChartKitchen 1.57 (branch `claude/ck-ibcs-backlog-4`) builds 47 templates (24 + 23), 17 of them
   new. The release itself (`visuals update`) follows once ChartKitchen 1.57 is live.
+- **ChartKitchen catalog entries fixed for 1.57 (review).** Preset keys with a dot (`scale.refLine`, `scale.xRefLine`
+  in C18 and C24) now go to their own object (`objects.scale`), as the visual splits them; before they landed as unknown
+  `chart` properties and the reference lines were missing. Roles that `TEMPLATE_NEEDS` does not name are added from the
+  visual's AGENT-GUIDE: C23 `series` (one path per unit), C24 `bubbleSize` and `bubbleShare` required (otherwise no pie
+  segments), C18 `series`/`bubbleSize`/`multiples`, C20 `series`, `fcFlag`, `lineMeasure`. 11A requires `rowType` and
+  `formulaDef` (without them the tree falls back to a plain hierarchy). `tile add` never picks a ChartKitchen `rowType`
+  on its own (the P&L account table's row type is a different contract), it only lists candidates. A gallery tile
+  without mega preset and view preset fails with a clear message. New catalog check: no property name with a dot.
 
 Three findings from fabscan 0.6.0 on the four dwg apps (Fabric-Apps-Demo, 19 Nov 2026):
 

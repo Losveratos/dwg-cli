@@ -61,6 +61,10 @@ ok("jedes Template mit Titel DE/EN, Gruppe und Rollen, die es im Visual gibt", (
         assert.notEqual(t.title.de, t.title.en, `${t.id}: deutscher Titel ist der englische`);
         for (const r of t.roles) { assert.ok(ROLES[t.visual].kind[r.role], `${t.id}: Rolle ${r.role} gibt es in ${t.visual} nicht`); }
         assert.equal(new Set(t.roles.map(r => r.role)).size, t.roles.length, `${t.id}: Rolle doppelt`);
+        // Format-Objekte: kein Property-Name mit Punkt (ChartKitchen-Presets wie „scale.refLine“ gehören ins Objekt scale)
+        for (const [obj, props] of Object.entries(t.objects)) {
+            for (const k of Object.keys(props)) { assert.ok(!k.includes("."), `${t.id}: Property ${obj}.${k} mit Punkt`); }
+        }
     }
 });
 
