@@ -28,6 +28,23 @@ import {
 } from './dwg-page';
 import { DwgVisual } from './DwgVisual';
 
+/** Überlauf eines Visuals bis zu dieser Höhe gilt als Rundung (P&L füllt die Kachel mit layout.maximize) */
+const NEED_TOLERANCE = 4;
+
+/**
+ * Überlauf des Inhalts eines Visuals mit eigenem Bildlauf (P&L: .pnl-root) in Layoutpixeln: Unterkante des letzten
+ * Blocks ohne dessen Innenabstand gegen die sichtbare Höhe. scrollHeight zählte den Innenabstand unter der Fußnote mit.
+ */
+function contentOverflow(root: HTMLElement): number {
+  const last = root.lastElementChild as HTMLElement | null;
+  if (!last) return 0;
+  const box = root.getBoundingClientRect();
+  const k = root.offsetHeight > 0 ? box.height / root.offsetHeight : 1;
+  const pad = parseFloat(getComputedStyle(last).paddingBottom) || 0;
+  const bottom = (last.getBoundingClientRect().bottom - box.top) / (k || 1) + root.scrollTop - pad;
+  return Math.round(bottom - root.clientHeight);
+}
+
 function friendly(message: string): string {
   if (/401|403|forbidden|permission|unauthori/i.test(message))
     return 'Keine Berechtigung auf das Semantikmodell (Lesen und Erstellen nötig).';
@@ -59,8 +76,9 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
       const root = wrap.current?.querySelector<HTMLElement>('.pnl-root');
       const section = wrap.current?.parentElement;
       if (!onNeed || !root || !section) return;
-      const over = root.scrollHeight - root.clientHeight;
-      if (over > 2) onNeed(tile.id, section.offsetHeight + over);
+      const over = contentOverflow(root);
+      // bis NEED_TOLERANCE px sind Rundung beim Füllen (layout.maximize), kein fehlender Inhalt
+      if (over > NEED_TOLERANCE) onNeed(tile.id, section.offsetHeight + over + NEED_TOLERANCE);
     });
   const filters = useMemo(
     () => tileFilters(page, tile.id, selection, extraFilters),

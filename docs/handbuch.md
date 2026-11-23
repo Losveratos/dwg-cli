@@ -182,7 +182,9 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   die Hauptkachel bekommt die restliche Höhe. P&L-Kacheln laufen in der App mit `layout.maximize` (Schrift und Zeilen
   auf die Kachelhöhe, `fitToTile`; Power BI behält den Wert der Spec). Braucht ein P&L trotzdem mehr Platz (Bildlauf im
   Visual, z. B. der ROI-Baum 11A), meldet die Kachel die nötige Höhe, die Bühne wird um diesen Betrag höher und
-  skaliert als Ganzes etwas kleiner, damit sie ins Fenster passt.
+  skaliert als Ganzes etwas kleiner, damit sie ins Fenster passt (höchstens dreimal je Seite; bis 4 px Überlauf gelten
+  als Rundung beim Füllen). Die Kopfleiste bleibt zweizeilig: Gruppen und Seiten stehen je in einer Zeile und rollen
+  bei Platzmangel waagerecht, die aktive Gruppe und Seite werden in den sichtbaren Bereich gerollt.
 - **Kopfzeilen der Visuals:** Standard aus (`visualHeaders: false`), Schalter in der Kopfleiste. Setzt zur Laufzeit
   ChartKitchen `ibcsTitle.show`, `chart.chartButtons`, `chart.cumulativeButton` und P&L `titleBlock.show`,
   `toolbar.show` auf aus. Den Sortier-Chip der ChartKitchen-Karten blendet keine Property aus (hängt an der

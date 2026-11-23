@@ -12,7 +12,9 @@
   60 %), tiles are redistributed on the grid, so the main tile takes the remaining height and the whole page is visible
   without scrolling (1920 × 1080 and 1366 × 768). P&L tiles run with `layout.maximize` in the app (`fitToTile`, PBIP
   unchanged); if a P&L still needs more room (it scrolls, e.g. the ROI tree 11A), the tile reports its height and the
-  stage grows by that amount and scales down a little to stay in the window. New helpers `slicerChips`,
+  stage grows by that amount and scales down a little to stay in the window (at most three steps per page, up to 4 px
+  overflow count as rounding of the fill). The top bar stays two rows: groups and pages each scroll horizontally
+  instead of wrapping (at 1366 px it took four rows before), the active entries are scrolled into view. New helpers `slicerChips`,
   `templateCount`, `stageChrome`. Tests: shell 65 checks (was 46), Vitest for the new helpers, `showcase-e2e.mjs`
   checks fit and P&L overflow per page and takes `--panel closed` and `--dark`. The showcase subtitle counts the
   templates from the spec (47) instead of the hard-coded 30.

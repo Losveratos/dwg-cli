@@ -155,8 +155,15 @@ for (const p of pages) {
     // ganze Seite im Fenster: Bühne endet über der Fensterkante; P&L: Tabelle läuft nicht über die Kachel (kein Bildlauf)
     const fit = await page.evaluate(() => {
         const st = document.querySelector("[data-dwg-stage]");
+        // Überlauf am Inhalt: Unterkante des letzten Blocks ohne Innenabstand (wie contentOverflow in DwgPage)
+        const over = (r) => {
+            const last = r.lastElementChild; if (!last) { return 0; }
+            const box = r.getBoundingClientRect(), k = r.offsetHeight ? box.height / r.offsetHeight : 1;
+            const pad = parseFloat(getComputedStyle(last).paddingBottom) || 0;
+            return Math.round((last.getBoundingClientRect().bottom - box.top) / k + r.scrollTop - pad - r.clientHeight);
+        };
         const pnl = [...document.querySelectorAll(".pnl-root")].map(r => ({ id: r.closest("[data-dwg-tile]")?.dataset.dwgTile,
-            over: r.scrollHeight - r.clientHeight, h: r.clientHeight }));
+            over: over(r), h: r.clientHeight }));
         return { bottom: st ? Math.round(st.getBoundingClientRect().bottom) : 0, scrollH: document.documentElement.scrollHeight, pnl };
     });
     const problems = [
@@ -165,7 +172,8 @@ for (const p of pages) {
         ...tiles.filter(t => !t.alert && t.svg < 20).map(t => `${t.id}: nur ${t.svg} SVG-Elemente`),
         ...(desc ? [] : ["kein Erklärtext"]),
         ...(fit.bottom > VIEW.height + 1 ? [`Seite endet bei ${fit.bottom} px, Fenster ${VIEW.height} px`] : []),
-        ...fit.pnl.filter(t => t.over > 2).map(t => `${t.id}: P&L läuft ${t.over} px über die Kachel (${t.h} px)`),
+        // bis 4 px: Rundung beim Füllen der Kachel (layout.maximize, NEED_TOLERANCE in DwgPage)
+        ...fit.pnl.filter(t => t.over > 4).map(t => `${t.id}: P&L läuft ${t.over} px über die Kachel (${t.h} px)`),
         ...errors.slice(0, 2).map(e => `Konsole: ${e.slice(0, 120)}`),
     ];
     ok = ok && problems.length === 0;

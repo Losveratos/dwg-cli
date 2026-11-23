@@ -272,6 +272,8 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
 const PANEL_ID = 'dwg-filter-panel';
 /** Tastenkürzel zum Ein- und Ausklappen (ohne Umschalt-, Strg-, Alt- und Meta-Taste, nicht in Eingabefeldern) */
 const PANEL_KEY = 'f';
+/** So oft darf die Bühne je Seite und Panelzustand für die gemeldete Höhe eines Visuals wachsen */
+const NEED_STEPS = 3;
 
 /** Linien-Icons ohne Bibliothek (die Vorlagen laufen auch ohne lucide-react) */
 function Icon({ d, size }: { d: string; size: number }) {
@@ -647,47 +649,48 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
   const sWidth = scaled && width > 0 ? stageScale(width, base) : 1;
   // unter MIN_STAGE_WIDTH scrollt die Bühne waagerecht: die Bildlaufleiste kostet Höhe
   const hScroll = scaled && width > 0 && Math.round(base * sWidth) > width ? 16 : 0;
-  const nominal = Math.round((page.height * base) / page.width);
-  const fitH = scaled ? fitHeight(room - hScroll, sWidth, nominal) : nominal;
-  const fitted = useMemo(
-    () => (scaled ? stagePage(page, base, app.chrome, { height: fitH, collapsed }) : page),
-    [scaled, page, base, app.chrome, fitH, collapsed]
-  );
-
-  // Höhe, die die Visuals melden (P&L, das trotz layout.maximize einen Bildlauf braucht, z. B. ein hoher Baum): die
-  // Bühne wird so viel höher, dass die Kachel reicht, und skaliert dafür etwas kleiner, damit sie ins Fenster passt.
-  // Je Seite, Auflösung und Panelzustand, nur wachsend (die Messung nach dem Wachsen meldet keinen Überlauf mehr).
+  // Messungen einer vorigen Seite bzw. eines vorigen Panelzustands verwerfen (Schlüssel je Seite, Auflösung, Panel)
   const needKey = `${pageId(page)}|${base}|${collapsed ? 'zu' : 'auf'}`;
-  // Messungen einer vorigen Seite bzw. eines vorigen Panelzustands verwerfen
   const needKeyRef = useRef(needKey);
   useEffect(() => {
     needKeyRef.current = needKey;
   }, [needKey]);
-  const [needs, setNeeds] = useState<{ key: string; tiles: Record<string, number> }>({ key: '', tiles: {} });
+  const [needs, setNeeds] = useState<{ key: string; steps: number; tiles: Record<string, number> }>({ key: '', steps: 0, tiles: {} });
   const onTileNeed = useCallback(
     (tile: string, h: number) => {
       if (needKeyRef.current !== needKey) return;
       setNeeds((prev) => {
-        const cur = prev.key === needKey ? prev.tiles : {};
-        return (cur[tile] ?? 0) >= h ? prev : { key: needKey, tiles: { ...cur, [tile]: Math.ceil(h) } };
+        const same = prev.key === needKey;
+        const cur = same ? prev.tiles : {};
+        // höchstens NEED_STEPS Mal je Seite wachsen: ein Visual, das jede Höhe füllt, kann die Bühne nicht aufschaukeln
+        if ((cur[tile] ?? 0) >= h || (same && prev.steps >= NEED_STEPS)) return prev;
+        return { key: needKey, steps: (same ? prev.steps : 0) + 1, tiles: { ...cur, [tile]: Math.ceil(h) } };
       });
     },
     [needKey]
   );
-  const needH = useMemo(() => {
+
+  // Bühnenhöhe: auf das Fenster eingepasst (fitH), dazu die Höhe, die die Visuals melden (P&L, das trotz
+  // layout.maximize einen Bildlauf braucht, z. B. ein hoher Baum). Dann wird die Bühne so viel höher, dass die Kachel
+  // reicht, und skaliert etwas kleiner, damit sie ins Fenster passt. Je Seite, Auflösung und Panelzustand, nur wachsend.
+  // Ein Memo mit den Rohwerten: dieselbe Seite behält ihr Objekt, Visuals rendern nur bei echten Änderungen neu.
+  const { stage, fitH, needH } = useMemo(() => {
+    const nominal = Math.round((page.height * base) / page.width);
+    const fit = scaled ? fitHeight(room - hScroll, sWidth, nominal) : nominal;
+    const fitted = scaled ? stagePage(page, base, app.chrome, { height: fit, collapsed }) : page;
     const content = fitted.zones?.content;
-    if (!scaled || !content || needs.key !== needKey) return fitH;
-    let extra = 0;
-    for (const [id, h] of Object.entries(needs.tiles)) {
-      const t = fitted.tiles.find((x) => x.id === id);
-      if (t && h > t.rect[3]) extra = Math.max(extra, Math.ceil(((h - t.rect[3]) * content.h) / t.rect[3]) + 2);
+    let need = fit;
+    if (scaled && content && needs.key === needKey) {
+      let extra = 0;
+      for (const [id, h] of Object.entries(needs.tiles)) {
+        const t = fitted.tiles.find((x) => x.id === id);
+        if (t && h > t.rect[3]) extra = Math.max(extra, Math.ceil(((h - t.rect[3]) * content.h) / t.rect[3]) + 2);
+      }
+      need = Math.min(fit + extra, Math.round(nominal * 1.6));
     }
-    return Math.min(fitH + extra, Math.round(nominal * 1.6));
-  }, [scaled, fitted, needs, needKey, fitH, nominal]);
-  const stage = useMemo(
-    () => (needH > fitH ? stagePage(page, base, app.chrome, { height: needH, collapsed }) : fitted),
-    [needH, fitH, fitted, page, base, app.chrome, collapsed]
-  );
+    const staged = need > fit ? stagePage(page, base, app.chrome, { height: need, collapsed }) : fitted;
+    return { stage: staged, fitH: fit, needH: need };
+  }, [scaled, page, base, app.chrome, room, hScroll, sWidth, collapsed, needs, needKey]);
   // höhere Bühne: so weit kleiner skalieren, dass sie wieder ins Fenster passt (mittig)
   const s = needH > fitH && room > 0 ? Math.max(0.4, Math.min(sWidth, (room - hScroll) / needH)) : sWidth;
   const z = stage.zones;
@@ -715,6 +718,21 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       return !h;
     });
   };
+  // Kopfleiste kompakt: Gruppen und Seiten je eine Zeile, bei Platzmangel waagerecht scrollbar (statt umzubrechen
+  // und der Seite Höhe zu nehmen); die aktive Gruppe und Seite werden in den sichtbaren Bereich gerollt
+  const navRow: CSSProperties = {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    flex: '1 1 0',
+    minWidth: 0,
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    scrollbarWidth: 'thin',
+    padding: '1px 0',
+  };
+  useEffect(() => {
+    topbar.current?.querySelectorAll('nav [aria-current]').forEach((el) => el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
+  }, [page]);
   const ctl = (on: boolean): CSSProperties => ({
     font: `500 12px/16px ${FONT}`,
     padding: '4px 8px',
@@ -739,15 +757,22 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
         data-dwg-topbar=""
         style={{ position: 'sticky', top: 0, zIndex: 20, background: c.surface, borderBottom: `1px solid ${c.border}` }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 28px', padding: '12px 24px 8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span aria-hidden style={{ width: 10, height: 22, borderRadius: 2, background: c.accent }} />
-            <div>
-              <h1 style={{ margin: 0, font: `700 18px/22px ${FONT}`, letterSpacing: '-0.01em' }}>{title ?? app.name}</h1>
-              {subtitle && <p style={{ margin: 0, font: `400 12px/16px ${FONT}`, color: c.muted }}>{subtitle}</p>}
+        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '10px 28px', padding: '12px 24px 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '0 1 auto', minWidth: 0, maxWidth: narrow ? '100%' : '42%' }}>
+            <span aria-hidden style={{ flex: 'none', width: 10, height: 22, borderRadius: 2, background: c.accent }} />
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ margin: 0, font: `700 18px/22px ${FONT}`, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>{title ?? app.name}</h1>
+              {subtitle && (
+                <p
+                  title={typeof subtitle === 'string' ? subtitle : undefined}
+                  style={{ margin: 0, font: `400 12px/16px ${FONT}`, color: c.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  {subtitle}
+                </p>
+              )}
             </div>
           </div>
-          <nav aria-label="Gruppen" style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <nav aria-label="Gruppen" style={{ ...navRow, gap: 2 }}>
             {groups.map((g) => {
               const on = g === current;
               return (
@@ -756,6 +781,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                   href={`#${pageId(g.pages[0])}`}
                   aria-current={on ? 'true' : undefined}
                   style={{
+                    flex: 'none',
+                    whiteSpace: 'nowrap',
                     padding: '6px 10px',
                     borderRadius: 6,
                     textDecoration: 'none',
@@ -770,8 +797,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
             })}
           </nav>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 16px', padding: '0 24px 10px' }}>
-          <nav aria-label="Seiten" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '8px 16px', padding: '0 24px 10px' }}>
+          <nav aria-label="Seiten" style={{ ...navRow, gap: 6 }}>
             {current.pages.map((p) => {
               const on = p === page;
               return (
@@ -780,6 +807,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                   href={`#${pageId(p)}`}
                   aria-current={on ? 'page' : undefined}
                   style={{
+                    flex: 'none',
+                    whiteSpace: 'nowrap',
                     display: 'inline-flex',
                     gap: 6,
                     alignItems: 'baseline',
@@ -798,7 +827,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               );
             })}
           </nav>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ marginLeft: 'auto', flex: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div role="group" aria-label="Auflösung" style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 7, background: c.bg }}>
               {RESOLUTIONS.map((r) => (
                 <button
