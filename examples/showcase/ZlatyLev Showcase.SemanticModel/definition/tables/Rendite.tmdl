@@ -2,25 +2,25 @@ table Rendite
 	lineageTag: f03ac15d-c7e2-5fd1-be0e-fdab94dbf279
 	sourceLineageTag: [dbo].[rendite]
 
-	/// Ist je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende.
+	/// Ist je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
 	measure 'Rendite AC' = SUM ( 'Rendite'[AC] )
 		formatString: #,##0
 		displayFolder: 10 Rendite
 		lineageTag: 9d8d797f-5dee-58d3-89c6-916c2aa5ec79
 
-	/// Vorjahr je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende.
+	/// Vorjahr je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
 	measure 'Rendite PY' = SUM ( 'Rendite'[PY] )
 		formatString: #,##0
 		displayFolder: 10 Rendite
 		lineageTag: 50324d18-fceb-5ede-ab15-f999c076e1d8
 
-	/// Plan je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende.
+	/// Plan je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
 	measure 'Rendite PL' = SUM ( 'Rendite'[PL] )
 		formatString: #,##0
 		displayFolder: 10 Rendite
 		lineageTag: 41a438ee-a17f-561c-9968-3169868c5204
 
-	/// Forecast je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende.
+	/// Forecast je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
 	measure 'Rendite FC' = SUM ( 'Rendite'[FC] )
 		formatString: #,##0
 		displayFolder: 10 Rendite

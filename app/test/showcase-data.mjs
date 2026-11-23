@@ -302,9 +302,13 @@ test("11A Rendite: P&L-Abfrage mit Jahr als Periode liefert alle Jahre und die K
     near(cell("R-EBIT", 2026, FC), value("GuV ± FC"), "EBIT FC 2026 = GuV ± FC");
     near(cell("R-EBIT", 2026, PL), value("GuV ± PL"), "EBIT PL 2026 = GuV ± PL");
     const aktiva = (m, per) => value(m, [L1("Bilanzkonto", "Aktiva"), `TREATAS({"${per}"}, 'Kalender'[Periode])`]);
-    near(cell("R-KAP", 2025, AC), aktiva("Bilanz PY", "2026-12"), "Kapital 2025 = Aktiva Dezember 2025");
-    near(cell("R-KAP", 2026, FC), aktiva("Bilanz FC", "2026-12"), "Kapital FC 2026 = Aktiva FC Dezember 2026");
-    near(cell("R-KAP", 2026, PL), aktiva("Bilanz PL", "2026-12"), "Kapital PL 2026 = Aktiva PL Dezember 2026");
+    // Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge (Kontrollwert „Leasing“)
+    near(cell("R-KAP", 2025, AC), aktiva("Bilanz PY", "2026-12") + R["AC 2025"].Leasing, "Kapital 2025 = Aktiva Dezember 2025 + Leasing");
+    near(cell("R-KAP", 2026, FC), aktiva("Bilanz FC", "2026-12") + R["FC 2026"].Leasing, "Kapital FC 2026 = Aktiva FC Dezember 2026 + Leasing");
+    near(cell("R-KAP", 2026, PL), aktiva("Bilanz PL", "2026-12") + R["PL 2026"].Leasing, "Kapital PL 2026 = Aktiva PL Dezember 2026 + Leasing");
+    // Kapitalumschlag wandert sichtbar und bleibt unter 1 (Karte mit zwei Nachkommastellen)
+    const ku = Object.values(R).map(v => v.Kapitalumschlag);
+    assert.ok(ku.every(v => v > 0.7 && v < 1) && Math.max(...ku) - Math.min(...ku) > 0.08, `Kapitalumschlag ${ku}`);
     for (const y of [2024, 2025]) {
         assert.equal(cell("R-EBIT", y, PL), null, `kein Plan ${y}`);
         assert.equal(cell("R-UMS", y, FC), cell("R-UMS", y, AC), `FC ${y} = AC`);

@@ -139,34 +139,38 @@
     "AC 2024": {
       "EBIT": 1524979.0,
       "Nettoumsatz": 35671771.0,
-      "Investiertes Kapital": 36222516.0,
+      "Investiertes Kapital": 41422516.0,
       "Umsatzrendite": 0.04275030247306757,
-      "Kapitalumschlag": 0.9847955067505526,
-      "ROI": 0.042100305787703976
+      "Kapitalumschlag": 0.8611686214328459,
+      "ROI": 0.03681521904656878,
+      "Leasing": 5200000.0
     },
     "AC 2025": {
       "EBIT": 2422583.0,
       "Nettoumsatz": 38527414.0,
-      "Investiertes Kapital": 36724875.0,
+      "Investiertes Kapital": 40124875.0,
       "Umsatzrendite": 0.06287946032401759,
-      "Kapitalumschlag": 1.0490822364950187,
-      "ROI": 0.06596572486632017
+      "Kapitalumschlag": 0.9601877638248094,
+      "ROI": 0.06037608839902928,
+      "Leasing": 3400000.0
     },
     "FC 2026": {
       "EBIT": 1731308.0,
       "Nettoumsatz": 40167091.0,
-      "Investiertes Kapital": 39709198.0,
+      "Investiertes Kapital": 47609198.0,
       "Umsatzrendite": 0.04310264838446976,
-      "Kapitalumschlag": 1.0115311570885919,
-      "ROI": 0.043599671793925425
+      "Kapitalumschlag": 0.843683420165994,
+      "ROI": 0.036364989807221706,
+      "Leasing": 7900000.0
     },
     "PL 2026": {
       "EBIT": 3359545.0,
       "Nettoumsatz": 41684991.0,
-      "Investiertes Kapital": 40767856.0,
+      "Investiertes Kapital": 47267856.0,
       "Umsatzrendite": 0.08059363620829377,
-      "Kapitalumschlag": 1.022496522750669,
-      "ROI": 0.0824067127788128
+      "Kapitalumschlag": 0.8818887617834835,
+      "ROI": 0.07107462204336071,
+      "Leasing": 6500000.0
     }
   }
 }

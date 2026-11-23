@@ -558,7 +558,7 @@ def markt(fakten):
 
 # ---------------------------------------------------------------- Rendite (P&L 11A, ROI-Baum nach DuPont)
 # Jahreswerte aus den Monatsreihen der GuV und der Bilanz: EBIT und Nettoumsatz als Jahressumme, investiertes Kapital
-# = Aktiva am Jahresende. Ist 2024 und 2025, Forecast 2026 (Ist Jan bis Aug plus Forecast), Plan 2026. Periode = Jahr
+# = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge (LEASING). Ist 2024 und 2025, Forecast 2026 (Ist Jan bis Aug plus Forecast), Plan 2026. Periode = Jahr
 # als eigene Spalte ohne Beziehung zum Kalender (der Jahr-Slicer würde den Baum sonst auf ein Jahr schneiden).
 
 # KontoID, Konto, SortOrder, RowType, FormulaDef, VarianceInvert, Kommentar
@@ -566,12 +566,16 @@ RENDITEKONTEN = [
     ("R-EBIT", "EBIT", 10, "Account", None, "false", "EBIT der GuV im Jahr"),
     ("R-UMS", "Nettoumsatz", 20, "Account", None, "false", None),
     ("R-KAP", "Investiertes Kapital", 30, "Account stock", None, "true",
-     "Aktiva am Jahresende, 2026 mit der neuen Abfüllanlage"),
+     "Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge; 2026 neue Abfüllanlage und gemietetes Kühllager"),
     ("R-UR", "Umsatzrendite", 40, "KPI", "[EBIT] / [Nettoumsatz]", "false", None),
     ("R-KU", "Kapitalumschlag", 50, "KPI factor", "[Nettoumsatz] / [Investiertes Kapital]", "false", None),
     ("R-ROI", "ROI", 60, "KPI", "[Umsatzrendite] * [Kapitalumschlag]", "false", None),
 ]
 RENDITE_JAHRE = [2024, 2025, 2026]
+# Barwert der Miet- und Leasingverträge (EUR) je Szenario und Jahr: die HGB-Bilanz aktiviert sie nicht, für den ROI
+# zählen sie zum investierten Kapital. 2025 läuft das Lkw-Leasing aus, 2026 kommt ein gemietetes Kühllager dazu (im
+# Plan kleiner). Damit wandert der Kapitalumschlag sichtbar (0,86 · 0,96 · 0,84) und bleibt unter 1 (zwei Stellen).
+LEASING = {("AC", 2024): 5_200_000, ("AC", 2025): 3_400_000, ("FC", 2026): 7_900_000, ("PL", 2026): 6_500_000}
 
 
 def rendite(sim):
@@ -583,7 +587,7 @@ def rendite(sim):
             return None
         return {"R-EBIT": float(sum(tr[scen][ym]["ebit"] for ym in ms)),
                 "R-UMS": float(sum(tr[scen][ym]["umsatz"] for ym in ms)),
-                "R-KAP": float(aktiva(st[scen][(y, 12)]))}
+                "R-KAP": float(aktiva(st[scen][(y, 12)]) + LEASING[(scen, y)])}
 
     ist = {y: jahr("AC", y) for y in RENDITE_JAHRE if y < LAST_ACTUAL[0]}
     fc = {**ist, LAST_ACTUAL[0]: jahr("FC", LAST_ACTUAL[0])}
@@ -607,7 +611,7 @@ def rendite(sim):
         for y, v in d.items():
             ctrl[f"{label} {y}"] = {**{k[1]: v[k[0]] for k in RENDITEKONTEN if k[0] in v},
                                     "Umsatzrendite": v["R-EBIT"] / v["R-UMS"], "Kapitalumschlag": v["R-UMS"] / v["R-KAP"],
-                                    "ROI": v["R-EBIT"] / v["R-KAP"]}
+                                    "ROI": v["R-EBIT"] / v["R-KAP"], "Leasing": float(LEASING[(label, y)])}
     return dim_, pd.DataFrame(rows), ctrl
 
 

@@ -214,4 +214,4 @@ foreach (var col in rk.Columns) col.SummarizeBy = AggregateFunction.None;
 foreach (var col in re.Columns) col.SummarizeBy = AggregateFunction.None;
 foreach (var s in sc)
     MT(re, "Rendite " + s.Key, "SUM ( 'Rendite'[" + s.Key + "] )", EUR, "10 Rendite",
-       s.Value + " je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende.");
+       s.Value + " je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.");

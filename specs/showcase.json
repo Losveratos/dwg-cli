@@ -5762,7 +5762,7 @@
       "name": "ROI-Baum über die Jahre",
       "template": "11A",
       "group": "P&L · Report-Ansichten",
-      "description": "Woraus setzt sich die Rendite auf das investierte Kapital zusammen, und wie hat sie sich seit 2024 entwickelt? Der Baum zerlegt den ROI in Umsatzrendite mal Kapitalumschlag, jede Karte zeigt die Jahre als Säulen, 2026 als Forecast schraffiert gegen den Plan. Die Rendite gilt für das ganze Unternehmen, deshalb wirkt hier kein Slicer, auch nicht das Jahr.",
+      "description": "Woraus setzt sich die Rendite auf das investierte Kapital zusammen, und wie hat sie sich seit 2024 entwickelt? Der Baum zerlegt den ROI in Umsatzrendite mal Kapitalumschlag, jede Karte zeigt die Jahre als Säulen, 2026 als Forecast schraffiert gegen den Plan; zum investierten Kapital zählen neben den Aktiva die Miet- und Leasingverträge, 2026 kommt ein gemietetes Kühllager dazu. Die Rendite gilt für das ganze Unternehmen, deshalb wirkt hier kein Slicer, auch nicht das Jahr.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -5837,7 +5837,6 @@
             "signConvention": "'Renditekonto'[SignConvention]",
             "displayInvert": "'Renditekonto'[DisplayInvert]",
             "varianceInvert": "'Renditekonto'[VarianceInvert]",
-            "comment": "'Renditekonto'[Kommentar]",
             "ac": "'Rendite'[Rendite AC]",
             "pl": "'Rendite'[Rendite PL]",
             "fc": "'Rendite'[Rendite FC]",
@@ -5864,7 +5863,7 @@
             "numbers": {
               "scaling": "m",
               "decimals": 1,
-              "pctDecimals": 1
+              "pctDecimals": 2
             },
             "state": {
               "uiState": "{\"view\":\"tree\",\"treeV\":2}"
@@ -5880,7 +5879,11 @@
             },
             "style": {
               "fontPreset": "fullhd",
-              "density": "compact"
+              "density": "compact",
+              "fontZoom": 130
+            },
+            "layout": {
+              "maximize": true
             }
           }
         }

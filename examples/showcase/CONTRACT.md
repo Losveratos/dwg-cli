@@ -246,7 +246,9 @@ CALCULATE; der Fixture `liquiditaet.json` enthält beide Jahre.
 | Wettbewerber AC, Wettbewerber PY | double | Absatz des größten Wettbewerbers in hl |
 
 AC leer ab September 2026. Marktvolumen 2024 = Eigenabsatz 2024 geteilt durch einen Startanteil je Segment, danach
-mit einem Marktwachstum je Segment und Jahr fortgeschrieben (Helles leicht fallend, Alkoholfrei kräftig wachsend),
+mit einem Marktwachstum je Segment und Jahr fortgeschrieben (Helles leicht fallend, Alkoholfrei kräftig wachsend,
+Dunkles Lager in den Exportländern schrumpfend, Spezialität in Polen stark wachsend: die Kacheln je Land der Seite C24
+bleiben lesbar),
 eigener Zufallsstrom (Seed 1882, Strom 1703). Eigenanteil Jan bis Aug 2026 zwischen 6,5 % (Deutschland · Helles Lager)
 und 54 % (Tschechien · Dunkles Lager); relativer Marktanteil über 1 nur in Tschechien · Dunkles Lager (2,58) und
 Tschechien · Alkoholfrei (1,15). Keine Beziehung zu 'Kunde' und 'Produkt': es gibt dort keine eindeutige Land- oder
@@ -280,7 +282,9 @@ im P&L-AGENT-GUIDE (Punkt 28): Return, Net sales, Invested capital mit Token `st
 
 Werte aus den Monatsreihen, die der Generator schon rechnet (kein neuer Zufall): EBIT und Nettoumsatz als Jahressumme
 der GuV (2024 aus den PY-Werten der 2025-Zeilen), Investiertes Kapital = Aktiva am Jahresende der Bilanz (Dezember
-2024, Dezember 2025, FC und PL Dezember 2026). Damit passen EBIT 2025 (2.422.583), Umsatz 2025 (38.527.414),
+2024, Dezember 2025, FC und PL Dezember 2026) plus Barwert der Miet- und Leasingverträge (`LEASING` im Generator:
+5,2 / 3,4 / FC 7,9 / PL 6,5 Mio. EUR; 2025 läuft das Lkw-Leasing aus, 2026 kommt ein gemietetes Kühllager dazu).
+Der Kapitalumschlag wandert damit sichtbar und bleibt unter 1, die Baumkarte zeigt zwei Nachkommastellen. Damit passen EBIT 2025 (2.422.583), Umsatz 2025 (38.527.414),
 Umsatz FC 2026 (40.167.091) und Umsatz PL 2026 (41.684.991) zu den übrigen Kontrollwerten. 2026 ist das
 Forecast-Jahr: das P&L-Visual zeigt im Baum AC, wo ein Ist da ist, sonst FC (schraffiert), Plan als Referenz.
 
@@ -502,16 +506,16 @@ bestätigt (`app/test/showcase-data.mjs`), im Service noch nicht (`check.py` pr�
 | Darlehensaufnahme AC (Juni) | 3.000.000 |
 | Tilgung und Dividende AC Jan bis Aug | −780.000 |
 | Eigenabsatz hl AC 2026 (= Absatz hl AC) | 279.545,3 |
-| Marktvolumen hl AC 2026 | 1.217.564,4 |
-| Marktvolumen hl PY bis Ist | 1.207.355,9 |
-| Wettbewerber hl AC 2026 | 401.363,1 |
+| Marktvolumen hl AC 2026 | 1.215.783,2 |
+| Marktvolumen hl PY bis Ist | 1.206.681,3 |
+| Wettbewerber hl AC 2026 | 397.907,5 |
 
 | Rendite | EBIT | Nettoumsatz | Investiertes Kapital | Umsatzrendite | Kapitalumschlag | ROI |
 |---|---:|---:|---:|---:|---:|---:|
-| AC 2024 | 1.524.979 | 35.671.771 | 36.222.516 | 4,3 % | 0,98 | 4,2 % |
-| AC 2025 | 2.422.583 | 38.527.414 | 36.724.875 | 6,3 % | 1,05 | 6,6 % |
-| FC 2026 | 1.731.308 | 40.167.091 | 39.709.198 | 4,3 % | 1,01 | 4,4 % |
-| PL 2026 | 3.359.545 | 41.684.991 | 40.767.856 | 8,1 % | 1,02 | 8,2 % |
+| AC 2024 | 1.524.979 | 35.671.771 | 41.422.516 | 4,3 % | 0,86 | 3,7 % |
+| AC 2025 | 2.422.583 | 38.527.414 | 40.124.875 | 6,3 % | 0,96 | 6,0 % |
+| FC 2026 | 1.731.308 | 40.167.091 | 47.609.198 | 4,3 % | 0,84 | 3,6 % |
+| PL 2026 | 3.359.545 | 41.684.991 | 47.267.856 | 8,1 % | 0,88 | 7,1 % |
 
 ## Dateien und Neuaufbau
 
