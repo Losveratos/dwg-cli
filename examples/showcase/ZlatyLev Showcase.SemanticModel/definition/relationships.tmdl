@@ -30,3 +30,23 @@ relationship 0ea3470a-37a6-5c91-afa8-2c1e3bc57c86
 	fromColumn: Cashflow.KontoID
 	toColumn: Cashflowkonto.KontoID
 
+relationship 3b2344c5-2ad2-584c-99c4-e1aaa14c98fb
+	fromColumn: Liquiditaet.Datum
+	toColumn: Kalender.Datum
+
+relationship 5bb1a22e-5751-501c-a7af-135a45451862
+	fromColumn: Liquiditaet.ArtID
+	toColumn: Liquiditaetsart.ArtID
+
+relationship 0d13d52f-3aad-534b-bc00-48e93effd04e
+	fromColumn: Markt.Datum
+	toColumn: Kalender.Datum
+
+relationship dfc15874-2b2a-5957-96cc-31fee4f14262
+	fromColumn: Markt.SegmentID
+	toColumn: Marktsegment.SegmentID
+
+relationship de1a9a24-518e-5f88-922b-d9744b474a1b
+	fromColumn: Rendite.KontoID
+	toColumn: Renditekonto.KontoID
+

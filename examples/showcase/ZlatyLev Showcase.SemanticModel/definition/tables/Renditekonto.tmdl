@@ -1,0 +1,104 @@
+table Renditekonto
+	lineageTag: 12190603-abd5-5905-93c7-690c90b9ceb0
+	sourceLineageTag: [dbo].[renditekonto]
+
+	column KontoID
+		dataType: string
+		isKey
+		lineageTag: 43d535de-5c01-5348-8f9d-0b8d5991795b
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column Konto
+		dataType: string
+		lineageTag: 01a137b2-9f49-5f99-a962-e947cc3c173c
+		sourceLineageTag: Konto
+		summarizeBy: none
+		sourceColumn: Konto
+
+	column L1
+		dataType: string
+		lineageTag: 8efebd5a-02ba-5f80-93ef-9e68dfb246da
+		sourceLineageTag: L1
+		summarizeBy: none
+		sourceColumn: L1
+		sortByColumn: 'L1 Sort'
+
+	column 'L1 Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6f5b09f9-0560-508a-9d0c-895780aa692a
+		sourceLineageTag: L1Sort
+		summarizeBy: none
+		sourceColumn: L1Sort
+
+	column L2
+		dataType: string
+		lineageTag: bc560147-836e-536a-a789-a55b1a93c804
+		sourceLineageTag: L2
+		summarizeBy: none
+		sourceColumn: L2
+		sortByColumn: SortOrder
+
+	column SortOrder
+		dataType: int64
+		formatString: 0
+		lineageTag: bc15deec-029e-57fb-ba96-a7575cc176af
+		sourceLineageTag: SortOrder
+		summarizeBy: none
+		sourceColumn: SortOrder
+
+	/// Zeilentyp mit Token für das P&L-Visual: stock = Stand am Jahresende (Investiertes Kapital), KPI factor = Kennzahl als Faktor (Kapitalumschlag).
+	column RowType
+		dataType: string
+		lineageTag: 5dfee425-15ae-5c7c-84b5-867920e9e1fe
+		sourceLineageTag: RowType
+		summarizeBy: none
+		sourceColumn: RowType
+
+	/// Formel des P&L-Visuals über Kontonamen (DuPont: ROI = Umsatzrendite × Kapitalumschlag).
+	column FormulaDef
+		dataType: string
+		lineageTag: 11b4da9f-87ae-560d-b7a7-5c0b6691bc8b
+		sourceLineageTag: FormulaDef
+		summarizeBy: none
+		sourceColumn: FormulaDef
+
+	column SignConvention
+		dataType: int64
+		formatString: 0
+		lineageTag: d643b572-4360-5a61-8f51-7c5cb5e586eb
+		sourceLineageTag: SignConvention
+		summarizeBy: none
+		sourceColumn: SignConvention
+
+	column DisplayInvert
+		dataType: string
+		lineageTag: 46b47f86-594a-53db-b627-c386613972db
+		sourceLineageTag: DisplayInvert
+		summarizeBy: none
+		sourceColumn: DisplayInvert
+
+	column VarianceInvert
+		dataType: string
+		lineageTag: 1dab765d-c471-528e-8ac7-b0a8b4f165a6
+		sourceLineageTag: VarianceInvert
+		summarizeBy: none
+		sourceColumn: VarianceInvert
+
+	column Kommentar
+		dataType: string
+		lineageTag: 94a85249-5cdb-5294-991f-55c47a2cdcfb
+		sourceLineageTag: Kommentar
+		summarizeBy: none
+		sourceColumn: Kommentar
+
+	partition Renditekonto = entity
+		mode: directLake
+		source
+			entityName: renditekonto
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

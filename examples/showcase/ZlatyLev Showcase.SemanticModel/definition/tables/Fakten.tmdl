@@ -302,6 +302,18 @@ table Fakten
 		displayFolder: 04 Bis Ist
 		lineageTag: fb92758a-73c5-55c8-ba5e-98b82b6042f9
 
+	/// Nettoumsatz Ist gegen Vorjahr in Prozent, Vorjahr nur über die Monate mit Ist (bis August 2026).
+	measure 'Umsatz ΔPY %' = DIVIDE ( [Umsatz AC] - [Umsatz PY bis Ist], [Umsatz PY bis Ist] )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: 07 Abweichung %
+		lineageTag: 6852940e-642a-5bbe-9a96-41dc94f88d44
+
+	/// Nettoumsatz Ist gegen Plan in Prozent, Plan nur über die Monate mit Ist (bis August 2026).
+	measure 'Umsatz ΔPL %' = DIVIDE ( [Umsatz AC] - [Umsatz PL bis Ist], [Umsatz PL bis Ist] )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: 07 Abweichung %
+		lineageTag: 6b60d798-5294-516e-9937-1fbd758e3b91
+
 	column Datum
 		dataType: dateTime
 		isHidden

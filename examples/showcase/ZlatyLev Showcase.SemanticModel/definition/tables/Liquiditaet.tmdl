@@ -1,0 +1,83 @@
+table Liquiditaet
+	lineageTag: ffb102c7-317f-5b54-a3b8-b543d9cc557f
+	sourceLineageTag: [dbo].[liquiditaet]
+
+	/// Ist je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
+	measure 'Liquidität AC' = SUM ( 'Liquiditaet'[AC] )
+		formatString: #,##0
+		displayFolder: 08 Liquidität
+		lineageTag: 37b4e604-7018-5be3-8283-9c2cd8f1ccdf
+
+	/// Vorjahr je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
+	measure 'Liquidität PY' = SUM ( 'Liquiditaet'[PY] )
+		formatString: #,##0
+		displayFolder: 08 Liquidität
+		lineageTag: 2dcd5c70-b71f-5351-9143-9ec38dab7d61
+
+	/// Plan je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
+	measure 'Liquidität PL' = SUM ( 'Liquiditaet'[PL] )
+		formatString: #,##0
+		displayFolder: 08 Liquidität
+		lineageTag: 8176afbd-8eee-5f17-b6f4-371e243dc283
+
+	/// Forecast je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
+	measure 'Liquidität FC' = SUM ( 'Liquiditaet'[FC] )
+		formatString: #,##0
+		displayFolder: 08 Liquidität
+		lineageTag: c6db1eb7-f39e-5d51-bc02-ef174617c3db
+
+	column Datum
+		dataType: dateTime
+		isHidden
+		lineageTag: 5a591032-70d7-58c1-8d74-e3420b2657c5
+		sourceLineageTag: Datum
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column ArtID
+		dataType: string
+		isHidden
+		lineageTag: 4cb67569-0da1-5555-8c99-fb43623b7fb9
+		sourceLineageTag: ArtID
+		summarizeBy: none
+		sourceColumn: ArtID
+
+	column AC
+		dataType: double
+		isHidden
+		lineageTag: 6d3d0f0c-f232-53ba-8a31-d89b8d01598b
+		sourceLineageTag: AC
+		summarizeBy: none
+		sourceColumn: AC
+
+	column PY
+		dataType: double
+		isHidden
+		lineageTag: 7df878e6-29f9-5b15-8576-adf1116d591d
+		sourceLineageTag: PY
+		summarizeBy: none
+		sourceColumn: PY
+
+	column PL
+		dataType: double
+		isHidden
+		lineageTag: 5382eba4-d648-554a-9096-54537f174e3b
+		sourceLineageTag: PL
+		summarizeBy: none
+		sourceColumn: PL
+
+	column FC
+		dataType: double
+		isHidden
+		lineageTag: 2f9bb3ca-3061-54b0-b049-d7e3c46cd5b5
+		sourceLineageTag: FC
+		summarizeBy: none
+		sourceColumn: FC
+
+	partition Liquiditaet = entity
+		mode: directLake
+		source
+			entityName: liquiditaet
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

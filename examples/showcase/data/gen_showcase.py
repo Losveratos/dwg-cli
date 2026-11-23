@@ -6,6 +6,10 @@ Brauerei-Case ZLATÝ LEV: Biere, Kunden und Zahlen sind erfunden
 Dazu Bilanz und Cashflow (Bestände für die P&L-Templates T05A und T05B, seit P&L-Visual 1.7): eigene Konten- und
 Faktentabellen, abgeleitet aus dem GuV-EBIT, deterministisch ohne den Zufallsstrom der GuV.
 
+Seit 23.11.2026 dazu drei Tabellenpaare für neue Templates: Liquidität (ChartKitchen C20, aus Cashflow und Bilanz),
+Markt (C24, Eigenabsatz aus den Fakten, Marktvolumen mit eigenem Zufallsstrom) und Rendite (P&L 11A, Jahreswerte aus
+den Monatsreihen von GuV und Bilanz). Die bisherigen Tabellen bleiben byte-gleich.
+
 Ausgabe:
   examples/showcase/data/parquet/<tabelle>.parquet          Quellen für das Lakehouse (Spaltennamen ohne Leerzeichen)
   examples/showcase/data/control.json                    Kontrollwerte
@@ -404,7 +408,205 @@ def bestaende(fakten):
         "Jahresüberschuss AC": cf(["CF-JUE"]), "Abschreibungen AC": cf(["CF-AFA"]),
         "Endbestand FC Dezember": float(fc_st[(LAST_ACTUAL[0], 12)]["A-KASSE"]),
     }
-    return dim(BILANZKONTEN), bilanz, dim(CASHFLOWKONTEN), cashflow, ctrl
+    sim = {"st": {"AC": ac_st, "PL": pl_st, "FC": fc_st}, "fl": {"AC": ac_fl, "PL": pl_fl, "FC": fc_fl}, "tr": tr}
+    return dim(BILANZKONTEN), bilanz, dim(CASHFLOWKONTEN), cashflow, ctrl, sim
+
+
+# ---------------------------------------------------------------- Liquidität (ChartKitchen C20, Bestand und Fluss)
+# Langformat für den Modus stockflow: Flussarten und der Kassenbestand als Mitglieder einer Spalte, Zeilentyp-Token
+# in 'Liquiditaetsart'[Fluss] (leer = Vorzeichen entscheidet). Werte aus den Cashflow- und Bilanz-Frames, kein neuer
+# Zufallsstrom. Kasse und Bank = Stand am Monatsende (je Monat eine Zeile, auch in FC- und PL-Monaten).
+
+# ArtID, Art, Art Sort, Fluss-Token, Cashflow-Konten (None = Bestand A-KASSE)
+LIQ_ARTEN = [
+    ("L-OP", "Operativer Cashflow", 1, None, ["CF-JUE", "CF-AFA", "CF-WC"]),
+    ("L-INV", "Investitionen", 2, "outflow", ["CF-INV", "CF-ABG"]),
+    ("L-DAR", "Darlehensaufnahme", 3, "inflow", ["CF-AUF"]),
+    ("L-AUS", "Tilgung und Dividende", 4, "outflow", ["CF-TIL", "CF-DIV"]),
+    ("L-KASSE", "Kasse und Bank", 5, "stock", None),
+]
+
+
+def liquiditaet(sim):
+    """Dimension und Monatsfakten 2025 und 2026 (AC leer ab September 2026, PY = Ist des Vorjahres)."""
+    st, fl = sim["st"], sim["fl"]
+
+    def wert(scen, ym, art):
+        if art[4] is None:
+            return float(st[scen][ym]["A-KASSE"])
+        return float(sum(fl[scen][ym][k] for k in art[4]))
+
+    rows = []
+    for y in YEARS:
+        for m in range(1, 13):
+            ym = (y, m)
+            for scen in (["AC"] if is_actual(y, m) else []) + ["PL", "FC"]:
+                # Bestand am Monatsende = Anfangsbestand + Summe der Flüsse des Monats
+                flows = sum(wert(scen, ym, a) for a in LIQ_ARTEN if a[4] is not None)
+                assert fl[scen][ym]["CF-ANF"] + flows == wert(scen, ym, LIQ_ARTEN[-1]), f"Liquidität {ym} {scen}"
+                for a in LIQ_ARTEN:
+                    if a[3] == "outflow":
+                        assert wert(scen, ym, a) <= 0, f"{a[1]} {ym} {scen} positiv, Token outflow passt nicht"
+                    if a[3] == "inflow":
+                        assert wert(scen, ym, a) >= 0, f"{a[1]} {ym} {scen} negativ, Token inflow passt nicht"
+            for a in LIQ_ARTEN:
+                rows.append({"Datum": f"{y}-{m:02d}-01", "ArtID": a[0],
+                             "AC": wert("AC", ym, a) if is_actual(y, m) else None,
+                             "PY": wert("AC", (y - 1, m), a), "PL": wert("PL", ym, a), "FC": wert("FC", ym, a)})
+    dim_ = pd.DataFrame([{"ArtID": a[0], "Art": a[1], "ArtSort": a[2], "Fluss": a[3]} for a in LIQ_ARTEN])
+    fakt = pd.DataFrame(rows)
+    ytd = [(LAST_ACTUAL[0], m) for m in range(1, LAST_ACTUAL[1] + 1)]
+    ctrl = {
+        "Kasse und Bank AC (Stichtag)": wert("AC", LAST_ACTUAL, LIQ_ARTEN[-1]),
+        "Kasse und Bank PY (Stichtag)": wert("AC", (LAST_ACTUAL[0] - 1, LAST_ACTUAL[1]), LIQ_ARTEN[-1]),
+        "Kasse und Bank FC Dezember": wert("FC", (LAST_ACTUAL[0], 12), LIQ_ARTEN[-1]),
+        "Kasse und Bank PL Dezember": wert("PL", (LAST_ACTUAL[0], 12), LIQ_ARTEN[-1]),
+        **{f"{a[1]} AC": sum(wert("AC", ym, a) for ym in ytd) for a in LIQ_ARTEN[:-1]},
+        "Darlehensaufnahme AC Juni": wert("AC", (2026, 6), LIQ_ARTEN[2]),
+        "Investitionen AC Juni": wert("AC", (2026, 6), LIQ_ARTEN[1]),
+    }
+    return dim_, fakt, ctrl
+
+
+# ---------------------------------------------------------------- Markt (ChartKitchen C24, Blasen mit Anteil)
+# Marktsegment = Land × Sorte (16). Eigenabsatz aus den Fakten (Konto 4000, Hektoliter), Marktvolumen und größter
+# Wettbewerber synthetisch mit eigenem Zufallsstrom (Seed 1882, Strom 1703): Marktvolumen 2024 = Eigenabsatz 2024 /
+# Startanteil, danach je Jahr mit dem Marktwachstum des Segments fortgeschrieben. Die GuV bleibt unverändert.
+
+LAENDER = ["Tschechien", "Deutschland", "Slowakei", "Polen"]
+# (Land, Sorte) → Eigenanteil 2024, Marktwachstum 2025, Marktwachstum 2026, Anteil des größten Wettbewerbers
+MARKT = {
+    ("Tschechien", "Helles Lager"): (0.30, -0.015, -0.020, 0.38),
+    ("Tschechien", "Dunkles Lager"): (0.52, 0.005, 0.000, 0.21),
+    ("Tschechien", "Spezialität"): (0.20, 0.050, 0.060, 0.27),
+    ("Tschechien", "Alkoholfrei"): (0.27, 0.090, 0.110, 0.24),
+    ("Deutschland", "Helles Lager"): (0.06, -0.010, -0.015, 0.29),
+    ("Deutschland", "Dunkles Lager"): (0.10, 0.000, -0.005, 0.27),
+    ("Deutschland", "Spezialität"): (0.05, 0.045, 0.050, 0.19),
+    ("Deutschland", "Alkoholfrei"): (0.07, 0.100, 0.120, 0.31),
+    ("Slowakei", "Helles Lager"): (0.12, -0.005, -0.010, 0.34),
+    ("Slowakei", "Dunkles Lager"): (0.18, 0.010, 0.005, 0.30),
+    ("Slowakei", "Spezialität"): (0.09, 0.055, 0.060, 0.24),
+    ("Slowakei", "Alkoholfrei"): (0.10, 0.080, 0.100, 0.27),
+    ("Polen", "Helles Lager"): (0.08, 0.010, 0.020, 0.33),
+    ("Polen", "Dunkles Lager"): (0.15, 0.020, 0.025, 0.26),
+    ("Polen", "Spezialität"): (0.06, 0.070, 0.080, 0.22),
+    ("Polen", "Alkoholfrei"): (0.09, 0.120, 0.140, 0.29),
+}
+
+
+def markt(fakten):
+    """Dimension 'Marktsegment' und Monatsfakten 'Markt' 2025 und 2026 (AC leer ab September 2026)."""
+    rng_m = np.random.default_rng([SEED, 1703])
+    land = {k[0]: k[4] for k in KUNDEN}
+    sorte = {p[0]: p[2] for p in PRODUKTE}
+    f = fakten[fakten["KontoID"] == "4000"]
+    f = f.assign(y=f["Datum"].str[:4].astype(int), m=f["Datum"].str[5:7].astype(int),
+                 land=f["KundeID"].map(land), sorte=f["ProduktID"].map(sorte))
+    own = {}                                                         # (Land, Sorte, y, m) → hl
+    for (l, s, y, m), g in f.groupby(["land", "sorte", "y", "m"]):
+        if y == 2025:
+            own[(l, s, 2024, m)] = g["HektoliterPY"].sum()
+        if g["HektoliterAC"].notna().any():
+            own[(l, s, int(y), int(m))] = g["HektoliterAC"].sum()
+    vol, wett = {}, {}
+    for (l, s), (anteil, g25, g26, wb) in MARKT.items():
+        for m in range(1, 13):
+            v = own[(l, s, 2024, m)] / anteil * rng_m.normal(1.0, 0.03)
+            for y, g in [(2024, 0.0), (2025, g25), (2026, g26)]:
+                v = v * (1 + g) * (rng_m.normal(1.0, 0.02) if y > 2024 else 1.0)
+                vol[(l, s, y, m)] = v
+                wett[(l, s, y, m)] = v * wb * rng_m.normal(1.0, 0.02)
+    segs = [(l, s) for l in LAENDER for s in SORTEN]
+    seg_id = {ls: f"S{LAENDER.index(ls[0]) + 1}{SORTEN.index(ls[1]) + 1}" for ls in segs}
+    r1 = lambda x: float(round(x, 1))
+    rows = []
+    for y in YEARS:
+        for m in range(1, 13):
+            for l, s in segs:
+                act = is_actual(y, m)
+                rows.append({"Datum": f"{y}-{m:02d}-01", "SegmentID": seg_id[(l, s)],
+                             "EigenabsatzAC": r1(own[(l, s, y, m)]) if act else None,
+                             "EigenabsatzPY": r1(own[(l, s, y - 1, m)]),
+                             "MarktvolumenAC": r1(vol[(l, s, y, m)]) if act else None,
+                             "MarktvolumenPY": r1(vol[(l, s, y - 1, m)]),
+                             "WettbewerberAC": r1(wett[(l, s, y, m)]) if act else None,
+                             "WettbewerberPY": r1(wett[(l, s, y - 1, m)])})
+    dim_ = pd.DataFrame([{"SegmentID": seg_id[(l, s)], "Segment": f"{l} · {s}", "Land": l, "LandSort": LAENDER.index(l) + 1,
+                          "Sorte": s, "SorteSort": SORTEN.index(s) + 1} for l, s in segs])
+    fakt = pd.DataFrame(rows)
+    # Kontrolle 2026 (Jan bis Aug): Eigenanteil zwischen 5 und 60 %, ein bis zwei Segmente mit relativem Anteil über 1
+    ist = fakt[fakt["Datum"].str.startswith("2026") & fakt["EigenabsatzAC"].notna()]
+    g = ist.merge(dim_, on="SegmentID").groupby("Segment")[["EigenabsatzAC", "MarktvolumenAC", "WettbewerberAC"]].sum()
+    anteil = g["EigenabsatzAC"] / g["MarktvolumenAC"]
+    rel = g["EigenabsatzAC"] / g["WettbewerberAC"]
+    assert anteil.between(0.045, 0.62).all(), f"Eigenanteil außerhalb 5 bis 60 %:\n{anteil}"
+    assert 1 <= (rel > 1).sum() <= 2, f"relativer Marktanteil über 1 in {(rel > 1).sum()} Segmenten:\n{rel}"
+    ytd = fakt[fakt["Datum"].str.startswith("2026") & (fakt["Datum"] <= "2026-08-01")]
+    ctrl = {
+        "Eigenabsatz hl AC": round(float(ist["EigenabsatzAC"].sum()), 1),
+        "Marktvolumen hl AC": round(float(ist["MarktvolumenAC"].sum()), 1),
+        "Marktvolumen hl PY bis Ist": round(float(ytd["MarktvolumenPY"].sum()), 1),
+        "Wettbewerber hl AC": round(float(ist["WettbewerberAC"].sum()), 1),
+        "Eigenanteil je Segment": {k: round(float(v), 4) for k, v in anteil.items()},
+        "Relativer Marktanteil je Segment": {k: round(float(v), 3) for k, v in rel.items()},
+    }
+    return dim_, fakt, ctrl
+
+
+# ---------------------------------------------------------------- Rendite (P&L 11A, ROI-Baum nach DuPont)
+# Jahreswerte aus den Monatsreihen der GuV und der Bilanz: EBIT und Nettoumsatz als Jahressumme, investiertes Kapital
+# = Aktiva am Jahresende. Ist 2024 und 2025, Forecast 2026 (Ist Jan bis Aug plus Forecast), Plan 2026. Periode = Jahr
+# als eigene Spalte ohne Beziehung zum Kalender (der Jahr-Slicer würde den Baum sonst auf ein Jahr schneiden).
+
+# KontoID, Konto, SortOrder, RowType, FormulaDef, VarianceInvert, Kommentar
+RENDITEKONTEN = [
+    ("R-EBIT", "EBIT", 10, "Account", None, "false", "EBIT der GuV im Jahr"),
+    ("R-UMS", "Nettoumsatz", 20, "Account", None, "false", None),
+    ("R-KAP", "Investiertes Kapital", 30, "Account stock", None, "true",
+     "Aktiva am Jahresende, 2026 mit der neuen Abfüllanlage"),
+    ("R-UR", "Umsatzrendite", 40, "KPI", "[EBIT] / [Nettoumsatz]", "false", None),
+    ("R-KU", "Kapitalumschlag", 50, "KPI factor", "[Nettoumsatz] / [Investiertes Kapital]", "false", None),
+    ("R-ROI", "ROI", 60, "KPI", "[Umsatzrendite] * [Kapitalumschlag]", "false", None),
+]
+RENDITE_JAHRE = [2024, 2025, 2026]
+
+
+def rendite(sim):
+    tr, st = sim["tr"], sim["st"]
+
+    def jahr(scen, y):
+        ms = [(y, m) for m in range(1, 13)]
+        if any(ym not in tr[scen] for ym in ms):
+            return None
+        return {"R-EBIT": float(sum(tr[scen][ym]["ebit"] for ym in ms)),
+                "R-UMS": float(sum(tr[scen][ym]["umsatz"] for ym in ms)),
+                "R-KAP": float(aktiva(st[scen][(y, 12)]))}
+
+    ist = {y: jahr("AC", y) for y in RENDITE_JAHRE if y < LAST_ACTUAL[0]}
+    fc = {**ist, LAST_ACTUAL[0]: jahr("FC", LAST_ACTUAL[0])}
+    pl = {LAST_ACTUAL[0]: jahr("PL", LAST_ACTUAL[0])}
+    rows = []
+    for y in RENDITE_JAHRE:
+        for k in RENDITEKONTEN:
+            if not k[3].startswith("Account"):
+                continue                    # KPI-Zeilen ohne Faktzeilen (ADDMISSINGITEMS)
+            rows.append({"Jahr": y, "KontoID": k[0],
+                         "AC": ist[y][k[0]] if y in ist else None,
+                         "PY": ist[y - 1][k[0]] if (y - 1) in ist else None,
+                         "PL": pl[y][k[0]] if y in pl else None,
+                         "FC": fc[y][k[0]] if y in fc else None})
+    dim_ = pd.DataFrame([{
+        "KontoID": k[0], "Konto": k[1], "L1": k[1], "L1Sort": k[2], "L2": None, "SortOrder": k[2], "RowType": k[3],
+        "FormulaDef": k[4], "SignConvention": 1, "DisplayInvert": "false", "VarianceInvert": k[5], "Kommentar": k[6],
+    } for k in RENDITEKONTEN])
+    ctrl = {}
+    for label, d in [("AC", ist), ("FC", {LAST_ACTUAL[0]: fc[LAST_ACTUAL[0]]}), ("PL", pl)]:
+        for y, v in d.items():
+            ctrl[f"{label} {y}"] = {**{k[1]: v[k[0]] for k in RENDITEKONTEN if k[0] in v},
+                                    "Umsatzrendite": v["R-EBIT"] / v["R-UMS"], "Kapitalumschlag": v["R-UMS"] / v["R-KAP"],
+                                    "ROI": v["R-EBIT"] / v["R-KAP"]}
+    return dim_, pd.DataFrame(rows), ctrl
 
 
 # ---------------------------------------------------------------- Rechnen
@@ -543,7 +745,10 @@ def main():
         "KundeID": k[0], "Kunde": k[1], "Kanal": k[2], "KanalSort": KANAELE.index(k[2]) + 1, "Region": k[3], "Land": k[4],
     } for k in KUNDEN])
     by_id = {k[0]: k for k in KONTEN}
-    bilanzkonto, bilanz, cashflowkonto, cashflow, ctrl_best = bestaende(fakten)
+    bilanzkonto, bilanz, cashflowkonto, cashflow, ctrl_best, sim = bestaende(fakten)
+    liquiditaetsart, liquiditaet_, ctrl_liq = liquiditaet(sim)
+    marktsegment, markt_, ctrl_markt = markt(fakten)
+    renditekonto, rendite_, ctrl_rendite = rendite(sim)
 
     def l1(k):
         if k[3] == "Account":
@@ -580,6 +785,15 @@ def main():
                             "Stichtag": pa.bool_()}),
         "cashflowkonto": (cashflowkonto, {"L1Sort": pa.int64(), "SortOrder": pa.int64(), "SignConvention": pa.int64()}),
         "cashflow": (cashflow, {"Datum": date, "AC": pa.float64(), "PY": pa.float64(), "PL": pa.float64(), "FC": pa.float64()}),
+        # seit 23.11.2026: Liquidität (C20), Markt (C24), Rendite (11A)
+        "liquiditaetsart": (liquiditaetsart, {"ArtSort": pa.int64()}),
+        "liquiditaet": (liquiditaet_, {"Datum": date, "AC": pa.float64(), "PY": pa.float64(), "PL": pa.float64(),
+                                       "FC": pa.float64()}),
+        "marktsegment": (marktsegment, {"LandSort": pa.int64(), "SorteSort": pa.int64()}),
+        "markt": (markt_, {"Datum": date, **{c: pa.float64() for c in markt_.columns if c not in ("Datum", "SegmentID")}}),
+        "renditekonto": (renditekonto, {"L1Sort": pa.int64(), "SortOrder": pa.int64(), "SignConvention": pa.int64()}),
+        "rendite": (rendite_, {"Jahr": pa.int64(), "AC": pa.float64(), "PY": pa.float64(), "PL": pa.float64(),
+                               "FC": pa.float64()}),
     }
     for name, (df, types) in schemas.items():
         fields = []
@@ -613,7 +827,8 @@ def main():
     ytd26 = f26[f26["Datum"] <= "2026-08-01"]
     control = {
         "rows": {"fakten": len(fakten), "fakten2026": len(f26), "kombinationen": len(combos),
-                 "bilanz": len(bilanz), "cashflow": len(cashflow)},
+                 "bilanz": len(bilanz), "cashflow": len(cashflow), "liquiditaet": len(liquiditaet_),
+                 "markt": len(markt_), "rendite": len(rendite_)},
         "2026": {
             "GuV AC": float(f26["AC"].sum()), "GuV PY": float(f26["PY"].sum()), "GuV PL": float(f26["PL"].sum()),
             "GuV FC": float(f26["FC"].sum()),
@@ -648,6 +863,9 @@ def main():
     stories["Logistik"] = {"AC": c26["Logistik AC"], "PL": c26["Logistik PL bis Ist"]}
     control["Geschichten Jan bis Aug 2026"] = stories
     control["Bilanz und Cashflow 2026"] = ctrl_best
+    control["Liquidität 2026"] = ctrl_liq
+    control["Markt 2026"] = ctrl_markt
+    control["Rendite"] = ctrl_rendite
     (HERE / "control.json").write_text(json.dumps(control, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # ------------------------------------------------------------ Mini-DAX-Fixtures (Spaltennamen wie im Modell)
@@ -661,6 +879,14 @@ def main():
         "cashflowkonto": {"L1Sort": "L1 Sort"},
         "bilanz": {},
         "cashflow": {},
+        "liquiditaetsart": {"ArtSort": "Art Sort"},
+        "liquiditaet": {},
+        "marktsegment": {"LandSort": "Land Sort", "SorteSort": "Sorte Sort"},
+        "markt": {"EigenabsatzAC": "Eigenabsatz AC", "EigenabsatzPY": "Eigenabsatz PY",
+                  "MarktvolumenAC": "Marktvolumen AC", "MarktvolumenPY": "Marktvolumen PY",
+                  "WettbewerberAC": "Wettbewerber AC", "WettbewerberPY": "Wettbewerber PY"},
+        "renditekonto": {"L1Sort": "L1 Sort"},
+        "rendite": {},
         "fakten": {"HektoliterAC": "Hektoliter AC", "HektoliterPY": "Hektoliter PY", "HektoliterPL": "Hektoliter PL",
                    "HektoliterFC": "Hektoliter FC"},
     }
@@ -683,6 +909,12 @@ def main():
     to_json(cashflowkonto, "cashflowkonto", "cashflowkonto.json")
     to_json(bilanz[bilanz["Datum"].str.startswith("2026")], "bilanz", "bilanz-2026.json")
     to_json(cashflow[cashflow["Datum"].str.startswith("2026")], "cashflow", "cashflow-2026.json")
+    to_json(liquiditaetsart, "liquiditaetsart", "liquiditaetsart.json")
+    to_json(liquiditaet_[liquiditaet_["Datum"].str.startswith("2026")], "liquiditaet", "liquiditaet-2026.json")
+    to_json(marktsegment, "marktsegment", "marktsegment.json")
+    to_json(markt_[markt_["Datum"].str.startswith("2026")], "markt", "markt-2026.json")
+    to_json(renditekonto, "renditekonto", "renditekonto.json")
+    to_json(rendite_, "rendite", "rendite.json")            # alle Jahre: ohne Beziehung zum Kalender
 
     print(json.dumps(control, ensure_ascii=False, indent=1))
 

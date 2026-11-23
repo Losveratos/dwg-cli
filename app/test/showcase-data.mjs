@@ -1,10 +1,11 @@
 // Showcase-Datensatz: Mini-DAX rechnet die Measures des Modells „ZlatyLev Showcase“ (wörtlich aus dem TMDL exportiert)
 // auf den Fixtures und trifft die Kontrollwerte aus showcase/CONTRACT.md. Dazu Kurztests der Mini-DAX-Erweiterungen
 // (Plus/Minus, Zahlen, DIVIDE, AVERAGEX, mehrere Faktentabellen). Bilanz und Cashflow: Aktiva = Passiva, Kasse =
-// Endbestand, Anfangsbestand = Endbestand des Vormonats, Abschreibungen aus der GuV. Aufruf: node app/test/showcase-data.mjs
+// Endbestand, Anfangsbestand = Endbestand des Vormonats, Abschreibungen aus der GuV. Seit 23.11.2026: Umsatz Δ% (C18),
+// Liquidität (C20), Markt (C24), Rendite (11A) und Slicer auf Tabellen ohne Beziehung. Aufruf: node app/test/showcase-data.mjs
 import assert from "node:assert/strict";
 import { createEngine, splitSigned } from "./minidax.mjs";
-import { model, CONTROL, CONTROL_STOCK } from "./datasets/showcase.mjs";
+import { model, CONTROL, CONTROL_STOCK, CONTROL_NEW } from "./datasets/showcase.mjs";
 
 let n = 0;
 const test = (name, fn) => { fn(); n++; console.log(`  ok  ${name}`); };
@@ -49,10 +50,14 @@ const value = (measure, filters = []) => {
     return r.rows[0]?.[0] ?? null;
 };
 
-test("Fixtures: 14.124 Faktzeilen 2026, 21 Konten, 63 Measures aus dem Modell (50 GuV, 13 Bilanz und Cashflow)", () => {
+test("Fixtures: 14.124 Faktzeilen 2026, 21 Konten, 83 Measures aus dem Modell (52 GuV, 13 Bilanz und Cashflow, 18 neu)", () => {
     assert.equal(model.tables.Fakten.rows.length, CONTROL.rows);
     assert.equal(CONTROL.accounts, 21);
-    assert.equal(Object.keys(model.measures).length, 63);
+    // 50 GuV + 2 Umsatz Δ% (Fakten), 13 Bilanz und Cashflow, 4 Liquidität, 10 Markt, 4 Rendite
+    assert.equal(Object.keys(model.measures).length, 83);
+    assert.equal(model.tables.Liquiditaet.rows.length, 12 * 5, "Liquidität 2026: 5 Arten × 12 Monate");
+    assert.equal(model.tables.Markt.rows.length, 12 * 16, "Markt 2026: 16 Segmente × 12 Monate");
+    assert.equal(model.tables.Rendite.rows.length, 3 * 3, "Rendite: 3 Konten × 3 Jahre (KPI-Zeilen ohne Fakten)");
     assert.equal(model.tables.Bilanz.rows.length, 12 * 8, "Bilanz 2026: 8 Positionen × 12 Monate");
     assert.equal(model.tables.Cashflow.rows.length, 12 * 9, "Cashflow 2026: 9 Positionen × 12 Monate (Endbestand ohne Faktzeilen)");
 });
@@ -180,6 +185,128 @@ test("Mini-DAX mit mehreren Faktentabellen: Faktentabelle der Measures, Filter o
     assert.throws(() => engine.query(`EVALUATE SUMMARIZECOLUMNS("a", [GuV AC], "b", [Bilanz AC])`), /mehreren Faktentabellen/);
     const r = engine.query(`EVALUATE ADDMISSINGITEMS('Cashflowkonto'[KontoID], SUMMARIZECOLUMNS('Cashflowkonto'[KontoID], TREATAS({2026}, 'Kalender'[Jahr]), "ac", [Cashflow AC]), 'Cashflowkonto'[KontoID])`);
     assert.equal(r.rows.length, 10, "alle 10 Cashflow-Zeilen inkl. Endbestand (Formel ohne Fakten)");
+});
+
+// ---------------------------------------------------------------- Seit 23.11.2026: C18, C20, C24, 11A
+
+const N = CONTROL_NEW;
+const q = dax => engine.query(dax).rows;
+
+test("C18: Umsatz ΔPY % und ΔPL % gegen Vorjahr und Plan über dieselben Ist-Monate, je Kunde mit Kanal", () => {
+    near(value("Umsatz ΔPY %"), CONTROL["Umsatz AC"] / CONTROL["Umsatz PY bis Ist"] - 1, "ΔPY % gesamt", 1e-9);
+    near(value("Umsatz ΔPL %"), CONTROL["Umsatz AC"] / CONTROL["Umsatz PL bis Ist"] - 1, "ΔPL % gesamt", 1e-9);
+    const pl = CONTROL.stories["Region Polen"];
+    near(value("Umsatz ΔPL %", [`TREATAS({"Polen"}, 'Kunde'[Region])`]), pl["Umsatz AC"] / pl["Umsatz PL"] - 1, "Polen ΔPL %", 1e-9);
+    near(value("Umsatz ΔPY %", [`TREATAS({"Polen"}, 'Kunde'[Region])`]), pl["Umsatz AC"] / pl["Umsatz PY"] - 1, "Polen ΔPY %", 1e-9);
+    const r = q(`EVALUATE SUMMARIZECOLUMNS('Kunde'[Kunde], 'Kunde'[Kanal], TREATAS({2026}, 'Kalender'[Jahr]), "y", [Umsatz ΔPL %], "x", [Umsatz ΔPY %], "s", [Umsatz AC])`);
+    assert.equal(r.length, 12, "12 Kunden");
+    for (const [k, , y, x, size] of r) {
+        assert.ok(Math.abs(x) < 0.6 && Math.abs(y) < 0.6 && size > 0, `${k}: ΔPY % ${x}, ΔPL % ${y}`);
+    }
+    assert.ok(r.some(x => x[2] > 0 && x[3] > 0) && r.some(x => x[2] < 0), "Punkte in mehreren Quadranten");
+});
+
+test("C20 Liquidität: je Monat eine Bestandszeile, Kasse = Anfangsbestand plus Flüsse = Bilanz, Token passen zum Vorzeichen", () => {
+    const L = N.liquiditaet;
+    for (const s of ["AC", "PY", "PL", "FC"]) {
+        const r = q(`EVALUATE SUMMARIZECOLUMNS('Kalender'[Periode], 'Liquiditaetsart'[Art], 'Liquiditaetsart'[Art Sort], 'Liquiditaetsart'[Fluss], TREATAS({2026}, 'Kalender'[Jahr]), "v", [Liquidität ${s}]) ORDER BY 'Kalender'[Periode], 'Liquiditaetsart'[Art Sort]`);
+        const by = {};
+        for (const [per, art, , fluss, v] of r) {
+            const b = (by[per] ??= { flows: 0, stock: null });
+            if (fluss === "stock") { b.stock = v; continue; }
+            b.flows += v;
+            if (fluss === "outflow") { assert.ok(v <= 0, `${s} ${per} ${art}: Abfluss ${v}`); }
+            if (fluss === "inflow") { assert.ok(v >= 0, `${s} ${per} ${art}: Zufluss ${v}`); }
+            if (fluss == null) { assert.equal(art, "Operativer Cashflow"); }
+        }
+        const pers = Object.keys(by).sort();
+        assert.equal(pers.length, s === "AC" ? 8 : 12, `${s}: Monate`);
+        const anf = byPeriod(`Cashflow ${s}`, [`TREATAS({"CF-ANF"}, 'Cashflowkonto'[KontoID])`]);
+        const kasse = byPeriod(`Bilanz ${s}`, [`TREATAS({"A-KASSE"}, 'Bilanzkonto'[KontoID])`]);
+        pers.forEach((per, i) => {
+            assert.ok(by[per].stock != null, `${s} ${per}: Bestandszeile fehlt`);
+            assert.equal(by[per].stock, kasse[per], `${s} ${per}: Kasse = Bilanz`);
+            assert.equal(anf[per] + by[per].flows, by[per].stock, `${s} ${per}: Anfangsbestand + Flüsse = Kasse`);
+            if (i > 0) { assert.equal(by[pers[i - 1]].stock + by[per].flows, by[per].stock, `${s} ${per}: Kasse Vormonat + Flüsse`); }
+        });
+    }
+    const id = v => `TREATAS({"${v}"}, 'Liquiditaetsart'[ArtID])`;
+    near(value("Liquidität AC", [id("L-KASSE"), `TREATAS({"2026-08"}, 'Kalender'[Periode])`]), L["Kasse und Bank AC (Stichtag)"], "Kasse August");
+    near(value("Liquidität FC", [id("L-KASSE"), `TREATAS({"2026-12"}, 'Kalender'[Periode])`]), L["Kasse und Bank FC Dezember"], "Kasse FC Dezember");
+    near(value("Liquidität PL", [id("L-KASSE"), `TREATAS({"2026-12"}, 'Kalender'[Periode])`]), L["Kasse und Bank PL Dezember"], "Kasse PL Dezember");
+    near(value("Liquidität AC", [id("L-OP")]), CONTROL_STOCK["Operativer Cashflow AC"], "Operativer Cashflow = Cashflow-Tabelle");
+    near(value("Liquidität AC", [id("L-INV")]), CONTROL_STOCK["Investiver Cashflow AC"], "Investitionen = investiver Cashflow");
+    near(value("Liquidität AC", [id("L-DAR"), `TREATAS({"2026-06"}, 'Kalender'[Periode])`]), 3_000_000, "Darlehen Juni");
+});
+
+test("C24 Markt: Eigenabsatz = Absatz der Fakten je Land und Sorte, Eigenanteil 5 bis 60 %, zwei Segmente mit relativem Anteil über 1", () => {
+    const M = N.markt;
+    near(value("Eigenabsatz hl AC"), CONTROL["Absatz hl AC"], "Eigenabsatz = Absatz hl AC", 0.01);
+    near(value("Marktvolumen hl AC"), M["Marktvolumen hl AC"], "Marktvolumen", 0.01);
+    near(value("Wettbewerber hl AC"), M["Wettbewerber hl AC"], "Wettbewerber", 0.01);
+    near(value("Marktwachstum %"), M["Marktvolumen hl AC"] / M["Marktvolumen hl PY bis Ist"] - 1, "Marktwachstum gesamt", 1e-9);
+    const r = q(`EVALUATE SUMMARIZECOLUMNS('Marktsegment'[Land], 'Marktsegment'[Land Sort], 'Marktsegment'[Sorte], 'Marktsegment'[Sorte Sort], TREATAS({2026}, 'Kalender'[Jahr]), "y", [Marktwachstum %], "x", [Relativer Marktanteil], "size", [Marktvolumen hl AC], "share", [Eigenabsatz hl AC], "a", [Marktanteil %]) ORDER BY 'Marktsegment'[Land Sort], 'Marktsegment'[Sorte Sort]`);
+    assert.equal(r.length, 16, "4 Länder × 4 Sorten");
+    for (const [land, , sorte, , y, x, size, share, a] of r) {
+        const seg = `${land} · ${sorte}`;
+        assert.ok(a > 0.045 && a < 0.62, `${seg}: Eigenanteil ${a}`);
+        near(a, M["Eigenanteil je Segment"][seg], `${seg}: Eigenanteil`, 1e-4);
+        assert.ok(share < size && Math.abs(y) < 0.25 && x > 0, `${seg}: Anteil ${share}/${size}, Wachstum ${y}`);
+        const own = value("Absatz hl AC", [`TREATAS({"${land}"}, 'Kunde'[Land])`, `TREATAS({"${sorte}"}, 'Produkt'[Sorte])`]);
+        near(share, own, `${seg}: Eigenabsatz = Absatz hl AC der Fakten`, 0.01);
+    }
+    assert.equal(r.filter(x => x[5] > 1).length, 2, "relativer Marktanteil über 1 (Marktführer)");
+});
+
+test("11A Rendite: P&L-Abfrage mit Jahr als Periode liefert alle Jahre und die KPI-Zeilen, Werte passen zu GuV und Bilanz", () => {
+    const R = N.rendite;
+    const cols = ["'Renditekonto'[KontoID]", "'Renditekonto'[Konto]", "'Renditekonto'[SortOrder]", "'Renditekonto'[RowType]",
+        "'Renditekonto'[FormulaDef]", "'Rendite'[Jahr]"].join(", ");
+    const jahr = `TREATAS({2026}, 'Kalender'[Jahr])`;            // Jahr-Slicer der App: ohne Beziehung wirkungslos
+    const r = q(`EVALUATE CALCULATETABLE(ADDMISSINGITEMS(${cols}, SUMMARIZECOLUMNS(${cols}, ${jahr}, "ac", [Rendite AC], "pl", [Rendite PL], "fc", [Rendite FC]), ${cols}), ${jahr}) ORDER BY 'Renditekonto'[SortOrder], 'Rendite'[Jahr]`);
+    assert.equal(r.length, 6 * 3, "6 Zeilen × 3 Jahre (KPI-Zeilen aufgefüllt)");
+    const cell = (id, y, i) => r.find(x => x[0] === id && x[5] === y)[i];
+    const AC = 6, PL = 7, FC = 8;
+    near(cell("R-EBIT", 2025, AC), N.y2025["EBIT AC"], "EBIT 2025 = GuV");
+    near(cell("R-UMS", 2025, AC), N.y2025["Umsatz AC"], "Nettoumsatz 2025 = GuV");
+    near(cell("R-UMS", 2026, FC), CONTROL["Umsatz FC"], "Nettoumsatz FC 2026 = Umsatz FC");
+    near(cell("R-UMS", 2026, PL), CONTROL["Umsatz PL"], "Nettoumsatz PL 2026 = Umsatz PL");
+    near(cell("R-EBIT", 2026, FC), value("GuV ± FC"), "EBIT FC 2026 = GuV ± FC");
+    near(cell("R-EBIT", 2026, PL), value("GuV ± PL"), "EBIT PL 2026 = GuV ± PL");
+    const aktiva = (m, per) => value(m, [L1("Bilanzkonto", "Aktiva"), `TREATAS({"${per}"}, 'Kalender'[Periode])`]);
+    near(cell("R-KAP", 2025, AC), aktiva("Bilanz PY", "2026-12"), "Kapital 2025 = Aktiva Dezember 2025");
+    near(cell("R-KAP", 2026, FC), aktiva("Bilanz FC", "2026-12"), "Kapital FC 2026 = Aktiva FC Dezember 2026");
+    near(cell("R-KAP", 2026, PL), aktiva("Bilanz PL", "2026-12"), "Kapital PL 2026 = Aktiva PL Dezember 2026");
+    for (const y of [2024, 2025]) {
+        assert.equal(cell("R-EBIT", y, PL), null, `kein Plan ${y}`);
+        assert.equal(cell("R-UMS", y, FC), cell("R-UMS", y, AC), `FC ${y} = AC`);
+    }
+    assert.equal(cell("R-UMS", 2026, AC), null, "2026 ist Forecast-Jahr ohne Ist");
+    for (const k of ["R-UR", "R-KU", "R-ROI"]) { assert.equal(cell(k, 2025, AC), null, `${k}: KPI ohne Fakten`); }
+    // Zeilentypen und Formeln nach dem P&L-Vertrag 11A, Formeln referenzieren vorhandene Kontonamen
+    const dim = model.tables.Renditekonto, ix = c => dim.columns.indexOf(c);
+    const names = new Set(dim.rows.map(x => x[ix("Konto")]));
+    assert.deepEqual(dim.rows.map(x => x[ix("RowType")]), ["Account", "Account", "Account stock", "KPI", "KPI factor", "KPI"]);
+    for (const x of dim.rows) {
+        for (const m of (x[ix("FormulaDef")] ?? "").matchAll(/\[([^\]]+)\]/g)) { assert.ok(names.has(m[1]), `Formel ${x[ix("Konto")]}: ${m[1]}`); }
+    }
+    // DuPont: ROI = Umsatzrendite × Kapitalumschlag = EBIT / Kapital
+    for (const [k, v] of Object.entries(R)) { near(v.ROI, v.Umsatzrendite * v.Kapitalumschlag, `ROI ${k}`, 1e-12); }
+});
+
+test("App-Slicer ohne Beziehung: Region, Kanal, Sorte filtern Liquidität, Markt und Rendite nicht, das Jahr nur Liquidität und Markt", () => {
+    const slicer = [`TREATAS({"Polen", "Prag"}, 'Kunde'[Region])`, `TREATAS({"Export"}, 'Kunde'[Kanal])`, `TREATAS({"Alkoholfrei"}, 'Produkt'[Sorte])`];
+    for (const m of ["Liquidität AC", "Liquidität FC", "Marktvolumen hl AC", "Eigenabsatz hl AC", "Marktwachstum %"]) {
+        near(value(m, slicer), value(m), `${m}: Kunden- und Produkt-Slicer wirken nicht`, 1e-6);
+    }
+    assert.ok(value("Absatz hl AC", slicer) < value("Absatz hl AC"), "die Fakten dagegen sind gefiltert");
+    near(value("Liquidität AC", [`TREATAS({"2026-01"}, 'Kalender'[Periode])`, `TREATAS({"L-KASSE"}, 'Liquiditaetsart'[ArtID])`]),
+        value("Bilanz AC", [`TREATAS({"2026-01"}, 'Kalender'[Periode])`, `TREATAS({"A-KASSE"}, 'Bilanzkonto'[KontoID])`]), "Kalender filtert die Liquidität");
+    const all = q(`EVALUATE SUMMARIZECOLUMNS("v", [Rendite FC])`)[0][0];
+    const sliced = q(`EVALUATE SUMMARIZECOLUMNS(TREATAS({2026}, 'Kalender'[Jahr]), ${slicer.join(", ")}, "v", [Rendite FC])`)[0][0];
+    assert.equal(sliced, all, "Rendite: kein Slicer wirkt, auch nicht das Jahr");
+    assert.throws(() => q(`EVALUATE SUMMARIZECOLUMNS('Kalender'[Monatsname], "v", [Rendite AC])`), /keine Beziehung zu 'Kalender'/,
+        "Gruppieren nach Kalender auf der Rendite ist ein Fehler, keine stille Wiederholung");
 });
 
 console.log(`showcase-data: ${n} Tests grün`);

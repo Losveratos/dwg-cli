@@ -1,6 +1,7 @@
 # Datenvertrag Showcase · Modell „ZlatyLev Showcase“
 
-Stand 23.10.2026, ergänzt am 29.10.2026 um Bilanz und Cashflow (P&L-Templates T05A und T05B ab P&L 1.7).
+Stand 23.10.2026, ergänzt am 29.10.2026 um Bilanz und Cashflow (P&L-Templates T05A und T05B ab P&L 1.7) und am
+23.11.2026 um Liquidität, Markt und Rendite (ChartKitchen C18, C20, C24, P&L 11A).
 Verbindlich für `specs/showcase.json` und die dwg-Tests.
 Namen werden ab jetzt **nicht mehr umbenannt**, nur ergänzt. Alle Zahlen sind synthetisch (Namen aus dem
 Brauerei-Case ZLATÝ LEV, Werte per Zufallsgenerator mit festem Seed, `examples/showcase/data/gen_showcase.py`). Kunden und Biere sind erfunden.
@@ -8,7 +9,7 @@ Brauerei-Case ZLATÝ LEV, Werte per Zufallsgenerator mit festem Seed, `examples/
 | | |
 |---|---|
 | Workspace | dein Fabric-Workspace |
-| Lakehouse | `ZlatyLev_Showcase` mit SQL-Endpunkt, Tabellen kalender, produkt, kunde, konto, fakten, dazu seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow (**noch hochzuladen**, siehe Neuaufbau) |
+| Lakehouse | `ZlatyLev_Showcase` mit SQL-Endpunkt, Tabellen kalender, produkt, kunde, konto, fakten, dazu seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow und seit 23.11.2026 liquiditaetsart, liquiditaet, marktsegment, markt, renditekonto, rendite (die sechs neuen **noch hochzuladen**, siehe Neuaufbau) |
 | Semantikmodell | `ZlatyLev Showcase`, Direct Lake über den SQL-Endpunkt |
 | TMDL im Repo | `examples/showcase/ZlatyLev Showcase.SemanticModel` (aus `examples/showcase/model/gen_model.py` + `model.csx`, siehe unten) |
 | Mini-DAX-Testdaten | `app/test/datasets/showcase.mjs` (+ `showcase/`-JSON) |
@@ -190,7 +191,120 @@ Darlehen über 3,0 Mio. EUR; die Dividende im Mai 2026 fällt mit 0,3 Mio. EUR n
 Monatswerten (Token `stock`/`opening`), ohne Periode bekäme es die Summe der Monate. „Elemente ohne Daten anzeigen“
 für Formel und KPI; die App füllt dabei nur innerhalb der Filter auf (CALCULATETABLE um ADDMISSINGITEMS).
 
-## Measures (GuV in 'Fakten', Bilanz und Cashflow in ihren Faktentabellen)
+### Liquidität, Markt und Rendite (seit 23.11.2026)
+
+Drei weitere Tabellenpaare für die Templates C20 (ChartKitchen, Bestand und Fluss), C24 (ChartKitchen, Blasen mit
+Anteil) und 11A (P&L, ROI-Baum nach DuPont). Wie bei Bilanz und Cashflow eigene Tabellen statt Erweiterung von
+'Konto' oder 'Fakten'. Alle Werte kommen aus `gen_showcase.py`; die bisherigen neun Tabellen bleiben byte-gleich.
+Direct Lake kennt keine berechneten Spalten, deshalb stehen auch Token und Sortierspalten in den Parquet-Dateien.
+
+**'Liquiditaetsart'** (5 Zeilen)
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| ArtID | string | Schlüssel: L-OP, L-INV, L-DAR, L-AUS, L-KASSE |
+| Art | string | Operativer Cashflow, Investitionen, Darlehensaufnahme, Tilgung und Dividende, Kasse und Bank · sortiert nach [Art Sort] |
+| Art Sort | int64 | 1 bis 5 (ausgeblendet) |
+| Fluss | string | Zeilentyp-Token für ChartKitchen (Rolle `rowType`, Modus `stockflow`): leer bei Operativer Cashflow (Vorzeichen entscheidet), `outflow` bei Investitionen sowie Tilgung und Dividende, `inflow` bei Darlehensaufnahme, `stock` bei Kasse und Bank |
+
+**'Liquiditaet'** (Körnung Monat × Art, 2025 und 2026, 120 Zeilen, alle Spalten ausgeblendet)
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| Datum | dateTime | Monatserster → 'Kalender'[Datum] |
+| ArtID | string | → 'Liquiditaetsart'[ArtID] |
+| AC, PY, PL, FC | double | Flüsse des Monats mit Vorzeichen (Auszahlungen negativ), Kasse und Bank als Stand am Monatsende. AC leer ab September 2026, PY = Ist des Vorjahresmonats, FC in Ist-Monaten = AC |
+
+Herkunft: Operativer Cashflow = CF-JUE + CF-AFA + CF-WC, Investitionen = CF-INV + CF-ABG, Darlehensaufnahme = CF-AUF,
+Tilgung und Dividende = CF-TIL + CF-DIV, Kasse und Bank = Bilanz A-KASSE. Jeder Monat hat in jedem Szenario eine
+Bestandszeile, auch Monate ohne Darlehen (Wert 0). Geprüft: Kasse am Monatsende = Anfangsbestand des Monats plus
+Summe der vier Flüsse = Kasse des Vormonats plus Flüsse; Abflüsse nie positiv, Zuflüsse nie negativ.
+Einschränkung: Die Measures summieren, der Bestand stimmt deshalb nur in Monatskörnung. Eine Quartals- oder Jahresachse
+bräuchte eine semi-additive Bestands-Measure (`LASTNONBLANKVALUE`), die die Mini-DAX nicht rechnet.
+
+**'Marktsegment'** (16 Zeilen = 4 Länder × 4 Sorten)
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| SegmentID | string | Schlüssel S11 bis S44 (Land Sort, Sorte Sort) |
+| Segment | string | „Tschechien · Helles Lager“ |
+| Land | string | Tschechien, Deutschland, Slowakei, Polen · sortiert nach [Land Sort] |
+| Land Sort | int64 | 1 bis 4 (ausgeblendet) |
+| Sorte | string | Helles Lager, Dunkles Lager, Spezialität, Alkoholfrei · sortiert nach [Sorte Sort] |
+| Sorte Sort | int64 | 1 bis 4 (ausgeblendet) |
+
+**'Markt'** (Körnung Monat × Segment, 2025 und 2026, 384 Zeilen, alle Spalten ausgeblendet)
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| Datum | dateTime | Monatserster → 'Kalender'[Datum] |
+| SegmentID | string | → 'Marktsegment'[SegmentID] |
+| Eigenabsatz AC, Eigenabsatz PY | double | eigener Absatz in hl, Summe von 'Fakten'[Hektoliter AC] bzw. [Hektoliter PY] über Land des Kunden und Sorte des Produkts |
+| Marktvolumen AC, Marktvolumen PY | double | Marktvolumen des Segments in hl |
+| Wettbewerber AC, Wettbewerber PY | double | Absatz des größten Wettbewerbers in hl |
+
+AC leer ab September 2026. Marktvolumen 2024 = Eigenabsatz 2024 geteilt durch einen Startanteil je Segment, danach
+mit einem Marktwachstum je Segment und Jahr fortgeschrieben (Helles leicht fallend, Alkoholfrei kräftig wachsend),
+eigener Zufallsstrom (Seed 1882, Strom 1703). Eigenanteil Jan bis Aug 2026 zwischen 6,5 % (Deutschland · Helles Lager)
+und 54 % (Tschechien · Dunkles Lager); relativer Marktanteil über 1 nur in Tschechien · Dunkles Lager (2,58) und
+Tschechien · Alkoholfrei (1,15). Keine Beziehung zu 'Kunde' und 'Produkt': es gibt dort keine eindeutige Land- oder
+Sortendimension (Land und Sorte sind Spalten mit Wiederholungen), eine n:n-Beziehung wäre für die Seite unnötig. Die
+Spaltennamen der Fakten tragen kein „hl“, weil die Measures so heißen (Spalte und Measure dürfen nicht gleich heißen).
+
+**'Renditekonto'** (6 Zeilen, Spalten wie 'Bilanzkonto')
+
+| KontoID | Konto | L1 Sort, SortOrder | RowType | FormulaDef | VarianceInvert |
+|---|---|---|---|---|---|
+| R-EBIT | EBIT | 10 | Account | | false |
+| R-UMS | Nettoumsatz | 20 | Account | | false |
+| R-KAP | Investiertes Kapital | 30 | Account stock | | true |
+| R-UR | Umsatzrendite | 40 | KPI | `[EBIT] / [Nettoumsatz]` | false |
+| R-KU | Kapitalumschlag | 50 | KPI factor | `[Nettoumsatz] / [Investiertes Kapital]` | false |
+| R-ROI | ROI | 60 | KPI | `[Umsatzrendite] * [Kapitalumschlag]` | false |
+
+L1 = Konto (flach, eine Ebene), L2 leer, SignConvention 1, DisplayInvert „false“. Das entspricht dem Datenvertrag 11A
+im P&L-AGENT-GUIDE (Punkt 28): Return, Net sales, Invested capital mit Token `stock`, Kapitalumschlag als `KPI factor`.
+
+**'Rendite'** (Körnung Jahr × Konto, nur die drei Account-Zeilen, 9 Zeilen)
+
+| Spalte | Typ | Inhalt |
+|---|---|---|
+| Jahr | int64 | 2024, 2025, 2026: Periode für das P&L-Visual (vierstellige Jahre ab P&L 1.8). Sichtbar, **keine Beziehung zu 'Kalender'** |
+| KontoID | string | → 'Renditekonto'[KontoID] |
+| AC | double | Ist 2024 und 2025 (volle Jahre), leer 2026 |
+| PY | double | Ist des Vorjahres (2025, 2026), leer 2024 |
+| PL | double | nur 2026 |
+| FC | double | 2024 und 2025 = AC, 2026 = Ist Jan bis Aug plus Forecast Sep bis Dez |
+
+Werte aus den Monatsreihen, die der Generator schon rechnet (kein neuer Zufall): EBIT und Nettoumsatz als Jahressumme
+der GuV (2024 aus den PY-Werten der 2025-Zeilen), Investiertes Kapital = Aktiva am Jahresende der Bilanz (Dezember
+2024, Dezember 2025, FC und PL Dezember 2026). Damit passen EBIT 2025 (2.422.583), Umsatz 2025 (38.527.414),
+Umsatz FC 2026 (40.167.091) und Umsatz PL 2026 (41.684.991) zu den übrigen Kontrollwerten. 2026 ist das
+Forecast-Jahr: das P&L-Visual zeigt im Baum AC, wo ein Ist da ist, sonst FC (schraffiert), Plan als Referenz.
+
+Warum ohne Kalender-Beziehung: Der globale Jahr-Slicer (Einfachauswahl 2026) würde den Baum sonst auf ein Jahr
+schneiden, und eine Slicer-Ausnahme je Seite gibt es im Rahmen nicht. Folge: Region, Kanal und Sorte wirken auch nicht,
+die Rendite gilt für das ganze Unternehmen (in der Seitenbeschreibung sagen).
+
+**Beziehungen** (alle n:1, einfach gerichtet): 'Liquiditaet' zu 'Kalender'[Datum] und 'Liquiditaetsart'[ArtID],
+'Markt' zu 'Kalender'[Datum] und 'Marktsegment'[SegmentID], 'Rendite' nur zu 'Renditekonto'[KontoID].
+
+**Slicer der App und Tabellen ohne Beziehung.** Die App legt die Slicer (Jahr, Region, Kanal, Sorte) als
+`TREATAS`-Filter in jede Kachelabfrage. In DAX wirkt ein Filter auf eine Tabelle ohne Pfad zur Faktentabelle der
+Measures nicht, die Abfrage läuft trotzdem; die Mini-DAX macht es genauso (Filter auf nicht erreichbare Tabellen fallen
+weg, `app/test/showcase-data.mjs` prüft es). Für die neuen Tabellen heißt das:
+
+| Tabelle | Jahr | Region, Kanal | Sorte |
+|---|---|---|---|
+| Liquiditaet | filtert | wirkt nicht | wirkt nicht |
+| Markt | filtert | wirkt nicht | wirkt nicht ('Marktsegment'[Sorte] ist eine eigene Spalte) |
+| Rendite | wirkt nicht | wirkt nicht | wirkt nicht |
+
+Gruppieren nach einer Spalte ohne Beziehung (etwa 'Kalender'[Monatsname] mit [Rendite AC]) ist in Power BI eine
+Wiederholung desselben Werts je Zeile; die Mini-DAX wirft dafür einen Fehler, damit ein Test das nicht übersieht.
+Der Kachelfilter `'Kalender'[Ist] = TRUE` wirkt auf Liquidität und Markt, nicht auf die Rendite.
+
+## Measures (GuV in 'Fakten', Bilanz, Cashflow, Liquidität, Markt und Rendite in ihren Faktentabellen)
 
 Anzeigeordner in Klammern. Formatstring Beträge `#,##0`, Abweichungen `+#,##0;-#,##0;0`, Prozent `0.0 %`.
 
@@ -261,7 +375,46 @@ Monatsreihen (Jan bis Dez) nutzen die normalen Measures: AC endet im August, PL 
 | Cashflow AC / PY / PL / FC | `SUM('Cashflow'[AC])` usw. |
 | Cashflow PY bis Ist / Cashflow PL bis Ist | `CALCULATE([Cashflow PY], 'Kalender'[Ist] = TRUE())` |
 
-Zusammen 63 Measures (50 GuV, 13 Bilanz und Cashflow). Die LineageTags der Measures sind seit 29.10.2026 fest
+**07 Abweichung % (in 'Fakten', seit 23.11.2026, für C18)**
+
+| Measure | DAX | Format |
+|---|---|---|
+| Umsatz ΔPY % | `DIVIDE ( [Umsatz AC] - [Umsatz PY bis Ist], [Umsatz PY bis Ist] )` | `+0.0 %;-0.0 %;0.0 %` |
+| Umsatz ΔPL % | `DIVIDE ( [Umsatz AC] - [Umsatz PL bis Ist], [Umsatz PL bis Ist] )` | `+0.0 %;-0.0 %;0.0 %` |
+
+Vorjahr und Plan nur über die Ist-Monate, damit die Kachel auch ohne Ist-Filter fair ist. Gesamt 2026: +4,4 % zum
+Vorjahr, −3,9 % zum Plan.
+
+**08 Liquidität (in 'Liquiditaet', für C20)**
+
+| Measure | DAX |
+|---|---|
+| Liquidität AC / PY / PL / FC | `SUM ( 'Liquiditaet'[AC] )` usw., Format `#,##0` |
+
+**09 Markt (in 'Markt', für C24)**
+
+| Measure | DAX | Format |
+|---|---|---|
+| Marktvolumen hl AC / PY | `SUM ( 'Markt'[Marktvolumen AC] )` usw. (Blasengröße) | `#,##0.0` |
+| Marktvolumen hl PY bis Ist | `CALCULATE ( [Marktvolumen hl PY], 'Kalender'[Ist] = TRUE () )` | `#,##0.0` |
+| Eigenabsatz hl AC / PY | `SUM ( 'Markt'[Eigenabsatz AC] )` usw. (Kreissegment, Rolle `bubbleShare`) | `#,##0.0` |
+| Wettbewerber hl AC / PY | `SUM ( 'Markt'[Wettbewerber AC] )` usw. (größter Wettbewerber) | `#,##0.0` |
+| Marktwachstum % | `DIVIDE ( [Marktvolumen hl AC] - [Marktvolumen hl PY bis Ist], [Marktvolumen hl PY bis Ist] )` | `+0.0 %;-0.0 %;0.0 %` |
+| Marktanteil % | `DIVIDE ( [Eigenabsatz hl AC], [Marktvolumen hl AC] )` | `0.0 %` |
+| Relativer Marktanteil | `DIVIDE ( [Eigenabsatz hl AC], [Wettbewerber hl AC] )` (über 1 = Marktführer) | `0.00` |
+
+**10 Rendite (in 'Rendite', für 11A)**
+
+| Measure | DAX |
+|---|---|
+| Rendite AC / PY / PL / FC | `SUM ( 'Rendite'[AC] )` usw., Format `#,##0` |
+
+Bindung 11A: `levels` = 'Renditekonto'[L1] (oder `account` = [KontoID], `accountName` = [Konto]), `sortOrder` =
+[SortOrder], `rowType` = [RowType], `formulaDef` = [FormulaDef], `signConvention`, `displayInvert`, `varianceInvert`,
+`ac` = [Rendite AC], `fc` = [Rendite FC], `pl` = [Rendite PL], `period` = 'Rendite'[Jahr]; „Elemente ohne Daten
+anzeigen“ für die KPI-Zeilen.
+
+Zusammen 83 Measures (52 in 'Fakten', 13 Bilanz und Cashflow, 4 Liquidität, 10 Markt, 4 Rendite). Die LineageTags der Measures sind seit 29.10.2026 fest
 (UUID v5 aus Tabelle und Name, `model.csx`), ein Neuaufbau ergibt keinen Git-Diff mehr.
 
 ## Hinweise für die Templates (Abgleich mit der Wunschliste der Templates-Session)
@@ -334,6 +487,30 @@ bis Aug). Mini-DAX bestätigt; im Service erst nach dem Upload der vier Tabellen
 | Abschreibungen (= Konto 7000) | 2.016.011 | |
 | Endbestand FC Dezember 2026 | 5.480.869 | |
 
+**Liquidität, Markt und Rendite** (`control.json`, Schlüssel „Liquidität 2026“, „Markt 2026“, „Rendite“). Mini-DAX
+bestätigt (`app/test/showcase-data.mjs`), im Service noch nicht (`check.py` prüft sie nach dem Upload mit).
+
+| Wert | Betrag |
+|---|---:|
+| Kasse und Bank AC August 2026 (= Bilanz A-KASSE) | 3.771.494 |
+| Kasse und Bank FC Dezember 2026 | 5.480.869 |
+| Kasse und Bank PL Dezember 2026 | 6.762.011 |
+| Operativer Cashflow AC Jan bis Aug | 1.419.128 |
+| Investitionen AC Jan bis Aug | −4.193.822 |
+| Darlehensaufnahme AC (Juni) | 3.000.000 |
+| Tilgung und Dividende AC Jan bis Aug | −780.000 |
+| Eigenabsatz hl AC 2026 (= Absatz hl AC) | 279.545,3 |
+| Marktvolumen hl AC 2026 | 1.217.564,4 |
+| Marktvolumen hl PY bis Ist | 1.207.355,9 |
+| Wettbewerber hl AC 2026 | 401.363,1 |
+
+| Rendite | EBIT | Nettoumsatz | Investiertes Kapital | Umsatzrendite | Kapitalumschlag | ROI |
+|---|---:|---:|---:|---:|---:|---:|
+| AC 2024 | 1.524.979 | 35.671.771 | 36.222.516 | 4,3 % | 0,98 | 4,2 % |
+| AC 2025 | 2.422.583 | 38.527.414 | 36.724.875 | 6,3 % | 1,05 | 6,6 % |
+| FC 2026 | 1.731.308 | 40.167.091 | 39.709.198 | 4,3 % | 1,01 | 4,4 % |
+| PL 2026 | 3.359.545 | 41.684.991 | 40.767.856 | 8,1 % | 1,02 | 8,2 % |
+
 ## Dateien und Neuaufbau
 
 | Datei | Zweck |
@@ -341,10 +518,10 @@ bis Aug). Mini-DAX bestätigt; im Service erst nach dem Upload der vier Tabellen
 | `examples/showcase/data/gen_showcase.py` | Datensatz (Seed 1882) → `examples/showcase/data/parquet/*.parquet`, `control.json`, Mini-DAX-Fixtures |
 | `examples/showcase/model/gen_model.py` | Direct-Lake-Gerüst als TMDL (Tabellen, Partitionen, Beziehungen) |
 | `examples/showcase/model/model.csx` | Measures, Sortierung, Formate, Beschreibungen (`te script`) |
-| `examples/showcase/model/export_measures.csx` | Measures (63) wörtlich nach `app/test/datasets/showcase/measures.json` (aus dem Repo aufrufen) |
+| `examples/showcase/model/export_measures.csx` | Measures (83) wörtlich nach `app/test/datasets/showcase/measures.json` (aus dem Repo aufrufen) |
 | `examples/showcase/model/check.py` | Kontrollwerte per DAX gegen den Service |
-| `app/test/datasets/showcase.mjs` | Mini-DAX-Modell (Fakten, Bilanz und Cashflow 2026; Mini-DAX nimmt je Abfrage die Faktentabelle der Measures) |
-| `app/test/showcase-data.mjs` | Test: Kontrollwerte, Geschichten, FY, ADDMISSINGITEMS, Bilanz und Cashflow, Mini-DAX-Erweiterungen |
+| `app/test/datasets/showcase.mjs` | Mini-DAX-Modell (Fakten, Bilanz, Cashflow, Liquidität und Markt 2026, Rendite alle Jahre; Mini-DAX nimmt je Abfrage die Faktentabelle der Measures) |
+| `app/test/showcase-data.mjs` | Test: Kontrollwerte, Geschichten, FY, ADDMISSINGITEMS, Bilanz und Cashflow, Umsatz Δ%, Liquidität, Markt, Rendite, Slicer ohne Beziehung, Mini-DAX-Erweiterungen |
 
 Neuaufbau (aus dem Repo, PowerShell):
 
@@ -352,8 +529,9 @@ Neuaufbau (aus dem Repo, PowerShell):
 python examples/showcase/data/gen_showcase.py
 # Upload: fab cp <abs. Pfad>\<t>.parquet ".../ZlatyLev_Showcase.Lakehouse/Files/showcase/<t>/" -f
 # fab table load ".../Tables/<t>" --file ".../Files/showcase/<t>" --format format=parquet --mode overwrite
-# <t> = kalender, produkt, kunde, konto, fakten und seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow
-# (die vier neuen hat noch niemand hochgeladen; die fünf alten sind unverändert)
+# <t> = kalender, produkt, kunde, konto, fakten, seit 29.10.2026 bilanzkonto, bilanz, cashflowkonto, cashflow
+# und seit 23.11.2026 liquiditaetsart, liquiditaet, marktsegment, markt, renditekonto, rendite
+# (die neun älteren Dateien sind unverändert; nur die sechs neuen laden)
 python examples/showcase/model/gen_model.py
 te script -m "examples/showcase/ZlatyLev Showcase.SemanticModel" --file examples/showcase/model/model.csx --save
 te validate -m "examples/showcase/ZlatyLev Showcase.SemanticModel" --errors-only
@@ -361,3 +539,9 @@ te script -m "examples/showcase/ZlatyLev Showcase.SemanticModel" --file examples
 fab import "<Workspace>.Workspace/ZlatyLev Showcase.SemanticModel" -i <abs. Pfad zum .SemanticModel> -f
 python examples/showcase/model/check.py
 ```
+
+Hinweis 23.11.2026: Die Preview der te CLI ist am 31.10.2026 abgelaufen. Ersatzweise lässt sich `model.csx` mit
+Tabular Editor 2 (2.24) anwenden, das Ergebnis ist im TMDL zeichengleich mit dem te-Stand:
+`TabularEditor.exe "<…>.SemanticModel\definition" -S examples\showcase\model\model.csx -TMDL <Ausgabeordner>`, dann den
+Ausgabeordner als `definition` übernehmen. `export_measures.csx` braucht System.Text.Json und läuft nur mit te; mit
+Tabular Editor 2 dieselbe Ausgabe über Newtonsoft (`JsonConvert.SerializeObject(d, Formatting.Indented)`, Zeilenende LF). `te validate` ersetzt das nicht: nach dem Update der te CLI nachholen.

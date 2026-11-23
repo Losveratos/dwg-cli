@@ -1,0 +1,135 @@
+table Markt
+	lineageTag: daf7fc0a-d272-59b7-bde8-8fda5f4d8093
+	sourceLineageTag: [dbo].[markt]
+
+	/// Marktvolumen Ist in Hektoliter (Blasengröße).
+	measure 'Marktvolumen hl AC' = SUM ( 'Markt'[Marktvolumen AC] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: feb09072-6f8a-593c-ac56-e8c007c9aa7d
+
+	/// Marktvolumen Vorjahr in Hektoliter.
+	measure 'Marktvolumen hl PY' = SUM ( 'Markt'[Marktvolumen PY] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: 5561b7a1-a75e-563d-9fdb-fbd7e2c9fb95
+
+	/// Marktvolumen Vorjahr in Hektoliter, nur Monate mit Ist (bis August 2026).
+	measure 'Marktvolumen hl PY bis Ist' = CALCULATE ( [Marktvolumen hl PY], 'Kalender'[Ist] = TRUE () )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: a48c48cb-66bf-5ac6-b6f6-01c7d7ca131c
+
+	/// Eigener Absatz Ist im Segment in Hektoliter (Kreissegment der Blase), gleich Absatz hl AC der Fakten.
+	measure 'Eigenabsatz hl AC' = SUM ( 'Markt'[Eigenabsatz AC] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: 7fc61d93-64ba-57bc-9f6e-b5437b5b5c9a
+
+	/// Eigener Absatz Vorjahr im Segment in Hektoliter.
+	measure 'Eigenabsatz hl PY' = SUM ( 'Markt'[Eigenabsatz PY] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: e1137e0b-5b41-5db9-ad5d-d0ecc7384817
+
+	/// Absatz Ist des größten Wettbewerbers im Segment in Hektoliter.
+	measure 'Wettbewerber hl AC' = SUM ( 'Markt'[Wettbewerber AC] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: d2a044df-f67f-58cc-9b78-ea59e1dee0c5
+
+	/// Absatz Vorjahr des größten Wettbewerbers im Segment in Hektoliter.
+	measure 'Wettbewerber hl PY' = SUM ( 'Markt'[Wettbewerber PY] )
+		formatString: #,##0.0
+		displayFolder: 09 Markt
+		lineageTag: 3f359bb8-3530-5350-ab57-919b29f49ecb
+
+	/// Marktvolumen Ist gegen Vorjahr in Prozent, Vorjahr nur über die Monate mit Ist.
+	measure 'Marktwachstum %' = DIVIDE ( [Marktvolumen hl AC] - [Marktvolumen hl PY bis Ist], [Marktvolumen hl PY bis Ist] )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: 09 Markt
+		lineageTag: 0c479e1c-ad7f-5fc1-897c-fa652dd5f62c
+
+	/// Eigener Absatz im Verhältnis zum Marktvolumen (Ist).
+	measure 'Marktanteil %' = DIVIDE ( [Eigenabsatz hl AC], [Marktvolumen hl AC] )
+		formatString: 0.0 %
+		displayFolder: 09 Markt
+		lineageTag: 60f1fe5b-7f50-5a34-8e34-a05c10bbc9a5
+
+	/// Eigener Absatz im Verhältnis zum größten Wettbewerber (Ist); über 1 = Marktführer.
+	measure 'Relativer Marktanteil' = DIVIDE ( [Eigenabsatz hl AC], [Wettbewerber hl AC] )
+		formatString: 0.00
+		displayFolder: 09 Markt
+		lineageTag: 400b343d-58b7-54a7-b155-e68d1a960e06
+
+	column Datum
+		dataType: dateTime
+		isHidden
+		lineageTag: f79d5469-ae41-53fc-a7af-eed922945beb
+		sourceLineageTag: Datum
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column SegmentID
+		dataType: string
+		isHidden
+		lineageTag: 1d765778-b25d-5030-871b-a2854e696a68
+		sourceLineageTag: SegmentID
+		summarizeBy: none
+		sourceColumn: SegmentID
+
+	column 'Eigenabsatz AC'
+		dataType: double
+		isHidden
+		lineageTag: b8036c83-e0c2-5ab7-8108-f994e0de29b7
+		sourceLineageTag: EigenabsatzAC
+		summarizeBy: none
+		sourceColumn: EigenabsatzAC
+
+	column 'Eigenabsatz PY'
+		dataType: double
+		isHidden
+		lineageTag: 2f931c49-e141-5446-8d09-5f53b1e6aacd
+		sourceLineageTag: EigenabsatzPY
+		summarizeBy: none
+		sourceColumn: EigenabsatzPY
+
+	column 'Marktvolumen AC'
+		dataType: double
+		isHidden
+		lineageTag: 81a01acb-4255-58d1-9bca-e7fff78168a0
+		sourceLineageTag: MarktvolumenAC
+		summarizeBy: none
+		sourceColumn: MarktvolumenAC
+
+	column 'Marktvolumen PY'
+		dataType: double
+		isHidden
+		lineageTag: 367eaa7e-d9b9-56ef-babf-338b8025cf0c
+		sourceLineageTag: MarktvolumenPY
+		summarizeBy: none
+		sourceColumn: MarktvolumenPY
+
+	column 'Wettbewerber AC'
+		dataType: double
+		isHidden
+		lineageTag: 077dc823-c9b3-581a-8b5b-f31fa5960cc3
+		sourceLineageTag: WettbewerberAC
+		summarizeBy: none
+		sourceColumn: WettbewerberAC
+
+	column 'Wettbewerber PY'
+		dataType: double
+		isHidden
+		lineageTag: 84ced98f-592a-5172-be50-edcb2ce7ad32
+		sourceLineageTag: WettbewerberPY
+		summarizeBy: none
+		sourceColumn: WettbewerberPY
+
+	partition Markt = entity
+		mode: directLake
+		source
+			entityName: markt
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

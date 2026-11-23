@@ -1,0 +1,1 @@
+{"columns":["ArtID","Art","Art Sort","Fluss"],"rows":[["L-OP","Operativer Cashflow",1,null],["L-INV","Investitionen",2,"outflow"],["L-DAR","Darlehensaufnahme",3,"inflow"],["L-AUS","Tilgung und Dividende",4,"outflow"],["L-KASSE","Kasse und Bank",5,"stock"]]}
