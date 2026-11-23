@@ -1,0 +1,61 @@
+/// Marktsegmente Land × Sorte. Eigene Spalten, keine Beziehung zu Kunde und Produkt: die Slicer Region, Kanal und Sorte filtern den Markt nicht.
+table Marktsegment
+	lineageTag: f5e51f66-6efb-5284-8d65-a02b4051bb54
+	sourceLineageTag: [dbo].[marktsegment]
+
+	column SegmentID
+		dataType: string
+		isKey
+		lineageTag: ba2df66d-4ed5-5500-aa83-d19451473b43
+		sourceLineageTag: SegmentID
+		summarizeBy: none
+		sourceColumn: SegmentID
+
+	column Segment
+		dataType: string
+		lineageTag: 952847a2-5b8c-572d-9aa7-a1cf6e5bdc0f
+		sourceLineageTag: Segment
+		summarizeBy: none
+		sourceColumn: Segment
+
+	column Land
+		dataType: string
+		lineageTag: 813f4629-220b-5ee2-82ed-2c46d62a6627
+		sourceLineageTag: Land
+		summarizeBy: none
+		sourceColumn: Land
+		sortByColumn: 'Land Sort'
+
+	column 'Land Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bdfa3a29-6cf0-550e-8ef8-619570a8040a
+		sourceLineageTag: LandSort
+		summarizeBy: none
+		sourceColumn: LandSort
+
+	column Sorte
+		dataType: string
+		lineageTag: ae1a257f-1ccb-5161-b3f8-55f39a36a27a
+		sourceLineageTag: Sorte
+		summarizeBy: none
+		sourceColumn: Sorte
+		sortByColumn: 'Sorte Sort'
+
+	column 'Sorte Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e371f5b8-5d4a-533f-9af2-ada2f86362af
+		sourceLineageTag: SorteSort
+		summarizeBy: none
+		sourceColumn: SorteSort
+
+	partition Marktsegment = entity
+		mode: directLake
+		source
+			entityName: marktsegment
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

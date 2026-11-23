@@ -15,6 +15,7 @@ S = sorted(glob.glob(os.path.expanduser(
 
 c26, c25, st = CONTROL["2026"], CONTROL["2025"], CONTROL["Geschichten Jan bis Aug 2026"]
 bc = CONTROL["Bilanz und Cashflow 2026"]
+lq, mk, rd = CONTROL["Liquidität 2026"], CONTROL["Markt 2026"], CONTROL["Rendite"]
 CHECKS = [
     ("2026", "'Kalender'[Jahr] = 2026", {**{k: c26[k] for k in [
         "GuV AC", "GuV PY", "GuV PL", "GuV FC", "GuV FC FY", "GuV PL FY", "Umsatz AC", "Umsatz PY bis Ist",
@@ -44,6 +45,23 @@ CHECKS = [
      {"Cashflow AC": bc["Finanzierungs-Cashflow AC"], "Cashflow PY bis Ist": bc["Finanzierungs-Cashflow PY bis Ist"]}),
     ("CF Anf.", "'Kalender'[Periode] = \"2026-01\", 'Cashflowkonto'[KontoID] = \"CF-ANF\"",
      {"Cashflow AC": bc["Anfangsbestand AC"], "Cashflow PY": bc["Anfangsbestand PY"]}),
+    # Seit 23.11.2026: Umsatz Δ% (C18), Liquidität (C20), Markt (C24), Rendite (11A)
+    ("Δ %", "'Kalender'[Jahr] = 2026",
+     {"Umsatz ΔPY %": c26["Umsatz AC"] / c26["Umsatz PY bis Ist"] - 1, "Umsatz ΔPL %": c26["Umsatz AC"] / c26["Umsatz PL bis Ist"] - 1}),
+    ("Kasse Aug", "'Kalender'[Periode] = \"2026-08\", 'Liquiditaetsart'[ArtID] = \"L-KASSE\"",
+     {"Liquidität AC": lq["Kasse und Bank AC (Stichtag)"], "Liquidität PY": lq["Kasse und Bank PY (Stichtag)"]}),
+    ("Kasse Dez", "'Kalender'[Periode] = \"2026-12\", 'Liquiditaetsart'[ArtID] = \"L-KASSE\"",
+     {"Liquidität FC": lq["Kasse und Bank FC Dezember"], "Liquidität PL": lq["Kasse und Bank PL Dezember"]}),
+    ("Liq. oper.", "'Kalender'[Jahr] = 2026, 'Liquiditaetsart'[ArtID] = \"L-OP\"", {"Liquidität AC": lq["Operativer Cashflow AC"]}),
+    ("Markt", "'Kalender'[Jahr] = 2026",
+     {k: mk[k] for k in ["Eigenabsatz hl AC", "Marktvolumen hl AC", "Marktvolumen hl PY bis Ist", "Wettbewerber hl AC"]}),
+    ("Rendite 25", "'Rendite'[Jahr] = 2025, 'Renditekonto'[KontoID] = \"R-EBIT\"", {"Rendite AC": rd["AC 2025"]["EBIT"]}),
+    ("Kapital 25", "'Rendite'[Jahr] = 2025, 'Renditekonto'[KontoID] = \"R-KAP\"", {"Rendite AC": rd["AC 2025"]["Investiertes Kapital"]}),
+    ("Umsatz 26", "'Rendite'[Jahr] = 2026, 'Renditekonto'[KontoID] = \"R-UMS\"",
+     {"Rendite FC": rd["FC 2026"]["Nettoumsatz"], "Rendite PL": rd["PL 2026"]["Nettoumsatz"]}),
+    # Jahr-Slicer ohne Wirkung auf die Rendite: 'Kalender'[Jahr] = 2026 lässt 2024 bis 2026 stehen
+    ("Rendite Σ", "'Kalender'[Jahr] = 2026, 'Renditekonto'[KontoID] = \"R-EBIT\"",
+     {"Rendite AC": rd["AC 2024"]["EBIT"] + rd["AC 2025"]["EBIT"]}),
 ]
 
 bad = 0

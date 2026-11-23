@@ -14,4 +14,10 @@ ref table Bilanzkonto
 ref table Bilanz
 ref table Cashflowkonto
 ref table Cashflow
+ref table Liquiditaetsart
+ref table Liquiditaet
+ref table Marktsegment
+ref table Markt
+ref table Renditekonto
+ref table Rendite
 

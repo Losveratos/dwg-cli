@@ -216,7 +216,17 @@ for (const job of jobs) {
         // Befund 1: Formelzeilen finden ihre Bezugszeilen, L1-Gruppen sind da
         const bad = s.texts.filter(t => /unbekannte Referenz|unknown reference/.test(t));
         if (bad.length) { fail(job, `Formelfehler: ${bad[0]}`); }
-        if (job.roles.includes("account") && !topLevel(job).filter(n => s.texts.includes(n)).length) { fail(job, "keine L1-Gruppenzeile"); }
+        // Ansicht Baum (11A, state.uiState): keine Tabellenzeilen, sondern eine Karte je Konto mit einer Säule je Periode;
+        // geprüft wird, dass jede Karte ankommt (Periodenbeschriftung der ersten Periode einmal je Konto)
+        const tree = /"view"\s*:\s*"tree"/.test(job.objects.state?.uiState ?? "");
+        if (tree) {
+            const col = n => job.table.columns.findIndex(c => (c.name ?? c) === n);
+            const acc = col(job.bindings.account), per = col(job.bindings.period);
+            const accounts = new Set(job.table.rows.map(r => r[acc])).size;
+            const first = [...new Set(job.table.rows.map(r => r[per]).filter(v => v != null))].map(String).sort()[0];
+            const cards = s.texts.filter(t => t === first).length;
+            if (cards < accounts) { fail(job, `Baum: ${cards} Karten mit Periode ${first}, ${accounts} Konten`); }
+        } else if (job.roles.includes("account") && !topLevel(job).filter(n => s.texts.includes(n)).length) { fail(job, "keine L1-Gruppenzeile"); }
         // Befund 2: die unterste Ebene kommt an (Werte, die es auf der obersten nicht gibt: Region, Kunde)
         if (job.levels.length >= 2 && !job.roles.includes("account")) {
             const top = new Set(distinct(job.levels[0]));

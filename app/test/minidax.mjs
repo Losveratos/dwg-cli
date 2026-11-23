@@ -8,6 +8,7 @@
 //   ADDMISSINGITEMS über Spalten mehrerer Tabellen: je Tabelle ihre vorhandenen Kombinationen (innerhalb der äußeren
 //   Filter auf diese Tabelle), dann das Kreuzprodukt, wie DAX.
 // Ausdrücke: SUM('T'[C]), MAX('T'[C]), SUMX/AVERAGEX(VALUES('T'[C]), a * 'T'[C]), CALCULATE(<Ausdruck>, 'T'[C] = <Literal>, …),
+//   in CALCULATE auch 'T'[C] <> <Literal>, KEEPFILTERS(…) und LASTNONBLANK('T'[C], <Ausdruck>) (semi-additive Bestände),
 // DIVIDE(a, b[, alt]), a + b - c, Zahlen, [Measure] aus model.measures.
 // Ergebnis im Format des Rayfin-Konnektors: { columns: [{name}], rows: [[…]] }. Alles andere wirft einen Fehler,
 // damit ein Test nie stillschweigend etwas anderes rechnet als Power BI.
@@ -207,15 +208,29 @@ export function createEngine(model) {
             return num == null ? null : num / den;
         }
         if (c?.name === "CALCULATE") {
-            let sub = rows;
-            for (const f of c.args.slice(1)) {
-                const m = /^(.+?)\s*=\s*(.+)$/s.exec(f);
+            // Filter schneiden die Zeilen des Kontexts (wie KEEPFILTERS; KEEPFILTERS(…) selbst wird ausgepackt).
+            // Jeder Filter wird wie in DAX im äußeren Kontext ausgewertet (rows), dann alle geschnitten.
+            const preds = c.args.slice(1).map(f0 => {
+                const kf = call(f0);
+                const f = kf?.name === "KEEPFILTERS" ? kf.args[0] : f0;
+                const ln = call(f);
+                if (ln?.name === "LASTNONBLANK") {
+                    // LASTNONBLANK(<Spalte>, <Ausdruck>): größter Wert der Spalte, für den der Ausdruck nicht leer ist
+                    const g = getter(parseRef(ln.args[0])), groups = new Map();
+                    for (const r of rows) { const k = g(r); if (!groups.has(k)) { groups.set(k, []); } groups.get(k).push(r); }
+                    const keys = [...groups.keys()].filter(k => k != null)
+                        .sort((a, b) => (typeof a === "number" ? b - a : String(b).localeCompare(String(a))));
+                    const last = keys.find(k => evaluate(ln.args[1], groups.get(k)) != null);
+                    return r => last !== undefined && g(r) === last;
+                }
+                const m = /^(.+?)\s*(<>|=)\s*(.+)$/s.exec(f);
                 const fr = m && parseRef(m[1]);
-                if (!fr) { throw new Error(`Mini-DAX: CALCULATE-Filter nicht unterstützt: ${f}`); }
-                const g = getter(fr), v = literal(m[2]);
-                sub = sub.filter(r => g(r) === v);
-            }
-            return evaluate(c.args[0], sub);
+                if (!fr) { throw new Error(`Mini-DAX: CALCULATE-Filter nicht unterstützt: ${f0}`); }
+                const g = getter(fr), v = literal(m[3]);
+                // DAX vergleicht BLANK wie den leeren Text: BLANK <> "x" ist wahr
+                return m[2] === "=" ? (r => g(r) === v) : (r => g(r) !== v);
+            });
+            return evaluate(c.args[0], rows.filter(r => preds.every(p => p(r))));
         }
         throw new Error(`Mini-DAX: Ausdruck nicht unterstützt: ${t}`);
     }

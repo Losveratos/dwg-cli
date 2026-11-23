@@ -233,9 +233,9 @@ await test("dwg check: showcase.json gegen das Showcase-Modell ist grün", () =>
     const r = dwg("check", "--spec", SHOWCASE, "--model", SHOWCASE_MODEL);
     assert.equal(r.status, 0, r.stdout + r.stderr);
     // Kachelfilter 'Kalender'[Ist] = true ist ein Flag, kein fester Zeitraum; das Jahr ist ein Slicer mit Vorgabe
-    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, 0 Probleme, 0 Hinweise$/m);
+    assert.match(r.stdout, /^47 Seiten, 94 Kacheln, 0 Probleme, 0 Hinweise$/m);
     const j = JSON.parse(dwg("check", "--spec", SHOWCASE, "--json").stdout);
-    assert.deepEqual(j, { pages: 30, tiles: 60, problems: [], warnings: [] });
+    assert.deepEqual(j, { pages: 47, tiles: 94, problems: [], warnings: [] });
 });
 
 await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel", () => {
@@ -252,9 +252,9 @@ await test("dwg check: kaputte Spec, Exit 1 und Meldungen mit Seite und Kachel",
     assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t1.id}: visual „chartKitchen“ gibt es nicht`), r.stdout);
     assert.ok(r.stdout.includes(`Seite „${page.name}“, Kachel ${t2.id}: `) && /gibtsnicht/.test(r.stdout), r.stdout);
     assert.ok(r.stdout.includes(`Seite „${spec.pages[1].name}“, Kachel ${spec.pages[1].tiles[0].id}, Rolle ${firstRole}`), r.stdout);
-    assert.match(r.stdout, /^30 Seiten, 60 Kacheln, [3-9] Probleme, 0 Hinweise$/m);
+    assert.match(r.stdout, /^47 Seiten, 94 Kacheln, [3-9] Probleme, 0 Hinweise$/m);
     const j = JSON.parse(dwg("check", "--spec", file, "--model", SHOWCASE_MODEL, "--json").stdout);
-    assert.equal(j.pages, 30);
+    assert.equal(j.pages, 47);
     assert.ok(j.problems.length >= 3);
     // Spec ohne pages: eine Meldung, kein TypeError
     fs.writeFileSync(file, "{}");

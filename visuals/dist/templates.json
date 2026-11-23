@@ -1,7 +1,7 @@
 {
   "versions": {
-    "chartkitchen": "1.53.0.0",
-    "pnl": "1.7.0.0"
+    "chartkitchen": "1.57.0.0",
+    "pnl": "1.8.3.0"
   },
   "templates": [
     {
@@ -32,6 +32,109 @@
           "showRelativeVariance": false,
           "dualVariance": false,
           "waterfallStyle": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C07",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Gestapelte Fläche über die Zeit",
+        "en": "Stacked area over time"
+      },
+      "use": {
+        "de": "Mix der Segmente mit Summenlinie",
+        "en": "Mix of segments with the total line"
+      },
+      "objects": {
+        "chart": {
+          "template": "C07",
+          "templateApplied": "C07",
+          "orientation": "columns",
+          "comparisonMode": "auto",
+          "showAbsoluteVariance": false,
+          "showRelativeVariance": false,
+          "dualVariance": false,
+          "waterfallStyle": false,
+          "stackShape": "area",
+          "areaTotalLine": true,
+          "areaValueLabels": "auto",
+          "stackLegendDirect": true,
+          "stackLegendPos": "end",
+          "showTotal": false,
+          "scenarioLabels": true
         }
       },
       "roles": [
@@ -165,6 +268,97 @@
           "label": {
             "de": "Plan / Budget (PL)",
             "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C19",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Säulen gegen Plan mit Jahr",
+        "en": "Columns vs. plan + year"
+      },
+      "use": {
+        "de": "Monate AC/FC gegen PL, Jahr eigene Skala",
+        "en": "Months AC/FC vs. PL, year on own scale"
+      },
+      "objects": {
+        "chart": {
+          "template": "C19",
+          "templateApplied": "C19",
+          "orientation": "columns",
+          "comparisonMode": "plan",
+          "showAbsoluteVariance": true,
+          "showRelativeVariance": true,
+          "dualVariance": false,
+          "waterfallStyle": false,
+          "cumulative": false,
+          "yearColumn": true,
+          "scenarioLabels": true,
+          "pinStyle": "square"
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
           }
         },
         {
@@ -360,6 +554,442 @@
       ]
     },
     {
+      "id": "C21",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Kumulierte Linie mit R12",
+        "en": "Cumulated line with R12"
+      },
+      "use": {
+        "de": "YTD gegen Plan, gleitendes Jahr, Monate",
+        "en": "YTD vs. plan, rolling year, months"
+      },
+      "objects": {
+        "chart": {
+          "template": "C21",
+          "templateApplied": "C21",
+          "orientation": "line",
+          "comparisonMode": "plan",
+          "showAbsoluteVariance": false,
+          "showRelativeVariance": false,
+          "dualVariance": false,
+          "cumulative": true,
+          "cumulativeKind": "ytd",
+          "lineR12": true,
+          "linePeriodColumns": "same",
+          "lineGapMarkers": "both",
+          "lineBasisLabels": true,
+          "lineMarkerShape": "square",
+          "scenarioLabels": true,
+          "showTotal": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C22",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Serienlinien mit Index",
+        "en": "Series lines with index"
+      },
+      "use": {
+        "de": "Aktienkurse oder Einheiten, Start = 100",
+        "en": "Share prices or units, start = 100"
+      },
+      "objects": {
+        "chart": {
+          "template": "C22",
+          "templateApplied": "C22",
+          "orientation": "line",
+          "lineSeries": true,
+          "lineIndex": "base100",
+          "lineSeriesLabels": "groups",
+          "lineSeriesColor": "tones",
+          "lineMarkerShape": "square",
+          "showAbsoluteVariance": false,
+          "showRelativeVariance": false,
+          "dualVariance": false,
+          "cumulative": false,
+          "showTotal": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C20",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Bestand und Fluss",
+        "en": "Stock and flow"
+      },
+      "use": {
+        "de": "Kasse, Personal oder Lager im Verlauf",
+        "en": "Cash, headcount or inventory over time"
+      },
+      "objects": {
+        "chart": {
+          "template": "C20",
+          "templateApplied": "C20",
+          "orientation": "stockflow",
+          "sfNet": true,
+          "sfArea": true,
+          "scenarioLabels": true,
+          "showTotal": false,
+          "highlightStyle": "ellipse"
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Waterfall-Typ (sum/delta)",
+            "en": "Waterfall type (sum/delta)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "fcFlag",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Forecast-Flag (0=Ist · 1=FC · 2=vorläufig)",
+            "en": "Forecast flag (0=actual · 1=FC · 2=preliminary)"
+          }
+        },
+        {
+          "role": "lineMeasure",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Linie (Kombi)",
+            "en": "Line (combo)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C23",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "time",
+        "title": {
+          "de": "Zeitverlauf",
+          "en": "Time series"
+        }
+      },
+      "title": {
+        "de": "Scatter-Zeitpfad",
+        "en": "Scatter time path"
+      },
+      "use": {
+        "de": "Umsatz gegen Vertrieb je Sparte über die Jahre",
+        "en": "Sales vs. reps per unit over the years"
+      },
+      "objects": {
+        "chart": {
+          "template": "C23",
+          "templateApplied": "C23",
+          "orientation": "scatter",
+          "comparisonMode": "auto",
+          "scatterPath": "line",
+          "scatterPathLabels": "auto",
+          "scatterColorBy": "group",
+          "scatterQuadrant": "off",
+          "scatterTrend": "off",
+          "scatterArrows": false,
+          "scatterPlay": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "xValue",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse (Scatter)",
+            "en": "X axis (Scatter)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "xPrevious",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse VJ (Scatter, optional)",
+            "en": "X axis PY (scatter, optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
+          }
+        },
+        {
+          "role": "bubbleSize",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasengröße (optional)",
+            "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
       "id": "C02",
       "visual": "chartkitchen",
       "group": {
@@ -387,6 +1017,109 @@
           "showRelativeVariance": false,
           "dualVariance": false,
           "waterfallStyle": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C25",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "structure",
+        "title": {
+          "de": "Struktur",
+          "en": "Structure"
+        }
+      },
+      "title": {
+        "de": "Marimekko",
+        "en": "Marimekko"
+      },
+      "use": {
+        "de": "Mix je Land, Dicke = Umsatz",
+        "en": "Mix per country, thickness = sales"
+      },
+      "objects": {
+        "chart": {
+          "template": "C25",
+          "templateApplied": "C25",
+          "orientation": "bars",
+          "comparisonMode": "auto",
+          "showAbsoluteVariance": false,
+          "showRelativeVariance": false,
+          "dualVariance": false,
+          "waterfallStyle": false,
+          "stackNormalize": "pct100",
+          "stackThickness": "total",
+          "stackShareColumn": true,
+          "showTotal": true,
+          "stackTotalRow": true,
+          "sortMode": "ac",
+          "stackLegendDirect": true
         }
       },
       "roles": [
@@ -630,6 +1363,375 @@
       ]
     },
     {
+      "id": "C17",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "structure",
+        "title": {
+          "de": "Struktur",
+          "en": "Structure"
+        }
+      },
+      "title": {
+        "de": "Treiber-Brücke waagerecht",
+        "en": "Horizontal driver bridge"
+      },
+      "use": {
+        "de": "Viele Einheiten: PY → AC je Zeile",
+        "en": "Many units: PY → AC per row"
+      },
+      "objects": {
+        "chart": {
+          "template": "C17",
+          "templateApplied": "C17",
+          "orientation": "catbridge",
+          "bridgeOrientation": "bars",
+          "comparisonMode": "py",
+          "showAbsoluteVariance": true,
+          "showRelativeVariance": true,
+          "dualVariance": false,
+          "pyTriangle": false,
+          "groupEvery": 4,
+          "driverNote": false
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C14",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "ranking",
+        "title": {
+          "de": "Rangfolgen gegen Plan",
+          "en": "Rankings vs. plan"
+        }
+      },
+      "title": {
+        "de": "Balkentabelle nach ΔPL",
+        "en": "Bar table sorted by ΔPL"
+      },
+      "use": {
+        "de": "Wer liegt am weitesten über Plan?",
+        "en": "Who is furthest above plan?"
+      },
+      "objects": {
+        "chart": {
+          "template": "C14",
+          "templateApplied": "C14",
+          "orientation": "table",
+          "comparisonMode": "plan",
+          "showAbsoluteVariance": true,
+          "showRelativeVariance": true,
+          "dualVariance": false,
+          "showTotal": true,
+          "totalRowPosition": "bottom",
+          "tableTotalLegend": true,
+          "tableSort": "dabs_desc",
+          "gridLines": "none",
+          "cumulative": false,
+          "topN": 0
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C15",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "ranking",
+        "title": {
+          "de": "Rangfolgen gegen Plan",
+          "en": "Rankings vs. plan"
+        }
+      },
+      "title": {
+        "de": "Balkentabelle nach ΔPL %",
+        "en": "Bar table sorted by ΔPL %"
+      },
+      "use": {
+        "de": "Relative Rangfolge gegen Plan",
+        "en": "Relative ranking vs. plan"
+      },
+      "objects": {
+        "chart": {
+          "template": "C15",
+          "templateApplied": "C15",
+          "orientation": "table",
+          "comparisonMode": "plan",
+          "showAbsoluteVariance": true,
+          "showRelativeVariance": true,
+          "dualVariance": false,
+          "showTotal": true,
+          "totalRowPosition": "bottom",
+          "tableTotalLegend": true,
+          "tableSort": "drel_desc",
+          "gridLines": "none",
+          "cumulative": false,
+          "topN": 0
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C16",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "ranking",
+        "title": {
+          "de": "Rangfolgen gegen Plan",
+          "en": "Rankings vs. plan"
+        }
+      },
+      "title": {
+        "de": "Balkentabelle nach AC",
+        "en": "Bar table sorted by AC"
+      },
+      "use": {
+        "de": "Größte Einheiten, Plan daneben",
+        "en": "Top units, plan alongside"
+      },
+      "objects": {
+        "chart": {
+          "template": "C16",
+          "templateApplied": "C16",
+          "orientation": "table",
+          "comparisonMode": "plan",
+          "showAbsoluteVariance": true,
+          "showRelativeVariance": true,
+          "dualVariance": false,
+          "showTotal": true,
+          "totalRowPosition": "bottom",
+          "tableTotalLegend": true,
+          "tableSort": "ac_desc",
+          "gridLines": "none",
+          "cumulative": false,
+          "topN": 0
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "plan",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Plan / Budget (PL)",
+            "en": "Plan / Budget (PL)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "forecast",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Forecast (FC)",
+            "en": "Forecast (FC)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
       "id": "C09",
       "visual": "chartkitchen",
       "group": {
@@ -796,6 +1898,259 @@
           "label": {
             "de": "Blasengröße (optional)",
             "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C24",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "correlation",
+        "title": {
+          "de": "Korrelation",
+          "en": "Correlation"
+        }
+      },
+      "title": {
+        "de": "Blasen mit Anteil",
+        "en": "Bubbles with share"
+      },
+      "use": {
+        "de": "Marktvolumen und unser Teil je Branche",
+        "en": "Market volume and our part per sector"
+      },
+      "objects": {
+        "chart": {
+          "template": "C24",
+          "templateApplied": "C24",
+          "orientation": "scatter",
+          "comparisonMode": "auto",
+          "scatterQuadrant": "off",
+          "scatterColorBy": "group",
+          "scatterSizeLegend": false,
+          "scatterValueLabels": true,
+          "scatterBubbleOpacity": 100,
+          "scatterTotalBubble": true,
+          "scatterMaxRadius": 100,
+          "scatterTrend": "off",
+          "scatterArrows": false,
+          "scatterPath": "off",
+          "scatterPlay": false
+        },
+        "scale": {
+          "xRefLine": "1"
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "xValue",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse (Scatter)",
+            "en": "X axis (Scatter)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "xPrevious",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse VJ (Scatter, optional)",
+            "en": "X axis PY (scatter, optional)"
+          }
+        },
+        {
+          "role": "bubbleSize",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasengröße (optional)",
+            "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "bubbleShare",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasenanteil (optional)",
+            "en": "Bubble share (optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
+          }
+        },
+        {
+          "role": "comments",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Kommentare",
+            "en": "Comments"
+          }
+        }
+      ]
+    },
+    {
+      "id": "C18",
+      "visual": "chartkitchen",
+      "group": {
+        "id": "correlation",
+        "title": {
+          "de": "Korrelation",
+          "en": "Correlation"
+        }
+      },
+      "title": {
+        "de": "Abweichungs-Scatter",
+        "en": "Variance scatter"
+      },
+      "use": {
+        "de": "ΔPY % gegen ΔPL % je Produkt",
+        "en": "ΔPY % against ΔPL % per product"
+      },
+      "objects": {
+        "chart": {
+          "template": "C18",
+          "templateApplied": "C18",
+          "orientation": "scatter",
+          "comparisonMode": "auto",
+          "scatterQuadrant": "off",
+          "scatterColorBy": "group",
+          "scatterSizeLegend": true,
+          "scatterTrend": "off",
+          "scatterArrows": false,
+          "scatterShapes": false
+        },
+        "scale": {
+          "refLine": "0",
+          "xRefLine": "0"
+        }
+      },
+      "roles": [
+        {
+          "role": "category",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kategorie",
+            "en": "Category"
+          }
+        },
+        {
+          "role": "actual",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Ist (AC)",
+            "en": "Actual (AC)"
+          }
+        },
+        {
+          "role": "xValue",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse (Scatter)",
+            "en": "X axis (Scatter)"
+          }
+        },
+        {
+          "role": "previousYear",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Vorjahr (PY)",
+            "en": "Previous Year (PY)"
+          }
+        },
+        {
+          "role": "xPrevious",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "X-Achse VJ (Scatter, optional)",
+            "en": "X axis PY (scatter, optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "bubbleSize",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasengröße (optional)",
+            "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
           }
         },
         {
@@ -1036,6 +2391,7 @@
           "dPlPin": false,
           "secondBlock": true,
           "structureSubtotals": false,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": true,
           "scenarioMarks": true,
@@ -1043,6 +2399,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -1251,6 +2608,7 @@
           "dPlPin": false,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": true,
           "scenarioMarks": true,
@@ -1258,6 +2616,224 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
+          "blockKind": "ytd",
+          "leftBlockKind": "month"
+        },
+        "numbers": {
+          "decimals": 0,
+          "pctDecimals": 1
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
+      "id": "T01C",
+      "visual": "pnl",
+      "data": "structure",
+      "group": {
+        "id": "structure",
+        "title": {
+          "de": "Struktur-Vergleich",
+          "en": "Structure comparison"
+        }
+      },
+      "title": {
+        "de": "Zwischensummen-Ranking nach Vorjahres-Abweichung (YTD)",
+        "en": "Subtotal ranking by variance to PY (YTD)"
+      },
+      "use": {
+        "de": "Wie T01B, je Block nach ΔPY des laufenden Jahres sortiert: die größten Zuwächse jeder Region zuerst.",
+        "en": "Like T01B, each block sorted by the year-to-date ΔPY: the biggest gains of every region first."
+      },
+      "objects": {
+        "columns": {
+          "template": "T01C",
+          "templateApplied": "T01C",
+          "minuend": "ac",
+          "showPY": true,
+          "showPL": true,
+          "showMinuend": true,
+          "valueCascade": false,
+          "dPyAbs": true,
+          "dPyBar": false,
+          "dPyWaterfall": false,
+          "dPyPct": true,
+          "dPyPin": false,
+          "dPlAbs": true,
+          "dPlBar": false,
+          "dPlWaterfall": false,
+          "dPlPct": true,
+          "dPlPin": false,
+          "secondBlock": true,
+          "structureSubtotals": true,
+          "structureTotal": true,
+          "showPctRows": true,
+          "thresholds": true,
+          "scenarioMarks": true,
+          "chartLabels": true,
+          "capBars": false,
+          "sort": "delta",
+          "sortBlock": "ytd",
+          "keepBlockOrder": true,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -1466,6 +3042,7 @@
           "dPlPin": true,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -1473,6 +3050,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -1681,6 +3259,7 @@
           "dPlPin": true,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -1688,6 +3267,7 @@
           "capBars": false,
           "sort": "min",
           "sortBlock": "ytd",
+          "keepBlockOrder": true,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -1896,6 +3476,7 @@
           "dPlPin": true,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -1903,6 +3484,7 @@
           "capBars": false,
           "sort": "delta",
           "sortBlock": "period",
+          "keepBlockOrder": true,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -2072,6 +3654,440 @@
       ]
     },
     {
+      "id": "T02D",
+      "visual": "pnl",
+      "data": "structure",
+      "group": {
+        "id": "structure",
+        "title": {
+          "de": "Struktur-Vergleich",
+          "en": "Structure comparison"
+        }
+      },
+      "title": {
+        "de": "Ranking nach Abweichung in % (YTD)",
+        "en": "Ranking by variance in % (YTD)"
+      },
+      "use": {
+        "de": "T02A nach ΔPL% des laufenden Jahres sortiert: der faire Vergleich zwischen großen und kleinen Einheiten.",
+        "en": "T02A sorted by the year-to-date ΔPL%: the fair comparison between large and small units."
+      },
+      "objects": {
+        "columns": {
+          "template": "T02D",
+          "templateApplied": "T02D",
+          "minuend": "ac",
+          "showPY": false,
+          "showPL": true,
+          "showMinuend": true,
+          "valueCascade": false,
+          "dPyAbs": false,
+          "dPyBar": false,
+          "dPyWaterfall": false,
+          "dPyPct": false,
+          "dPyPin": false,
+          "dPlAbs": false,
+          "dPlBar": true,
+          "dPlWaterfall": false,
+          "dPlPct": false,
+          "dPlPin": true,
+          "secondBlock": true,
+          "structureSubtotals": true,
+          "structureTotal": true,
+          "showPctRows": true,
+          "thresholds": false,
+          "scenarioMarks": true,
+          "chartLabels": true,
+          "capBars": false,
+          "sort": "pct",
+          "sortBlock": "ytd",
+          "keepBlockOrder": true,
+          "blockKind": "ytd",
+          "leftBlockKind": "month"
+        },
+        "numbers": {
+          "decimals": 0,
+          "pctDecimals": 1
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
+      "id": "T01D",
+      "visual": "pnl",
+      "data": "structure",
+      "group": {
+        "id": "forecast",
+        "title": {
+          "de": "Forecast",
+          "en": "Forecast"
+        }
+      },
+      "title": {
+        "de": "Forecast-Ranking nach Vorjahres-Abweichung in % (Monat)",
+        "en": "Forecast ranking by variance to PY in % (month)"
+      },
+      "use": {
+        "de": "Forecast je Land mit Zwischensummen, je Block nach ΔPY% des Monats sortiert: wer wächst am stärksten.",
+        "en": "Forecast by country with subtotals, each block sorted by the month's ΔPY%: who grows fastest."
+      },
+      "objects": {
+        "columns": {
+          "template": "T01D",
+          "templateApplied": "T01D",
+          "minuend": "fc",
+          "showPY": true,
+          "showPL": true,
+          "showMinuend": true,
+          "valueCascade": false,
+          "dPyAbs": true,
+          "dPyBar": false,
+          "dPyWaterfall": false,
+          "dPyPct": true,
+          "dPyPin": false,
+          "dPlAbs": true,
+          "dPlBar": false,
+          "dPlWaterfall": false,
+          "dPlPct": true,
+          "dPlPin": false,
+          "secondBlock": true,
+          "structureSubtotals": true,
+          "structureTotal": true,
+          "showPctRows": true,
+          "thresholds": true,
+          "scenarioMarks": true,
+          "chartLabels": true,
+          "capBars": false,
+          "sort": "pct",
+          "sortBlock": "period",
+          "keepBlockOrder": true,
+          "blockKind": "ytd",
+          "leftBlockKind": "month"
+        },
+        "numbers": {
+          "decimals": 0,
+          "pctDecimals": 1
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
       "id": "T02E",
       "visual": "pnl",
       "data": "structure",
@@ -2111,6 +4127,7 @@
           "dPlPin": false,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -2118,6 +4135,7 @@
           "capBars": false,
           "sort": "delta",
           "sortBlock": "ytd",
+          "keepBlockOrder": true,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -2326,6 +4344,7 @@
           "dPlPin": true,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": true,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -2333,6 +4352,7 @@
           "capBars": false,
           "sort": "delta",
           "sortBlock": "ytd",
+          "keepBlockOrder": true,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -2541,6 +4561,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -2548,6 +4569,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -2756,6 +4778,7 @@
           "dPlPin": true,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -2763,6 +4786,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -2971,6 +4995,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -2978,6 +5003,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -3186,6 +5212,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -3193,6 +5220,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -3401,6 +5429,7 @@
           "dPlPin": true,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -3408,6 +5437,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -3616,6 +5646,7 @@
           "dPlPin": true,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -3623,6 +5654,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -3831,6 +5863,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -3838,6 +5871,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -4046,6 +6080,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -4053,6 +6088,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -4264,6 +6300,7 @@
           "dPlPin": false,
           "secondBlock": true,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -4271,6 +6308,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -4482,6 +6520,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": false,
           "thresholds": false,
           "scenarioMarks": true,
@@ -4489,6 +6528,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -4697,6 +6737,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": true,
           "thresholds": false,
           "scenarioMarks": true,
@@ -4704,6 +6745,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "fy",
           "leftBlockKind": "month"
         },
@@ -4933,6 +6975,7 @@
           "dPlPin": false,
           "secondBlock": false,
           "structureSubtotals": true,
+          "structureTotal": false,
           "showPctRows": false,
           "thresholds": false,
           "scenarioMarks": true,
@@ -4940,6 +6983,7 @@
           "capBars": false,
           "sort": "cat",
           "sortBlock": "ytd",
+          "keepBlockOrder": false,
           "blockKind": "ytd",
           "leftBlockKind": "month"
         },
@@ -5076,6 +7120,197 @@
         {
           "role": "varianceInvert",
           "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Abweichungsfarbe drehen",
+            "en": "Variance invert"
+          }
+        },
+        {
+          "role": "parent",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Parent-Konto-ID",
+            "en": "Parent account ID"
+          }
+        },
+        {
+          "role": "comment",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kommentar",
+            "en": "Comment"
+          }
+        },
+        {
+          "role": "colCategory",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Spalten-Kategorie",
+            "en": "Column category"
+          }
+        }
+      ]
+    },
+    {
+      "id": "11A",
+      "visual": "pnl",
+      "data": "statement",
+      "view": "tree",
+      "group": {
+        "id": "report",
+        "title": {
+          "de": "Report-Ansichten",
+          "en": "Report views"
+        }
+      },
+      "title": {
+        "de": "ROI-Baum (DuPont)",
+        "en": "ROI tree (DuPont)"
+      },
+      "use": {
+        "de": "Werttreiberbaum Umsatzrendite mal Kapitalumschlag, je Karte Säulen über die Jahre, Plan umrandet. Kennzahlen mit „KPI factor“ als Faktor.",
+        "en": "Driver tree return on sales times capital turnover, columns over the years on every card, plan outlined. KPIs with “KPI factor” show as a factor."
+      },
+      "objects": {
+        "columns": {
+          "treeCard": "months",
+          "treeStatus": false,
+          "treeLevel": 0,
+          "treeAllLabels": true
+        },
+        "state": {
+          "uiState": "{\"view\":\"tree\",\"treeV\":2}"
+        }
+      },
+      "roles": [
+        {
+          "role": "levels",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Ebenen-Spalten (L1..Ln)",
+            "en": "Level columns (L1..Ln)"
+          },
+          "alt": [
+            "account",
+            "parent"
+          ]
+        },
+        {
+          "role": "ac",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "AC (Ist)",
+            "en": "AC (Actual)"
+          }
+        },
+        {
+          "role": "pl",
+          "need": "recommended",
+          "kind": "Measure",
+          "label": {
+            "de": "PL (Plan / Budget)",
+            "en": "PL (Plan / Budget)"
+          }
+        },
+        {
+          "role": "py",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "PY (Vorjahr)",
+            "en": "PY (Previous Year)"
+          }
+        },
+        {
+          "role": "fc",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "FC (Forecast)",
+            "en": "FC (Forecast)"
+          }
+        },
+        {
+          "role": "period",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Periode (Monat)",
+            "en": "Period (month)"
+          }
+        },
+        {
+          "role": "account",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Konto-ID (Key)",
+            "en": "Account ID (key)"
+          }
+        },
+        {
+          "role": "accountName",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Kontoname",
+            "en": "Account name"
+          }
+        },
+        {
+          "role": "sortOrder",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Sortierung",
+            "en": "Sort order"
+          }
+        },
+        {
+          "role": "rowType",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Zeilentyp",
+            "en": "Row type"
+          }
+        },
+        {
+          "role": "formulaDef",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Formeldefinition",
+            "en": "Formula definition"
+          }
+        },
+        {
+          "role": "signConvention",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Rechenvorzeichen (±1)",
+            "en": "Sign convention (±1)"
+          }
+        },
+        {
+          "role": "displayInvert",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Anzeige invertieren",
+            "en": "Display invert"
+          }
+        },
+        {
+          "role": "varianceInvert",
+          "need": "optional",
           "kind": "Grouping",
           "label": {
             "de": "Abweichungsfarbe drehen",

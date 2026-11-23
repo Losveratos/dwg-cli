@@ -1,0 +1,84 @@
+table Rendite
+	lineageTag: f03ac15d-c7e2-5fd1-be0e-fdab94dbf279
+	sourceLineageTag: [dbo].[rendite]
+
+	/// Ist je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
+	measure 'Rendite AC' = SUM ( 'Rendite'[AC] )
+		formatString: #,##0
+		displayFolder: 10 Rendite
+		lineageTag: 9d8d797f-5dee-58d3-89c6-916c2aa5ec79
+
+	/// Vorjahr je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
+	measure 'Rendite PY' = SUM ( 'Rendite'[PY] )
+		formatString: #,##0
+		displayFolder: 10 Rendite
+		lineageTag: 50324d18-fceb-5ede-ab15-f999c076e1d8
+
+	/// Plan je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
+	measure 'Rendite PL' = SUM ( 'Rendite'[PL] )
+		formatString: #,##0
+		displayFolder: 10 Rendite
+		lineageTag: 41a438ee-a17f-561c-9968-3169868c5204
+
+	/// Forecast je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.
+	measure 'Rendite FC' = SUM ( 'Rendite'[FC] )
+		formatString: #,##0
+		displayFolder: 10 Rendite
+		lineageTag: ce7e8214-9834-5b86-acce-c8c515195896
+
+	/// Geschäftsjahr als Periode für das P&L-Visual (2024 und 2025 Ist, 2026 Forecast und Plan). Keine Beziehung zum Kalender: der Jahr-Slicer filtert die Rendite nicht.
+	column Jahr
+		dataType: int64
+		formatString: 0
+		lineageTag: c33f1441-932e-5cb3-ab86-313c27575599
+		sourceLineageTag: Jahr
+		summarizeBy: none
+		sourceColumn: Jahr
+
+	column KontoID
+		dataType: string
+		isHidden
+		lineageTag: d2f08897-3e51-56f9-993c-4caa83db60a2
+		sourceLineageTag: KontoID
+		summarizeBy: none
+		sourceColumn: KontoID
+
+	column AC
+		dataType: double
+		isHidden
+		lineageTag: 479538d9-07d0-5177-a2c6-5be7fc1faf91
+		sourceLineageTag: AC
+		summarizeBy: none
+		sourceColumn: AC
+
+	column PY
+		dataType: double
+		isHidden
+		lineageTag: 0f4612d9-509d-5cda-ae16-15aef0ac8daf
+		sourceLineageTag: PY
+		summarizeBy: none
+		sourceColumn: PY
+
+	column PL
+		dataType: double
+		isHidden
+		lineageTag: 6bbf0e77-f014-56e4-a595-7c47dff4f6e3
+		sourceLineageTag: PL
+		summarizeBy: none
+		sourceColumn: PL
+
+	column FC
+		dataType: double
+		isHidden
+		lineageTag: ef2bb64a-e742-544c-a857-23fb3d4307b3
+		sourceLineageTag: FC
+		summarizeBy: none
+		sourceColumn: FC
+
+	partition Rendite = entity
+		mode: directLake
+		source
+			entityName: rendite
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

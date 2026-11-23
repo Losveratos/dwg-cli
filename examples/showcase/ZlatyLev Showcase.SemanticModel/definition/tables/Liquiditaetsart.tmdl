@@ -1,0 +1,44 @@
+table Liquiditaetsart
+	lineageTag: a9f783ab-e8a9-57a0-ac5b-af6f927fb8db
+	sourceLineageTag: [dbo].[liquiditaetsart]
+
+	column ArtID
+		dataType: string
+		isKey
+		lineageTag: e93a0ce2-48c4-515f-9731-e5d404f8bd8f
+		sourceLineageTag: ArtID
+		summarizeBy: none
+		sourceColumn: ArtID
+
+	column Art
+		dataType: string
+		lineageTag: e433d6f1-e65f-5202-b359-1fc48e39dd52
+		sourceLineageTag: Art
+		summarizeBy: none
+		sourceColumn: Art
+		sortByColumn: 'Art Sort'
+
+	column 'Art Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4db4b621-95ba-57f1-9619-ef8c4087d138
+		sourceLineageTag: ArtSort
+		summarizeBy: none
+		sourceColumn: ArtSort
+
+	/// Zeilentyp-Token für ChartKitchen (Rolle rowType, Modus stockflow): stock = Bestand am Monatsende, inflow = Zufluss, outflow = Abfluss, leer = Vorzeichen entscheidet.
+	column Fluss
+		dataType: string
+		lineageTag: faf567ef-05de-5666-9c4f-fbb6846589db
+		sourceLineageTag: Fluss
+		summarizeBy: none
+		sourceColumn: Fluss
+
+	partition Liquiditaetsart = entity
+		mode: directLake
+		source
+			entityName: liquiditaetsart
+			schemaName: dbo
+			expressionSource: DatabaseQuery
+

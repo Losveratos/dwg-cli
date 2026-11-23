@@ -4,7 +4,10 @@
     "fakten2026": 14124,
     "kombinationen": 107,
     "bilanz": 192,
-    "cashflow": 216
+    "cashflow": 216,
+    "liquiditaet": 120,
+    "markt": 384,
+    "rendite": 9
   },
   "2026": {
     "GuV AC": 58417579.0,
@@ -77,5 +80,97 @@
     "Jahresüberschuss AC": 784426.0,
     "Abschreibungen AC": 2016011.0,
     "Endbestand FC Dezember": 5480869.0
+  },
+  "Liquidität 2026": {
+    "Kasse und Bank AC (Stichtag)": 3771494.0,
+    "Kasse und Bank PY (Stichtag)": 3603560.0,
+    "Kasse und Bank FC Dezember": 5480869.0,
+    "Kasse und Bank PL Dezember": 6762011.0,
+    "Operativer Cashflow AC": 1419128.0,
+    "Investitionen AC": -4193822.0,
+    "Darlehensaufnahme AC": 3000000.0,
+    "Tilgung und Dividende AC": -780000.0,
+    "Darlehensaufnahme AC Juni": 3000000.0,
+    "Investitionen AC Juni": -3310126.0
+  },
+  "Markt 2026": {
+    "Eigenabsatz hl AC": 279545.3,
+    "Marktvolumen hl AC": 1215783.2,
+    "Marktvolumen hl PY bis Ist": 1206681.3,
+    "Wettbewerber hl AC": 397907.5,
+    "Eigenanteil je Segment": {
+      "Deutschland · Alkoholfrei": 0.0709,
+      "Deutschland · Dunkles Lager": 0.1142,
+      "Deutschland · Helles Lager": 0.0648,
+      "Deutschland · Spezialität": 0.0864,
+      "Polen · Alkoholfrei": 0.1091,
+      "Polen · Dunkles Lager": 0.2098,
+      "Polen · Helles Lager": 0.0972,
+      "Polen · Spezialität": 0.1187,
+      "Slowakei · Alkoholfrei": 0.1087,
+      "Slowakei · Dunkles Lager": 0.1961,
+      "Slowakei · Helles Lager": 0.121,
+      "Slowakei · Spezialität": 0.1526,
+      "Tschechien · Alkoholfrei": 0.2764,
+      "Tschechien · Dunkles Lager": 0.5432,
+      "Tschechien · Helles Lager": 0.3067,
+      "Tschechien · Spezialität": 0.244
+    },
+    "Relativer Marktanteil je Segment": {
+      "Deutschland · Alkoholfrei": 0.23,
+      "Deutschland · Dunkles Lager": 0.885,
+      "Deutschland · Helles Lager": 0.224,
+      "Deutschland · Spezialität": 0.456,
+      "Polen · Alkoholfrei": 0.373,
+      "Polen · Dunkles Lager": 0.921,
+      "Polen · Helles Lager": 0.292,
+      "Polen · Spezialität": 0.791,
+      "Slowakei · Alkoholfrei": 0.4,
+      "Slowakei · Dunkles Lager": 0.931,
+      "Slowakei · Helles Lager": 0.356,
+      "Slowakei · Spezialität": 0.64,
+      "Tschechien · Alkoholfrei": 1.15,
+      "Tschechien · Dunkles Lager": 2.581,
+      "Tschechien · Helles Lager": 0.793,
+      "Tschechien · Spezialität": 0.901
+    }
+  },
+  "Rendite": {
+    "AC 2024": {
+      "EBIT": 1524979.0,
+      "Nettoumsatz": 35671771.0,
+      "Investiertes Kapital": 41422516.0,
+      "Umsatzrendite": 0.04275030247306757,
+      "Kapitalumschlag": 0.8611686214328459,
+      "ROI": 0.03681521904656878,
+      "Leasing": 5200000.0
+    },
+    "AC 2025": {
+      "EBIT": 2422583.0,
+      "Nettoumsatz": 38527414.0,
+      "Investiertes Kapital": 40124875.0,
+      "Umsatzrendite": 0.06287946032401759,
+      "Kapitalumschlag": 0.9601877638248094,
+      "ROI": 0.06037608839902928,
+      "Leasing": 3400000.0
+    },
+    "FC 2026": {
+      "EBIT": 1731308.0,
+      "Nettoumsatz": 40167091.0,
+      "Investiertes Kapital": 47609198.0,
+      "Umsatzrendite": 0.04310264838446976,
+      "Kapitalumschlag": 0.843683420165994,
+      "ROI": 0.036364989807221706,
+      "Leasing": 7900000.0
+    },
+    "PL 2026": {
+      "EBIT": 3359545.0,
+      "Nettoumsatz": 41684991.0,
+      "Investiertes Kapital": 47267856.0,
+      "Umsatzrendite": 0.08059363620829377,
+      "Kapitalumschlag": 0.8818887617834835,
+      "ROI": 0.07107462204336071,
+      "Leasing": 6500000.0
+    }
   }
 }

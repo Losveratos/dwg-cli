@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "35bf30ae08996d9ff54f",
+  "position": {
+    "x": 27,
+    "y": 0,
+    "z": 3000,
+    "width": 1866,
+    "height": 96,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "C23 Preis-Mengen-Pfad je Kanal",
+                    "textStyle": {
+                      "fontSize": "14pt",
+                      "color": "#1F2328",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "   ChartKitchen · Zeitverlauf",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#C25A2D",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Wie bewegen sich Menge und Umsatz der Kanäle von Monat zu Monat? Je Kanal eine Kachel mit logarithmischen Achsen: der Pfad verbindet die Ist-Monate, die Strahlen markieren den Erlös je Hektoliter bei 80, 100 und 120 EUR. Die Saison schiebt die Kanäle entlang ihres Strahls, der Preis entscheidet, auf welchem Strahl sie liegen.",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#5F6368"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

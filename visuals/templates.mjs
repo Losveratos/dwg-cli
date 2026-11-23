@@ -1,11 +1,13 @@
-// Template-Katalog (dist/templates.json): die Templates von ChartKitchen (C01–C13) und P&L (T01A–12H) mit Titel,
+// Template-Katalog (dist/templates.json): die Templates von ChartKitchen (C01 ff.) und P&L (T01A–12H, ab 1.8 11A) mit Titel,
 // Zweck, Gruppe, den Format-Objekten, die das Visual beim Anwenden schreibt, und den Datenrollen, die sie brauchen.
 // Eine Quelle für dwg templates, dwg tile add und MockupKitchen; die Werte kommen aus dem Visual-Code, nicht von Hand:
 //   ChartKitchen: CHART_TEMPLATES, TEMPLATE_GROUPS, TEMPLATE_TILE_EN, TEMPLATE_NEEDS aus src/visual.ts. Die Konstanten
 //                 sind nicht exportiert; sie werden per TypeScript-Parser herausgelöst (reine Literale), der Visual-Code
 //                 bleibt unverändert.
 //   P&L:          src/hub.ts (templateSwitches, HUB_GALLERY) und MEGA_PRESETS aus src/megatable.ts, gebündelt für Node.
-//                 Ab 1.7 schreibt ein Template auch statement.stockMode (T05A Bilanz, T05B Cashflow).
+//                 Ab 1.7 schreibt ein Template auch statement.stockMode (T05A Bilanz, T05B Cashflow). Ab 1.8 kennt die
+//                 Galerie Ansichts-Vorlagen ohne Mega-Template (VIEW_PRESETS, ROI-Baum 11A): sie schreiben nur
+//                 Karten-Schalter (columns.*) und die Ansicht (state.uiState), kein columns.template.
 // Titel und Zweck in DE und EN aus den stringResources der Visuals. Die Rollen-Regeln stehen unten (ckRoles, pnlRoles).
 import esbuild from "esbuild";
 import fs from "node:fs";
@@ -41,7 +43,8 @@ async function constsOf(file, names) {
 async function pnlHub(dir) {
     const r = await esbuild.build({
         stdin: {
-            contents: 'export { templateSwitches, HUB_GALLERY } from "./hub";\nexport { MEGA_PRESETS, MEGA_PRESET_KEYS } from "./megatable";\n',
+            // export * statt einer Namensliste: VIEW_PRESETS gibt es erst ab P&L 1.8
+            contents: 'export * from "./hub";\nexport { MEGA_PRESETS, MEGA_PRESET_KEYS } from "./megatable";\n',
             resolveDir: path.join(dir, "src"), loader: "ts",
         },
         bundle: true, platform: "node", format: "esm", write: false,
@@ -104,8 +107,41 @@ function ckRoles(id, props, group, needs, info) {
     if (need && !out.some(r => r.role === need.role)) {
         out.push(role(info, need.role, /optional/i.test(need.en) ? "recommended" : "required"));
     }
+    // ChartKitchen 1.57: Rollen, die TEMPLATE_NEEDS (eine Rolle je Template) nicht nennt, laut AGENT-GUIDE des Visuals;
+    // eine hier genannte Stufe überschreibt die abgeleitete (C24 läuft ohne Blasengröße leer)
+    for (const [r, n] of Object.entries(CK_EXTRA[id] ?? {})) {
+        if (!info[r]) { continue; }   // ältere Visual-Stände ohne diese Rolle
+        const i = out.findIndex(x => x.role === r);
+        if (i >= 0) { out[i] = role(info, r, n); } else { out.push(role(info, r, n)); }
+    }
     out.push(role(info, "comments", "optional"));
     return out.filter((r, i) => out.findIndex(x => x.role === r.role) === i);
+}
+
+/**
+ * Zusatzrollen neuer ChartKitchen-Templates (1.57) über TEMPLATE_NEEDS hinaus: C23 Zeitpfad je Einheit (series),
+ * C24 Blasen mit Anteil (bubbleSize und bubbleShare, sonst keine Kreissegmente; Small Multiples wie Blatt 10G),
+ * C18 Abweichungs-Scatter (Serie, Blasengröße, Small Multiples), C20 Bestand und Fluss (Flussarten und Bestand als Mitglieder der Serie, Forecast-Flag,
+ * Bestand alternativ über lineMeasure).
+ */
+const CK_EXTRA = {
+    C18: { series: "recommended", bubbleSize: "optional", multiples: "optional" },
+    C20: { series: "required", fcFlag: "optional", lineMeasure: "optional" },
+    C23: { series: "required", multiples: "optional", bubbleSize: "optional" },
+    C24: { bubbleSize: "required", bubbleShare: "required", series: "recommended", multiples: "optional" },
+};
+
+/**
+ * Preset-Schalter eines ChartKitchen-Templates nach Objekten: Schlüssel mit Punkt („scale.refLine“) gehören in ihr eigenes
+ * Objekt, so wie das Visual sie beim Anwenden trennt; alle anderen in chart
+ */
+function ckObjects(id, props) {
+    const objects = { chart: { template: id, templateApplied: id } };
+    for (const [k, v] of Object.entries(props)) {
+        const dot = k.indexOf(".");
+        if (dot > 0) { (objects[k.slice(0, dot)] ??= {})[k.slice(dot + 1)] = v; } else { objects.chart[k] = v; }
+    }
+    return objects;
 }
 
 async function chartKitchen(dir) {
@@ -126,7 +162,7 @@ async function chartKitchen(dir) {
             group: g ? { id: g.id, title: text(loc, g.key, g.en) } : null,
             title: text(loc, `Hub_TplT_${id}`, tEn),
             use: text(loc, `Hub_TplU_${id}`, uEn),
-            objects: { chart: { template: id, templateApplied: id, ...props } },
+            objects: ckObjects(id, props),
             roles: ckRoles(id, props, g?.id, c.TEMPLATE_NEEDS, info),
         });
     }
@@ -171,6 +207,24 @@ function pnlRoles(id, sw, preset, info) {
     return out;
 }
 
+/**
+ * Rollen einer Ansichts-Vorlage (P&L 1.8). Bekannt ist nur der Baum (ROI-Baum 11A): ein Werttreiberbaum über Formel- und
+ * KPI-Zeilen. Ebenen und AC sind Pflicht, Zeilentyp und Formel auch (ohne sie fällt die Wurzel auf die Summe zurück,
+ * ein gewöhnlicher Hierarchiebaum statt DuPont; das KPI-Format Faktor/Betrag steht im Zeilentyp). PL wird empfohlen (die
+ * Planjahre), die Periode auch (Jahre als Spalten jeder Karte; Monate ergeben zwölf und mehr Säulen je Karte).
+ */
+function pnlViewRoles(view, id, info) {
+    if (view !== "tree") { throw new Error(`Ansichts-Vorlage ${id}: Ansicht „${view}“ kennt der Template-Katalog nicht.`); }
+    const out = [role(info, "levels", "required", { alt: ["account", "parent"] }), role(info, "ac", "required"),
+        role(info, "pl", "recommended"), role(info, "py", "optional"), role(info, "fc", "optional"),
+        role(info, "period", "recommended")];
+    for (const r of ["account", "accountName", "sortOrder", "rowType", "formulaDef", "signConvention", "displayInvert", "varianceInvert"]) {
+        out.push(role(info, r, r === "rowType" || r === "formulaDef" ? "required" : "optional"));
+    }
+    out.push(role(info, "parent", "optional"), role(info, "comment", "optional"), role(info, "colCategory", "optional"));
+    return out;
+}
+
 async function pnl(dir) {
     const hub = await pnlHub(dir);
     const loc = locales(dir);
@@ -179,6 +233,19 @@ async function pnl(dir) {
     for (const g of hub.HUB_GALLERY) {
         for (const t of g.tiles) {
             if (t.tpl === "off") { continue; }
+            // 1.8 Ansichts-Vorlage (ROI-Baum 11A): Karten-Schalter und Ansicht, das Mega-Template bleibt, wie es ist
+            const vp = hub.VIEW_PRESETS?.[t.tpl];
+            if (vp) {
+                out.push({
+                    id: t.tpl, visual: "pnl", data: "statement", view: vp.view,
+                    group: { id: g.id, title: text(loc, g.title) },
+                    title: text(loc, t.title), use: text(loc, t.use),
+                    objects: { columns: { ...vp.cols }, state: { uiState: JSON.stringify({ view: vp.view, treeV: 2 }) } },
+                    roles: pnlViewRoles(vp.view, t.tpl, info),
+                });
+                continue;
+            }
+            if (!hub.MEGA_PRESETS[t.tpl]) { throw new Error(`P&L-Galerie-Kachel ${t.tpl} ohne Mega-Preset und ohne Ansichts-Vorlage (Template-Katalog).`); }
             const sw = hub.templateSwitches(t.tpl);
             const objects = { columns: { template: t.tpl, templateApplied: t.tpl, ...sw.cols }, numbers: { ...sw.nums } };
             if (Object.keys(sw.title).length) { objects.titleBlock = { ...sw.title }; }

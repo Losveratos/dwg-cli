@@ -280,7 +280,7 @@ Kacheln und native Karten haben in dwg kein Gegenstück.
 
 ## Templates und Kacheln aus der Kommandozeile
 
-Die 30 Templates (ChartKitchen C01–C13, P&L T01A–12H und ab P&L 1.7 Bilanz T05A und Cashflow T05B) stehen als Katalog
+Die 47 Templates (ChartKitchen C01 bis C25, P&L T01A bis 12H, ab P&L 1.7 Bilanz T05A und Cashflow T05B, ab P&L 1.8 die Ansichtsvorlage 11A ROI-Baum) stehen als Katalog
 in `visuals/dist/templates.json`. Ihn erzeugt
 `dwg visuals build` aus dem Code der Visuals ([`visuals/templates.mjs`](visuals/templates.mjs)): die Schalter, die ein
 Template beim Anwenden setzt (ChartKitchen `CHART_TEMPLATES`, P&L `templateSwitches()`), Gruppe, Titel und Zweck in DE
@@ -325,7 +325,7 @@ Kachel bekommt die Schalter des Templates, Sortierspalte und Anzeigenamen (Chart
 einer leeren Seite den ganzen Inhaltsbereich; daneben braucht sie `--rect`. Danach gelten `checkSpec`, `dwg lint`,
 `app page` und `pbip pages` wie für jede Spec.
 
-Tests: `templates/test/unit.mjs` (26: Katalog, Schalter und Pflichtrollen gegen die 30 Showcase-Kacheln, Vorschläge
+Tests: `templates/test/unit.mjs` (27: Katalog, Schalter und Pflichtrollen gegen die 47 Showcase-Kacheln, Vorschläge
 treffen deren Felder, Kurzangaben, Kommandozeile). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
 schemagültiger Bericht (`pbip pages`, `validate`) und im Browser-Testrahmen gerendert, Zahlen wie die Showcase-Seiten;
 Gegenprobe auf dem Modell „ChartKitchen byDatenWG Demo“ (L1..L6, Measures ohne Stamm).

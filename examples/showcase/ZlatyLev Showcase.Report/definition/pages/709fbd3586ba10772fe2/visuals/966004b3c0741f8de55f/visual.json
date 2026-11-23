@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "966004b3c0741f8de55f",
+  "position": {
+    "x": 27,
+    "y": 0,
+    "z": 3000,
+    "width": 1866,
+    "height": 96,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "C15 Kunden nach Planabweichung in Prozent",
+                    "textStyle": {
+                      "fontSize": "14pt",
+                      "color": "#1F2328",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "   ChartKitchen · Rangfolgen",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#C25A2D",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Welche Kunden verfehlen ihren Plan relativ am stärksten? Die Balkentabelle sortiert nach der prozentualen Abweichung über die Ist-Monate, so stehen große und kleine Kunden fair nebeneinander. Die Kanalkarten oben zeigen, aus welchem Kanal die Ausreißer kommen.",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#5F6368"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

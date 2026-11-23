@@ -137,3 +137,81 @@ foreach (var s in sc)
 foreach (var s in new[] { "PY", "PL" })
     MT(cf, "Cashflow " + s + " bis Ist", "CALCULATE ( [Cashflow " + s + "], 'Kalender'[Ist] = TRUE () )", EUR, "06 Cashflow",
        sc[s] + " je Cashflow-Position, nur Monate mit Ist (bis August 2026).");
+
+// --- Seit 23.11.2026: Abweichung %, Liquidität, Markt, Rendite (ChartKitchen C18, C20, C24; P&L 11A) --------------
+// 07 Abweichung % (C18, Abweichungs-Scatter): gegen Vorjahr und Plan über dieselben Ist-Monate
+const string DPCT = "+0.0 %;-0.0 %;0.0 %";
+M("Umsatz ΔPY %", "DIVIDE ( [Umsatz AC] - [Umsatz PY bis Ist], [Umsatz PY bis Ist] )", DPCT, "07 Abweichung %",
+  "Nettoumsatz Ist gegen Vorjahr in Prozent, Vorjahr nur über die Monate mit Ist (bis August 2026).");
+M("Umsatz ΔPL %", "DIVIDE ( [Umsatz AC] - [Umsatz PL bis Ist], [Umsatz PL bis Ist] )", DPCT, "07 Abweichung %",
+  "Nettoumsatz Ist gegen Plan in Prozent, Plan nur über die Monate mit Ist (bis August 2026).");
+
+// 08 Liquidität (C20, Bestand und Fluss): Langformat, Art mit Zeilentyp-Token in Liquiditaetsart[Fluss]
+var la = Model.Tables["Liquiditaetsart"];
+var li = Model.Tables["Liquiditaet"];
+foreach (var col in li.Columns) col.IsHidden = true;
+la.Columns["ArtID"].IsKey = true;
+la.Columns["Art"].SortByColumn = la.Columns["Art Sort"];
+la.Columns["Art Sort"].IsHidden = true;
+la.Columns["Art Sort"].FormatString = "0";
+la.Columns["Fluss"].Description = "Zeilentyp-Token für ChartKitchen (Rolle rowType, Modus stockflow): stock = Bestand am Monatsende, inflow = Zufluss, outflow = Abfluss, leer = Vorzeichen entscheidet.";
+foreach (var col in la.Columns) col.SummarizeBy = AggregateFunction.None;
+// Semi-additiv: Flüsse (Fluss leer, inflow, outflow) als Summe, der Bestand (Fluss = stock) als Stand des letzten
+// Monats mit Wert im Filterkontext. So addiert „alle Jahre“ (Monatsname Jan = Jan 2025 und Jan 2026) die Kasse nicht.
+// KEEPFILTERS, damit eine Zeile des Visuals mit Fluss = stock nicht in die Flüsse kippt.
+foreach (var s in sc) {
+    var col = "'Liquiditaet'[" + s.Key + "]";
+    MT(li, "Liquidität " + s.Key,
+       "CALCULATE ( SUM ( " + col + " ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> \"stock\" ) )\n" +
+       "    + CALCULATE (\n" +
+       "        SUM ( " + col + " ),\n" +
+       "        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = \"stock\" ),\n" +
+       "        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( " + col + " ) ) )\n" +
+       "    )", EUR, "08 Liquidität",
+       s.Value + " je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).");
+}
+
+// 09 Markt (C24, Blasen mit Anteil): Marktsegment Land × Sorte, ohne Beziehung zu Kunde und Produkt
+var ms = Model.Tables["Marktsegment"];
+var mk = Model.Tables["Markt"];
+foreach (var col in mk.Columns) col.IsHidden = true;
+ms.Columns["SegmentID"].IsKey = true;
+ms.Columns["Land"].SortByColumn = ms.Columns["Land Sort"];
+ms.Columns["Sorte"].SortByColumn = ms.Columns["Sorte Sort"];
+foreach (var n in new[] { "Land Sort", "Sorte Sort" }) { ms.Columns[n].IsHidden = true; ms.Columns[n].FormatString = "0"; }
+ms.Description = "Marktsegmente Land × Sorte. Eigene Spalten, keine Beziehung zu Kunde und Produkt: die Slicer Region, Kanal und Sorte filtern den Markt nicht.";
+foreach (var col in ms.Columns) col.SummarizeBy = AggregateFunction.None;
+MT(mk, "Marktvolumen hl AC", "SUM ( 'Markt'[Marktvolumen AC] )", HL, "09 Markt", "Marktvolumen Ist in Hektoliter (Blasengröße).");
+MT(mk, "Marktvolumen hl PY", "SUM ( 'Markt'[Marktvolumen PY] )", HL, "09 Markt", "Marktvolumen Vorjahr in Hektoliter.");
+MT(mk, "Marktvolumen hl PY bis Ist", "CALCULATE ( [Marktvolumen hl PY], 'Kalender'[Ist] = TRUE () )", HL, "09 Markt",
+   "Marktvolumen Vorjahr in Hektoliter, nur Monate mit Ist (bis August 2026).");
+MT(mk, "Eigenabsatz hl AC", "SUM ( 'Markt'[Eigenabsatz AC] )", HL, "09 Markt",
+   "Eigener Absatz Ist im Segment in Hektoliter (Kreissegment der Blase), gleich Absatz hl AC der Fakten.");
+MT(mk, "Eigenabsatz hl PY", "SUM ( 'Markt'[Eigenabsatz PY] )", HL, "09 Markt", "Eigener Absatz Vorjahr im Segment in Hektoliter.");
+MT(mk, "Wettbewerber hl AC", "SUM ( 'Markt'[Wettbewerber AC] )", HL, "09 Markt", "Absatz Ist des größten Wettbewerbers im Segment in Hektoliter.");
+MT(mk, "Wettbewerber hl PY", "SUM ( 'Markt'[Wettbewerber PY] )", HL, "09 Markt", "Absatz Vorjahr des größten Wettbewerbers im Segment in Hektoliter.");
+MT(mk, "Marktwachstum %", "DIVIDE ( [Marktvolumen hl AC] - [Marktvolumen hl PY bis Ist], [Marktvolumen hl PY bis Ist] )", DPCT, "09 Markt",
+   "Marktvolumen Ist gegen Vorjahr in Prozent, Vorjahr nur über die Monate mit Ist.");
+MT(mk, "Marktanteil %", "DIVIDE ( [Eigenabsatz hl AC], [Marktvolumen hl AC] )", PCT, "09 Markt", "Eigener Absatz im Verhältnis zum Marktvolumen (Ist).");
+MT(mk, "Relativer Marktanteil", "DIVIDE ( [Eigenabsatz hl AC], [Wettbewerber hl AC] )", "0.00", "09 Markt",
+   "Eigener Absatz im Verhältnis zum größten Wettbewerber (Ist); über 1 = Marktführer.");
+
+// 10 Rendite (11A, ROI-Baum): Jahr als eigene Spalte ohne Beziehung zum Kalender
+var rk = Model.Tables["Renditekonto"];
+var re = Model.Tables["Rendite"];
+foreach (var col in re.Columns) col.IsHidden = true;
+re.Columns["Jahr"].IsHidden = false;
+re.Columns["Jahr"].FormatString = "0";
+re.Columns["Jahr"].Description = "Geschäftsjahr als Periode für das P&L-Visual (2024 und 2025 Ist, 2026 Forecast und Plan). Keine Beziehung zum Kalender: der Jahr-Slicer filtert die Rendite nicht.";
+rk.Columns["KontoID"].IsKey = true;
+rk.Columns["L1"].SortByColumn = rk.Columns["L1 Sort"];
+rk.Columns["L2"].SortByColumn = rk.Columns["SortOrder"];
+rk.Columns["L1 Sort"].IsHidden = true;
+foreach (var n in new[] { "L1 Sort", "SortOrder", "SignConvention" }) rk.Columns[n].FormatString = "0";
+rk.Columns["RowType"].Description = "Zeilentyp mit Token für das P&L-Visual: stock = Stand am Jahresende (Investiertes Kapital), KPI factor = Kennzahl als Faktor (Kapitalumschlag).";
+rk.Columns["FormulaDef"].Description = "Formel des P&L-Visuals über Kontonamen (DuPont: ROI = Umsatzrendite × Kapitalumschlag).";
+foreach (var col in rk.Columns) col.SummarizeBy = AggregateFunction.None;
+foreach (var col in re.Columns) col.SummarizeBy = AggregateFunction.None;
+foreach (var s in sc)
+    MT(re, "Rendite " + s.Key, "SUM ( 'Rendite'[" + s.Key + "] )", EUR, "10 Rendite",
+       s.Value + " je Renditekonto und Jahr: EBIT und Nettoumsatz als Jahressumme, Investiertes Kapital = Aktiva am Jahresende plus Barwert der Miet- und Leasingverträge.");

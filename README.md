@@ -33,7 +33,7 @@ hands data to the visual and the way the app does, and fails if they differ. Tha
 flowchart LR
     SPEC["App spec (JSON)<br/>checked by dwg lint"]
     MK["MockupKitchen<br/>sketch in the browser"] -->|mockup import| SPEC
-    CAT["Template catalog<br/>C01–C13 · T01A–T05B"] -->|tile add + field suggestions| SPEC
+    CAT["Template catalog<br/>C01–C25 · T01A–12H · 11A"] -->|tile add + field suggestions| SPEC
     TMDL["Semantic model<br/>(TMDL)"] -.->|fields, sort columns| SPEC
     SPEC -->|app page| APP["Fabric App<br/>Rayfin · React"]
     SPEC -->|pbip pages| PBI["Power BI report<br/>PBIP / PBIR"]
@@ -44,7 +44,7 @@ flowchart LR
 
 | Step | Command | Result |
 | --- | --- | --- |
-| Pick a template | `dwg templates` | 30 templates (ChartKitchen C01–C13, P&L T01A–12H plus balance sheet T05A and cash flow T05B) with required, recommended and optional data roles |
+| Pick a template | `dwg templates` | 47 templates (24 ChartKitchen C01–C25, 23 P&L T01A–12H including balance sheet T05A, cash flow T05B and the ROI tree 11A) with required, recommended and optional data roles |
 | Add a tile | `dwg tile add` | a tile from a template in your spec; missing fields are suggested from your model (TMDL) |
 | Import a sketch | `dwg mockup import` | a [MockupKitchen](https://datenwgknowledgekitchen.com/mockup-kitchen.html) export becomes a spec |
 | Check | `dwg lint` | pixel grid and accessibility (contrast, minimum sizes, titles) |
@@ -98,8 +98,8 @@ only the built pieces it needs (visuals, `.pbiviz`, converter, pixel grid) and r
 | Tool | What | Links |
 | --- | --- | --- |
 | **MockupKitchen** | sketch report pages in the browser, with your model's fields, export a spec for agents | [open the tool](https://datenwgknowledgekitchen.com/mockup-kitchen.html) |
-| **ChartKitchen byDatenWG** | Power BI custom visual: columns, bars, bridges, scatter, cards, small multiples, templates C01–C13 | [docs](https://datenwgknowledgekitchen.com/chartkitchen-doku_en.html) · [download](https://datenwgknowledgekitchen.com/downloads/chartkitchen-byDatenWG-latest.pbiviz) |
-| **P&L Statement byDatenWG** | Power BI custom visual: P&L / income statement, balance sheet and cash flow (stocks), variance waterfalls, value driver tree, templates T01A–12H and T05A/T05B | [docs](https://datenwgknowledgekitchen.com/pnl-doku_en.html) |
+| **ChartKitchen byDatenWG** | Power BI custom visual: columns, bars, bridges, scatter, cards, small multiples, stock and flow, Marimekko, templates C01–C25 | [docs](https://datenwgknowledgekitchen.com/chartkitchen-doku_en.html) · [download](https://datenwgknowledgekitchen.com/downloads/chartkitchen-byDatenWG-latest.pbiviz) |
+| **P&L Statement byDatenWG** | Power BI custom visual: P&L / income statement, balance sheet and cash flow (stocks), variance waterfalls, value driver tree, templates T01A–12H, T05A/T05B and the ROI tree 11A | [docs](https://datenwgknowledgekitchen.com/pnl-doku_en.html) |
 | Visual sources | source code of both visuals and MockupKitchen | [PowerBI-Kitchen-](https://github.com/Losveratos/PowerBI-Kitchen-) |
 | Released visuals | all `.pbiviz` files in one place | [Power-BI-Custom-Visuals-byDatenWG](https://github.com/Losveratos/Power-BI-Custom-Visuals-byDatenWG) |
 | **dwg cli** | one spec for Fabric App and Power BI | this repo |
@@ -141,7 +141,7 @@ node dwg.mjs check --spec quickstart/app-spec.json --model "$M"   # structure, r
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model "$M" \
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report \
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.7.0.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -166,7 +166,7 @@ node dwg.mjs lint --spec quickstart/app-spec.json
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model $M `
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report `
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.7.0.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -247,7 +247,7 @@ you when a newer version is published than the adapter has, and when `.pbiviz` o
 
 ```bash
 npm test               # adapter, generators, templates, Mini-DAX, app pages and shell in the browser, PBIR schemas, parity
-npm run test:showcase  # renders all 30 showcase pages, screenshots in app/test/out/showcase/
+npm run test:showcase  # renders all 47 showcase pages, screenshots in app/test/out/showcase/
 npm run test:all       # also rebuilds the adapter from the Kitchen repo
 ```
 

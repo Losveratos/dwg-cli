@@ -1,7 +1,7 @@
 {
   "versions": {
-    "chartkitchen": "1.53.0.0",
-    "pnl": "1.7.0.0"
+    "chartkitchen": "1.57.0.0",
+    "pnl": "1.8.3.0"
   },
-  "kitchenCommit": "49701e3"
+  "kitchenCommit": "0b4be06"
 }

@@ -135,6 +135,114 @@
       ]
     },
     {
+      "name": "Gestapelte Fläche nach Sorte",
+      "template": "C07",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Wie verschiebt sich der Absatz über das Jahr zwischen den Sorten? Die gestapelte Fläche zeigt den Mix mit Summenlinie, ab September als Forecast schraffiert, die Sortennamen stehen am rechten Rand. Ein Klick auf eine Kanalkarte zeigt den Mix eines Kanals.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Absatz hl AC]",
+            "previousYear": "'Fakten'[Absatz hl PY bis Ist]",
+            "plan": "'Fakten'[Absatz hl PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Absatz AC",
+            "[previousYear]": "Absatz PY",
+            "[plan]": "Absatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Absatz in hl je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kalender'[Monatsname]",
+            "actual": "'Fakten'[Absatz hl AC]",
+            "forecast": "'Fakten'[Absatz hl FC]",
+            "series": "'Produkt'[Sorte]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]",
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Absatz hl AC",
+            "[forecast]": "Absatz hl FC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C07",
+              "templateApplied": "C07",
+              "orientation": "columns",
+              "comparisonMode": "auto",
+              "showAbsoluteVariance": false,
+              "showRelativeVariance": false,
+              "dualVariance": false,
+              "waterfallStyle": false,
+              "stackShape": "area",
+              "areaTotalLine": true,
+              "areaValueLabels": "auto",
+              "stackLegendDirect": true,
+              "stackLegendPos": "end",
+              "showTotal": false,
+              "scenarioLabels": true,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Absatz in hl nach Sorte",
+              "period": "2026 AC&FC"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Säulen mit Abweichung zum Vorjahr",
       "template": "C03",
       "group": "ChartKitchen · Zeitverlauf",
@@ -226,6 +334,111 @@
               "show": true,
               "kpi": "Nettoumsatz in EUR",
               "period": "2026 AC&FC und PY, ΔPY"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Säulen gegen Plan mit Jahressäule",
+      "template": "C19",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Liegt der Umsatz Monat für Monat über oder unter Plan, und wo landet das ganze Jahr? Die Säulen zeigen Ist bis August und danach den Forecast gegen den Plan, rechts steht die Jahressumme auf eigener Skala. So bleibt das Jahresergebnis neben den kleineren Monatswerten lesbar.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kalender'[Monatsname]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "plan": "'Fakten'[Umsatz PL]",
+            "forecast": "'Fakten'[Umsatz FC]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[plan]": "Umsatz PL",
+            "[forecast]": "Umsatz FC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C19",
+              "templateApplied": "C19",
+              "orientation": "columns",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "waterfallStyle": false,
+              "cumulative": false,
+              "yearColumn": true,
+              "scenarioLabels": true,
+              "pinStyle": "square",
+              "chipMenu": true,
+              "yearColumnLabel": "2026"
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR",
+              "period": "2026 AC&FC und PL, ΔPL"
             },
             "labels": {
               "fontPreset": "fullhd",
@@ -429,6 +642,464 @@
               "show": true,
               "kpi": "Absatz in hl",
               "period": "2026 AC&FC und PL, ΔPL"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kumulierte Linie mit gleitendem Jahr",
+      "template": "C21",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Holt der Umsatz seit Jahresbeginn den Plan noch ein? Die Linie kumuliert Ist und Forecast gegen den kumulierten Plan, dazu laufen die gleitende Jahressumme der letzten zwölf Monate und die Monatswerte als Säulen. Die Marker zeigen den Abstand zum Plan beim letzten Ist im August und am Jahresende.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Sorte",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kalender'[Monatsname]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "plan": "'Fakten'[Umsatz PL]",
+            "forecast": "'Fakten'[Umsatz FC]",
+            "previousYear": "'Fakten'[Umsatz PY]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[plan]": "Umsatz PL",
+            "[forecast]": "Umsatz FC",
+            "[previousYear]": "Umsatz PY"
+          },
+          "objects": {
+            "chart": {
+              "template": "C21",
+              "templateApplied": "C21",
+              "orientation": "line",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": false,
+              "showRelativeVariance": false,
+              "dualVariance": false,
+              "cumulative": true,
+              "cumulativeKind": "ytd",
+              "lineR12": true,
+              "linePeriodColumns": "same",
+              "lineGapMarkers": "both",
+              "lineBasisLabels": true,
+              "lineMarkerShape": "square",
+              "scenarioLabels": true,
+              "showTotal": false,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR, kumuliert und gleitendes Jahr",
+              "period": "2026 AC&FC gegen PL, YTD und R12"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sorten als Index über das Jahr",
+      "template": "C22",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Welche Sorte legt in der Saison am stärksten zu? Jede Linie startet im Januar bei 100, so lassen sich große und kleine Sorten direkt vergleichen; ab September läuft der Forecast weiter. Die Saison prägt alle Linien, weil der Jahr-Slicer genau ein Jahr zeigt.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Absatz hl AC]",
+            "previousYear": "'Fakten'[Absatz hl PY bis Ist]",
+            "plan": "'Fakten'[Absatz hl PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Absatz AC",
+            "[previousYear]": "Absatz PY",
+            "[plan]": "Absatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Absatz in hl je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kalender'[Monatsname]",
+            "actual": "'Fakten'[Absatz hl AC]",
+            "forecast": "'Fakten'[Absatz hl FC]",
+            "series": "'Produkt'[Sorte]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]",
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Absatz hl AC",
+            "[forecast]": "Absatz hl FC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C22",
+              "templateApplied": "C22",
+              "orientation": "line",
+              "lineSeries": true,
+              "lineIndex": "base100",
+              "lineSeriesLabels": "groups",
+              "lineSeriesColor": "tones",
+              "lineMarkerShape": "square",
+              "showAbsoluteVariance": false,
+              "showRelativeVariance": false,
+              "dualVariance": false,
+              "cumulative": false,
+              "showTotal": false,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Absatz je Sorte, Index Januar = 100",
+              "period": "2026 AC&FC"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false,
+              "displayUnits": "none"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Liquidität aus Bestand und Fluss",
+      "template": "C20",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Wie entwickelt sich die Kasse über das Jahr, und welche Zahlungen treiben sie? Zuflüsse stehen über, Abflüsse unter der Nulllinie, die Linie mit Fläche zeigt den Kassenbestand am Monatsende; im Juni fließt das Geld in die neue Abfüllanlage, ein Darlehen deckt den größten Teil. Auf diese Seite wirkt nur der Jahr-Slicer, Region, Kanal und Sorte filtern die Liquidität nicht.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Liquiditaetsart'[Art]",
+            "actual": "'Liquiditaet'[Liquidität AC]",
+            "previousYear": "'Liquiditaet'[Liquidität PY]"
+          },
+          "filters": [
+            {
+              "column": "'Liquiditaetsart'[ArtID]",
+              "values": [
+                "L-OP",
+                "L-INV",
+                "L-DAR",
+                "L-AUS"
+              ]
+            },
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "sortBy": {
+            "'Liquiditaetsart'[Art]": "'Liquiditaetsart'[Art Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Zahlungen AC",
+            "[previousYear]": "Zahlungen PY"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Zahlungsströme in EUR je Art",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kalender'[Monatsname]",
+            "series": "'Liquiditaetsart'[Art]",
+            "rowType": "'Liquiditaetsart'[Fluss]",
+            "actual": "'Liquiditaet'[Liquidität AC]",
+            "forecast": "'Liquiditaet'[Liquidität FC]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]",
+            "'Liquiditaetsart'[Art]": "'Liquiditaetsart'[Art Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Liquidität AC",
+            "[forecast]": "Liquidität FC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C20",
+              "templateApplied": "C20",
+              "orientation": "stockflow",
+              "sfNet": true,
+              "sfArea": true,
+              "scenarioLabels": true,
+              "showTotal": false,
+              "highlightStyle": "ellipse",
+              "pinStyle": "round",
+              "chipMenu": true,
+              "highlight": "Jun"
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Liquidität in EUR, Zahlungen und Kasse am Monatsende",
+              "period": "2026 AC&FC"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preis-Mengen-Pfad je Kanal",
+      "template": "C23",
+      "group": "ChartKitchen · Zeitverlauf",
+      "description": "Wie bewegen sich Menge und Umsatz der Kanäle von Monat zu Monat? Je Kanal eine Kachel mit logarithmischen Achsen: der Pfad verbindet die Ist-Monate, die Strahlen markieren den Erlös je Hektoliter bei 80, 100 und 120 EUR. Die Saison schiebt die Kanäle entlang ihres Strahls, der Preis entscheidet, auf welchem Strahl sie liegen.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Sorte",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "multiples": "'Kunde'[Kanal]",
+            "category": "'Kalender'[Monatsname]",
+            "series": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "xValue": "'Fakten'[Absatz hl AC]"
+          },
+          "sortBy": {
+            "'Kalender'[Monatsname]": "'Kalender'[Monat]",
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Umsatz",
+            "[xValue]": "Absatz hl"
+          },
+          "objects": {
+            "chart": {
+              "template": "C23",
+              "templateApplied": "C23",
+              "orientation": "scatter",
+              "comparisonMode": "auto",
+              "scatterPath": "line",
+              "scatterPathLabels": "auto",
+              "scatterColorBy": "group",
+              "scatterQuadrant": "off",
+              "scatterTrend": "off",
+              "scatterArrows": false,
+              "scatterPlay": false,
+              "pinStyle": "round",
+              "chipMenu": true,
+              "multiplesColumns": 4
+            },
+            "scale": {
+              "ratioRays": "80;100;120",
+              "ratioRayUnit": "EUR/hl",
+              "xLogScale": true,
+              "yLogScale": true,
+              "xMax": "30k",
+              "yMax": "4M"
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Umsatz in Mio. EUR (y) gegen Absatz in Tsd. hl (x) je Kanal",
+              "period": "Jan..Aug 2026 AC"
             },
             "labels": {
               "fontPreset": "fullhd",
@@ -656,6 +1327,120 @@
       ]
     },
     {
+      "name": "Sortenmix je Kanal als Marimekko",
+      "template": "C25",
+      "group": "ChartKitchen · Struktur",
+      "description": "Wie unterscheidet sich der Sortenmix zwischen den Kanälen, und welcher Kanal trägt wie viel zum Umsatz bei? Jede Zeile ist ein Kanal als 100-%-Balken, ihre Dicke folgt dem Umsatz, rechts stehen Summe und Anteil. Verglichen werden die Ist-Monate, die Sortenkarten oben filtern auf eine Sorte.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Sorte",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "series": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[Umsatz AC]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]",
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Umsatz AC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C25",
+              "templateApplied": "C25",
+              "orientation": "bars",
+              "comparisonMode": "auto",
+              "showAbsoluteVariance": false,
+              "showRelativeVariance": false,
+              "dualVariance": false,
+              "waterfallStyle": false,
+              "stackNormalize": "pct100",
+              "stackThickness": "total",
+              "stackShareColumn": true,
+              "showTotal": true,
+              "stackTotalRow": true,
+              "sortMode": "ac",
+              "stackLegendDirect": true,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal nach Sorte",
+              "period": "Jan..Aug 2026 (YTD) AC"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Balken mit Planabweichung je Bier",
       "template": "C04",
       "group": "ChartKitchen · Struktur",
@@ -760,6 +1545,341 @@
             "ibcsTitle": {
               "show": true,
               "kpi": "Nettoumsatz in EUR je Bier, Ist gegen Plan",
+              "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Biere nach Planabweichung in Euro",
+      "template": "C14",
+      "group": "ChartKitchen · Rangfolgen",
+      "description": "Welche Biere liegen in Euro am weitesten über oder unter Plan? Die Balkentabelle sortiert nach der absoluten Abweichung über dieselben Ist-Monate, unten steht die Summe. Große Biere stehen hier vorn, auch wenn ihre Abweichung in Prozent klein ist.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Produkt'[Produkt]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "plan": "'Fakten'[Umsatz PL]"
+          },
+          "sortBy": {
+            "'Produkt'[Produkt]": "'Produkt'[Produkt Sort]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "C14",
+              "templateApplied": "C14",
+              "orientation": "table",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "showTotal": true,
+              "totalRowPosition": "bottom",
+              "tableTotalLegend": true,
+              "tableSort": "dabs_desc",
+              "gridLines": "none",
+              "cumulative": false,
+              "topN": 0,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Bier, sortiert nach ΔPL",
+              "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false,
+              "displayUnits": "k",
+              "decimals": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kunden nach Planabweichung in Prozent",
+      "template": "C15",
+      "group": "ChartKitchen · Rangfolgen",
+      "description": "Welche Kunden verfehlen ihren Plan relativ am stärksten? Die Balkentabelle sortiert nach der prozentualen Abweichung über die Ist-Monate, so stehen große und kleine Kunden fair nebeneinander. Die Kanalkarten oben zeigen, aus welchem Kanal die Ausreißer kommen.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kunde]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "plan": "'Fakten'[Umsatz PL]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "C15",
+              "templateApplied": "C15",
+              "orientation": "table",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "showTotal": true,
+              "totalRowPosition": "bottom",
+              "tableTotalLegend": true,
+              "tableSort": "drel_desc",
+              "gridLines": "none",
+              "cumulative": false,
+              "topN": 0,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kunde, sortiert nach ΔPL %",
+              "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kunden nach Deckungsbeitrag",
+      "template": "C16",
+      "group": "ChartKitchen · Rangfolgen",
+      "description": "Welche Kunden bringen den größten Deckungsbeitrag, und erreichen sie ihren Plan? Die Balkentabelle sortiert nach dem Ist absteigend, Plan und Abweichungen stehen daneben. Die Sortenkarten oben zeigen den Deckungsbeitrag je Sorte.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[DB AC]",
+            "previousYear": "'Fakten'[DB PY bis Ist]",
+            "plan": "'Fakten'[DB PL bis Ist]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Deckungsbeitrag AC",
+            "[previousYear]": "Deckungsbeitrag PY",
+            "[plan]": "Deckungsbeitrag PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Deckungsbeitrag in EUR je Sorte",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kunde]",
+            "actual": "'Fakten'[DB AC]",
+            "plan": "'Fakten'[DB PL]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Deckungsbeitrag AC",
+            "[plan]": "Deckungsbeitrag PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "C16",
+              "templateApplied": "C16",
+              "orientation": "table",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "showTotal": true,
+              "totalRowPosition": "bottom",
+              "tableTotalLegend": true,
+              "tableSort": "ac_desc",
+              "gridLines": "none",
+              "cumulative": false,
+              "topN": 0,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Deckungsbeitrag in EUR je Kunde, sortiert nach Ist",
               "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
             },
             "labels": {
@@ -1007,6 +2127,266 @@
       ]
     },
     {
+      "name": "Abweichungs-Scatter der Kunden",
+      "template": "C18",
+      "group": "ChartKitchen · Korrelation",
+      "description": "Welche Kunden wachsen gegenüber dem Vorjahr und schlagen zugleich den Plan? Jeder Punkt ist ein Kunde, waagerecht die Abweichung zum Vorjahr, senkrecht die zum Plan in Prozent, das Achsenkreuz liegt bei null. Die Farbe zeigt den Kanal, die Größe den Umsatz.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kunde]",
+            "series": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz ΔPL %]",
+            "xValue": "'Fakten'[Umsatz ΔPY %]",
+            "bubbleSize": "'Fakten'[Umsatz AC]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "ΔPL",
+            "[xValue]": "ΔPY",
+            "[bubbleSize]": "Umsatz AC"
+          },
+          "formats": {
+            "[actual]": "0.0 %",
+            "[xValue]": "0.0 %"
+          },
+          "objects": {
+            "chart": {
+              "template": "C18",
+              "templateApplied": "C18",
+              "orientation": "scatter",
+              "comparisonMode": "auto",
+              "scatterQuadrant": "off",
+              "scatterColorBy": "group",
+              "scatterSizeLegend": true,
+              "scatterTrend": "off",
+              "scatterArrows": false,
+              "scatterShapes": false,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "scale": {
+              "refLine": "0",
+              "xRefLine": "0"
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Umsatz je Kunde: ΔPL % (y) gegen ΔPY % (x)",
+              "period": "Jan..Aug 2026 (YTD)"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Marktsegmente mit unserem Anteil",
+      "template": "C24",
+      "group": "ChartKitchen · Korrelation",
+      "description": "Wo sind wir stark, und wo wächst der Markt? Je Land eine Kachel, darin jede Sorte als Blase: waagerecht der relative Marktanteil gegen den größten Wettbewerber, senkrecht das Marktwachstum, die Größe ist das Marktvolumen in tausend Hektoliter und das Segment darin unser Absatz; die graue Gesamtblase steht für alle Sorten eines Landes, ein Klick auf eine Landeskarte zeigt nur dieses Land. Auf diese Seite wirkt nur der Jahr-Slicer, Region, Kanal und Sorte filtern die Marktdaten nicht.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Marktsegment'[Land]",
+            "actual": "'Markt'[Eigenabsatz hl AC]",
+            "previousYear": "'Markt'[Eigenabsatz hl PY]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "sortBy": {
+            "'Marktsegment'[Land]": "'Marktsegment'[Land Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Eigenabsatz AC",
+            "[previousYear]": "Eigenabsatz PY"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Eigenabsatz in hl je Land",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "multiples": "'Marktsegment'[Land]",
+            "category": "'Marktsegment'[Sorte]",
+            "series": "'Marktsegment'[Sorte]",
+            "actual": "'Markt'[Marktwachstum %]",
+            "xValue": "'Markt'[Relativer Marktanteil]",
+            "bubbleSize": "'Markt'[Marktvolumen hl AC]",
+            "bubbleShare": "'Markt'[Eigenabsatz hl AC]"
+          },
+          "sortBy": {
+            "'Marktsegment'[Land]": "'Marktsegment'[Land Sort]",
+            "'Marktsegment'[Sorte]": "'Marktsegment'[Sorte Sort]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Marktwachstum",
+            "[xValue]": "Relativer Marktanteil",
+            "[bubbleSize]": "Marktvolumen Tsd. hl",
+            "[bubbleShare]": "Eigenabsatz Tsd. hl"
+          },
+          "formats": {
+            "[actual]": "0.0 %",
+            "[xValue]": "0.00",
+            "[bubbleSize]": "#,##0.0,",
+            "[bubbleShare]": "#,##0.0,"
+          },
+          "objects": {
+            "chart": {
+              "template": "C24",
+              "templateApplied": "C24",
+              "orientation": "scatter",
+              "comparisonMode": "auto",
+              "scatterQuadrant": "off",
+              "scatterColorBy": "group",
+              "scatterSizeLegend": false,
+              "scatterValueLabels": true,
+              "scatterBubbleOpacity": 100,
+              "scatterTotalBubble": true,
+              "scatterMaxRadius": 28,
+              "scatterTrend": "off",
+              "scatterArrows": false,
+              "scatterPath": "off",
+              "scatterPlay": false,
+              "pinStyle": "round",
+              "chipMenu": true,
+              "multiplesColumns": 4
+            },
+            "scale": {
+              "xRefLine": "1",
+              "yMin": "-0.08",
+              "yMax": "0.15"
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Marktwachstum (y) gegen relativen Marktanteil (x) je Land und Sorte",
+              "period": "Jan..Aug 2026 (YTD) AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false,
+              "labelDensity": "all"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Kategorie-Brücke Vorjahr zu Ist je Region",
       "template": "C06",
       "group": "ChartKitchen · Brücken",
@@ -1115,6 +2495,113 @@
               "fontPreset": "fullhd",
               "unitSuffix": false,
               "sumSafeRounding": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kunden-Brücke vom Vorjahr zum Ist",
+      "template": "C17",
+      "group": "ChartKitchen · Brücken",
+      "description": "Welche Kunden erklären die Veränderung des Umsatzes gegenüber dem Vorjahr? Die waagerechte Brücke führt vom Vorjahr über den Beitrag jedes Kunden zum Ist, nach jeweils vier Kunden folgt eine Trennlinie. Verglichen werden dieselben Ist-Monate.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kunde]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY]"
+          },
+          "filters": [
+            {
+              "column": "'Kalender'[Ist]",
+              "values": [
+                true
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY"
+          },
+          "objects": {
+            "chart": {
+              "template": "C17",
+              "templateApplied": "C17",
+              "orientation": "catbridge",
+              "bridgeOrientation": "bars",
+              "comparisonMode": "py",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "pyTriangle": false,
+              "groupEvery": 4,
+              "driverNote": false,
+              "pinStyle": "round",
+              "chipMenu": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR, Beitrag je Kunde",
+              "period": "Jan..Aug 2026 (YTD) PY → AC"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "unitSuffix": false
             }
           }
         }
@@ -1332,6 +2819,7 @@
               "dPlPin": false,
               "secondBlock": true,
               "structureSubtotals": false,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": true,
               "scenarioMarks": true,
@@ -1339,6 +2827,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -1462,6 +2951,7 @@
               "dPlPin": false,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": true,
               "scenarioMarks": true,
@@ -1469,6 +2959,142 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
+              "blockKind": "ytd",
+              "leftBlockKind": "month",
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 2,
+              "pctDecimals": 1
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kunden je Kanal nach Vorjahresabweichung",
+      "template": "T01C",
+      "group": "P&L · Struktur-Vergleich",
+      "description": "Welche Kunden treiben im laufenden Jahr die Veränderung gegenüber dem Vorjahr innerhalb ihres Kanals? Je Kanal stehen die Kunden nach der Vorjahresabweichung seit Jahresbeginn sortiert, die Kanäle bleiben in ihrer Reihenfolge und tragen Zwischensummen. Plan und Vorjahr stehen als Zahlen daneben, Abweichungen über der Schwelle werden rot.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Produkt'[Sorte]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Sorte",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Kunde'[Kanal]",
+              "'Kunde'[Kunde]"
+            ],
+            "ac": "'Fakten'[Umsatz AC]",
+            "py": "'Fakten'[Umsatz PY]",
+            "pl": "'Fakten'[Umsatz PL]",
+            "period": "'Kalender'[Periode]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "Nettoumsatz in Mio. EUR nach Kanal und Kunde, sortiert nach ΔPY",
+              "periodLine": "Aug 2026 | Jan..Aug 2026 (YTD), AC gegen PY und PL"
+            },
+            "columns": {
+              "template": "T01C",
+              "templateApplied": "T01C",
+              "minuend": "ac",
+              "showPY": true,
+              "showPL": true,
+              "showMinuend": true,
+              "valueCascade": false,
+              "dPyAbs": true,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": true,
+              "dPyPin": false,
+              "dPlAbs": true,
+              "dPlBar": false,
+              "dPlWaterfall": false,
+              "dPlPct": true,
+              "dPlPin": false,
+              "secondBlock": true,
+              "structureSubtotals": true,
+              "structureTotal": true,
+              "showPctRows": true,
+              "thresholds": true,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "delta",
+              "sortBlock": "ytd",
+              "keepBlockOrder": true,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -1591,6 +3217,7 @@
               "dPlPin": true,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -1598,6 +3225,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -1719,6 +3347,7 @@
               "dPlPin": true,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -1726,6 +3355,7 @@
               "capBars": false,
               "sort": "min",
               "sortBlock": "ytd",
+              "keepBlockOrder": true,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -1850,6 +3480,7 @@
               "dPlPin": true,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -1857,6 +3488,7 @@
               "capBars": false,
               "sort": "delta",
               "sortBlock": "period",
+              "keepBlockOrder": true,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -1885,10 +3517,280 @@
       ]
     },
     {
+      "name": "Biere je Sorte nach Planabweichung in Prozent",
+      "template": "T02D",
+      "group": "P&L · Struktur-Vergleich",
+      "description": "Welche Biere verfehlen ihren Plan im laufenden Jahr relativ am stärksten? Je Sorte stehen die Biere nach der prozentualen Planabweichung seit Jahresbeginn sortiert, daneben die Abweichung als Balken und Pin. So fallen auch kleine Biere mit großer Lücke auf.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz AC]",
+            "previousYear": "'Fakten'[Umsatz PY bis Ist]",
+            "plan": "'Fakten'[Umsatz PL bis Ist]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "plan",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Produkt'[Sorte]",
+              "'Produkt'[Produkt]"
+            ],
+            "ac": "'Fakten'[Umsatz AC]",
+            "pl": "'Fakten'[Umsatz PL]",
+            "period": "'Kalender'[Periode]"
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]",
+            "'Produkt'[Produkt]": "'Produkt'[Produkt Sort]"
+          },
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "Nettoumsatz in Mio. EUR nach Sorte und Bier, sortiert nach ΔPL %",
+              "periodLine": "Aug 2026 | Jan..Aug 2026 (YTD), AC gegen PL"
+            },
+            "columns": {
+              "template": "T02D",
+              "templateApplied": "T02D",
+              "minuend": "ac",
+              "showPY": false,
+              "showPL": true,
+              "showMinuend": true,
+              "valueCascade": false,
+              "dPyAbs": false,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": false,
+              "dPyPin": false,
+              "dPlAbs": false,
+              "dPlBar": true,
+              "dPlWaterfall": false,
+              "dPlPct": false,
+              "dPlPin": true,
+              "secondBlock": true,
+              "structureSubtotals": true,
+              "structureTotal": true,
+              "showPctRows": true,
+              "thresholds": false,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "pct",
+              "sortBlock": "ytd",
+              "keepBlockOrder": true,
+              "blockKind": "ytd",
+              "leftBlockKind": "month",
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 2,
+              "pctDecimals": 1
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forecast je Sorte und Bier nach Vorjahresabweichung",
+      "template": "T01D",
+      "group": "P&L · Struktur-Vergleich",
+      "description": "Wo landen Sorten und Biere im Gesamtjahr gegenüber dem Vorjahr, relativ betrachtet? Der Forecast steht gegen das ganze Vorjahr und den Plan, je Sorte sind die Biere nach der prozentualen Vorjahresabweichung sortiert, die Sorten bleiben in ihrer Reihenfolge. Die Seite zeigt bewusst das Gesamtjahr ohne Periode, weil der Monatsblock des Templates sonst den August zeigte, in dem Forecast und Ist gleich sind.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Kunde'[Kanal]",
+            "actual": "'Fakten'[Umsatz FC]",
+            "previousYear": "'Fakten'[Umsatz PY]",
+            "plan": "'Fakten'[Umsatz PL]"
+          },
+          "sortBy": {
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
+          },
+          "displayNames": {
+            "[actual]": "Umsatz AC&FC",
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Nettoumsatz in EUR je Kanal",
+              "period": "2026 AC&FC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Produkt'[Sorte]",
+              "'Produkt'[Produkt]"
+            ],
+            "ac": "'Fakten'[Umsatz AC]",
+            "py": "'Fakten'[Umsatz PY]",
+            "pl": "'Fakten'[Umsatz PL]",
+            "fc": "'Fakten'[Umsatz FC]"
+          },
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "Nettoumsatz in Mio. EUR nach Sorte und Bier, Forecast gegen Vorjahr und Plan",
+              "periodLine": "2026 AC&FC gegen PY und PL"
+            },
+            "columns": {
+              "template": "T01D",
+              "templateApplied": "T01D",
+              "minuend": "fc",
+              "showPY": true,
+              "showPL": true,
+              "showMinuend": true,
+              "valueCascade": false,
+              "dPyAbs": true,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": true,
+              "dPyPin": false,
+              "dPlAbs": true,
+              "dPlBar": false,
+              "dPlWaterfall": false,
+              "dPlPct": true,
+              "dPlPin": false,
+              "secondBlock": true,
+              "structureSubtotals": true,
+              "structureTotal": true,
+              "showPctRows": true,
+              "thresholds": true,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "pct",
+              "sortBlock": "period",
+              "keepBlockOrder": true,
+              "blockKind": "ytd",
+              "leftBlockKind": "month",
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 2,
+              "pctDecimals": 1
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            }
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+          }
+        }
+      ]
+    },
+    {
       "name": "Forecast gegen Vorjahr je Region",
       "template": "T02E",
       "group": "P&L · Struktur-Vergleich",
-      "description": "Wo landen die Regionen im Gesamtjahr gegenüber dem Vorjahr, wenn der Forecast eintritt? Der Forecast (Ist bis August plus Hochrechnung) steht schraffiert gegen das ganze Vorjahr, sortiert nach der Abweichung.",
+      "description": "Wo landen die Regionen im Gesamtjahr gegenüber dem Vorjahr, wenn der Forecast eintritt? Der Forecast (Ist bis August plus Hochrechnung) steht schraffiert gegen das ganze Vorjahr; Länder mit nur einer Region stehen als Einzelzeilen nach der Abweichung sortiert, im Block Tschechien sind die Regionen sortiert, der Block selbst bleibt an seinem Platz.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -1980,6 +3882,7 @@
               "dPlPin": false,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -1987,6 +3890,7 @@
               "capBars": false,
               "sort": "delta",
               "sortBlock": "ytd",
+              "keepBlockOrder": true,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -2017,7 +3921,7 @@
       "name": "Forecast gegen Plan je Kanal und Kunde",
       "template": "T02F",
       "group": "P&L · Struktur-Vergleich",
-      "description": "Erreichen die Kanäle und ihre Kunden im Gesamtjahr den Plan? Der Forecast steht schraffiert gegen den Jahresplan mit Doppellinie als Planachse, die Blöcke je Kanal sind nach der Abweichung sortiert.",
+      "description": "Erreichen die Kanäle und ihre Kunden im Gesamtjahr den Plan? Der Forecast steht schraffiert gegen den Jahresplan mit Doppellinie als Planachse; je Kanal sind die Kunden nach der Abweichung sortiert, die Kanäle bleiben in ihrer Reihenfolge.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -2112,6 +4016,7 @@
               "dPlPin": true,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": true,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2119,6 +4024,7 @@
               "capBars": false,
               "sort": "delta",
               "sortBlock": "ytd",
+              "keepBlockOrder": true,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -2251,6 +4157,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2258,6 +4165,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -2390,6 +4298,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2397,6 +4306,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -2527,6 +4437,7 @@
               "dPlPin": true,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2534,6 +4445,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -2665,6 +4577,7 @@
               "dPlPin": true,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2672,6 +4585,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -2804,6 +4718,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2811,6 +4726,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -2944,6 +4860,7 @@
               "dPlPin": true,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -2951,6 +4868,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -3084,6 +5002,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3091,6 +5010,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -3231,6 +5151,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3238,6 +5159,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -3381,6 +5303,7 @@
               "dPlPin": false,
               "secondBlock": true,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3388,6 +5311,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month",
               "pctRevenue": false
@@ -3523,6 +5447,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": false,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3530,6 +5455,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -3667,6 +5593,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": false,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3674,6 +5601,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "fy",
               "leftBlockKind": "month"
             },
@@ -3806,6 +5734,7 @@
               "dPlPin": false,
               "secondBlock": false,
               "structureSubtotals": true,
+              "structureTotal": false,
               "showPctRows": false,
               "thresholds": false,
               "scenarioMarks": true,
@@ -3813,6 +5742,7 @@
               "capBars": false,
               "sort": "cat",
               "sortBlock": "ytd",
+              "keepBlockOrder": false,
               "blockKind": "ytd",
               "leftBlockKind": "month"
             },
@@ -3835,6 +5765,137 @@
             "style": {
               "fontPreset": "fullhd",
               "density": "compact"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "ROI-Baum über die Jahre",
+      "template": "11A",
+      "group": "P&L · Report-Ansichten",
+      "description": "Woraus setzt sich die Rendite auf das investierte Kapital zusammen, und wie hat sie sich seit 2024 entwickelt? Der Baum zerlegt den ROI in Umsatzrendite mal Kapitalumschlag, jede Karte zeigt die Jahre als Säulen, 2026 als Forecast schraffiert gegen den Plan; zum investierten Kapital zählen neben den Aktiva die Miet- und Leasingverträge, 2026 kommt ein gemietetes Kühllager dazu. Die Rendite gilt für das ganze Unternehmen, deshalb wirkt hier kein Slicer, auch nicht das Jahr.",
+      "width": 1920,
+      "height": 1080,
+      "background": "#F4F4F1",
+      "tiles": [
+        {
+          "id": "karten",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            1566,
+            134
+          ],
+          "bindings": {
+            "category": "'Rendite'[Jahr]",
+            "actual": "'Rendite'[Rendite FC]",
+            "previousYear": "'Rendite'[Rendite PY]",
+            "plan": "'Rendite'[Rendite PL]"
+          },
+          "filters": [
+            {
+              "column": "'Renditekonto'[KontoID]",
+              "values": [
+                "R-EBIT"
+              ]
+            }
+          ],
+          "displayNames": {
+            "[actual]": "EBIT AC&FC",
+            "[previousYear]": "EBIT PY",
+            "[plan]": "EBIT PL"
+          },
+          "objects": {
+            "chart": {
+              "orientation": "cards",
+              "comparisonMode": "py",
+              "cardTrendChart": "off",
+              "cardSameScale": true,
+              "cardBars": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "EBIT in EUR je Jahr",
+              "period": "2024 bis 2026, AC&FC gegen PY"
+            },
+            "labels": {
+              "fontPreset": "compact",
+              "fontScale": 125,
+              "unitSuffix": false
+            }
+          }
+        },
+        {
+          "id": "vorlage",
+          "visual": "pnl",
+          "rect": [
+            327,
+            275,
+            1566,
+            742
+          ],
+          "bindings": {
+            "levels": [
+              "'Renditekonto'[L1]",
+              "'Renditekonto'[L2]"
+            ],
+            "account": "'Renditekonto'[KontoID]",
+            "accountName": "'Renditekonto'[Konto]",
+            "sortOrder": "'Renditekonto'[SortOrder]",
+            "rowType": "'Renditekonto'[RowType]",
+            "formulaDef": "'Renditekonto'[FormulaDef]",
+            "signConvention": "'Renditekonto'[SignConvention]",
+            "displayInvert": "'Renditekonto'[DisplayInvert]",
+            "varianceInvert": "'Renditekonto'[VarianceInvert]",
+            "ac": "'Rendite'[Rendite AC]",
+            "pl": "'Rendite'[Rendite PL]",
+            "fc": "'Rendite'[Rendite FC]",
+            "period": "'Rendite'[Jahr]"
+          },
+          "sortBy": {
+            "'Renditekonto'[L1]": "'Renditekonto'[L1 Sort]",
+            "'Renditekonto'[L2]": "'Renditekonto'[SortOrder]"
+          },
+          "showItemsWithNoData": true,
+          "objects": {
+            "titleBlock": {
+              "unitLine": "ZLATÝ LEV Brauerei",
+              "measureLine": "ROI-Baum (DuPont), Beträge in Mio. EUR",
+              "periodLine": "2024 bis 2026, AC, FC 2026 und PL 2026"
+            },
+            "columns": {
+              "treeCard": "months",
+              "treeStatus": false,
+              "treeLevel": 0,
+              "treeAllLabels": true,
+              "pctRevenue": false
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 1,
+              "pctDecimals": 2
+            },
+            "state": {
+              "uiState": "{\"view\":\"tree\",\"treeV\":2}"
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true,
+              "startFolded": true
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact",
+              "fontZoom": 130
+            },
+            "layout": {
+              "maximize": true
             }
           }
         }

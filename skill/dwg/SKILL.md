@@ -24,7 +24,7 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
 | Teil | Pfad | Zweck |
 | --- | --- | --- |
 | Adapter `@dwg/visuals` | `visuals/` | ChartKitchen und P&L mit **ihrem Original-Code** außerhalb von Power BI; `daxQuery()` baut die Abfrage aus der Rollenbindung. `dist/` ist committet, `visuals/pbiviz/` hat die passenden `.pbiviz`. Neues Visual-Release: `dwg visuals update --dry-run`, dann ohne `--dry-run` (Adapter, `.pbiviz`, Beispielberichte, Doku, Tests in einem Schritt); `dwg doctor` meldet, wenn eine neuere Version veröffentlicht ist |
-| Templates | `templates/`, `visuals/dist/templates.json` | `dwg templates` (30 Templates: 11 ChartKitchen, 19 P&L, Rollen Pflicht/empfohlen/optional), `dwg tile add` (Kachel aus Template, Feldvorschläge aus dem TMDL) |
+| Templates | `templates/`, `visuals/dist/templates.json` | `dwg templates` (47 Templates: 24 ChartKitchen, 23 P&L einschließlich der Ansichtsvorlage 11A ROI-Baum, Rollen Pflicht/empfohlen/optional), `dwg tile add` (Kachel aus Template, Feldvorschläge aus dem TMDL) |
 | App-Generator | `app/` | `dwg app page` schreibt Adapter, `DwgPage`/`DwgShell` und die Seiten in eine Rayfin-App |
 | PBIP-Generator | `pbip/` | `dwg pbip new` · `register` · `pages`, `dwg validate` gegen die offiziellen PBIR-Schemas |
 | MockupKitchen-Bausteine | `mockup/`, `layout/` | `dwg lint --spec` (Pixelraster, Barrierefreiheit), `dwg mockup import` (mockup-spec.json → App-Spec), `dwg mockup build` (aus dem Kitchen-Repo holen; nicht von Hand ändern) |
@@ -79,7 +79,7 @@ node dwg.mjs validate "<Name>.Report"
 ## Ablauf D · Testen ohne Fabric
 
 - Alles: `npm test` (Adapter, Generator, Templates, Mini-DAX, App-Seiten und App-Rahmen im Browser, PBIR-Schemas,
-  Parität Power BI gegen App). `npm run test:showcase` rendert alle 30 Showcase-Seiten. `npm run test:all` baut
+  Parität Power BI gegen App). `npm run test:showcase` rendert alle 47 Showcase-Seiten. `npm run test:all` baut
   zusätzlich den Adapter neu (Kitchen-Repo nötig). Erwartet: überall „grün“.
 - **Mini-DAX** (`app/test/minidax.mjs`) führt die erzeugten Abfragen auf Tabellen im Format `{columns, rows}` aus
   (SUMMARIZECOLUMNS, TREATAS, CALCULATE mit `=`-Filtern, SUM, ORDER BY, ADDMISSINGITEMS, CALCULATETABLE mit TREATAS,

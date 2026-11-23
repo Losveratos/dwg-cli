@@ -2,6 +2,48 @@
 
 ## Unreleased
 
+- **Showcase review fixes (23.11.2026).** C24 gets small multiples per country (sheet 10G): the catalog lists the
+  optional role `multiples` for C24, bubble size and share show in thousand hl via `formats`. C20: the liquidity
+  measures are semi-additive (flows summed, cash = last month with a value, also across years); Mini-DAX understands
+  `KEEPFILTERS`, `<>` and `LASTNONBLANK` inside `CALCULATE`, the liquidity fixture holds 2025 and 2026. 11A: larger
+  tree (`layout.maximize`, `fontZoom`), invested capital includes leases so the capital turnover moves
+  (0.86 · 0.96 · 0.84). T01D: levels Sorte and Produkt. C18: plan 2026 redistributed between customers of the same
+  channel and region (all sums unchanged). C23 multiples per channel with log axes, C22 and C14 units, texts of
+  T02E/T02F. Model rebuilt with te 0.8.1.1, `te validate` clean.
+- **Showcase with all 47 templates (ChartKitchen 1.57, P&L 1.8.3).** `specs/showcase.json` has 17 new pages, one per
+  new template: C07, C14 to C25, T01C, T01D, T02D and the ROI tree 11A, sorted into the navigation groups (new group
+  „ChartKitchen · Rangfolgen“ for C14 to C16). Existing page ids and hash links stay. Every tile takes the template
+  switches from the catalog (`template` = `templateApplied`, dotted presets under `objects.scale` for C18, C23 and C24),
+  required roles are bound. New data from the model extension: C18 binds `Umsatz ΔPL %` and `Umsatz ΔPY %`, C20 the
+  `Liquiditaet` tables (row type tokens stock/inflow/outflow), C24 the `Markt` tables (bubble share = own sales), 11A
+  the `Rendite` tables with years as period and no slicer. T01D shows the full year without a period: with a period the
+  month block would be August, where forecast equals actual. The 19 existing P&L template pages now carry the 1.8
+  switches `structureTotal` and `keepBlockOrder` as in the catalog. The example report `ZlatyLev Showcase.Report` has
+  all 47 pages in the order of the spec (validated against the PBIR schemas).
+- **Tests for 47 pages.** `showcase-spec.mjs` knows the 1.57 presets (incl. `CK_SCALE`), the 1.8 switches, the view
+  preset 11A (no `columns.template`, view in `state.uiState`) and checks that groups stand together.
+  `templates/test/unit.mjs` finds the showcase tile by `page.template` (11A has no template object); `rowType` in
+  ChartKitchen, `bubbleShare` and the C18 variance measures count as user input there. `showcase-e2e.mjs` also matches
+  11A and measures the Δ scale correctly for the C19 year column (forecast part on top of AC) and the horizontal C17
+  bridge (PY bar thinner than AC). The parity test checks a P&L tile in tree view (11A) by its cards (one per
+  account) instead of L1 group rows, which the tree does not have.
+- **Template catalog ready for P&L 1.8 and ChartKitchen 1.57.** `visuals/templates.mjs` now knows the P&L gallery's
+  view presets (`VIEW_PRESETS`, P&L 1.8: ROI tree 11A). Such a tile has no mega template: its catalog entry carries
+  `view: "tree"`, the card switches in `columns` (no `template`) and the view in `state.uiState`
+  (`{"view":"tree","treeV":2}`), with its own roles (levels and AC required; PL, period, row type and formula
+  recommended). The P&L hub is bundled with `export *`, so `VIEW_PRESETS` is optional and older P&L versions build as
+  before. Probe: the current sources (ChartKitchen 1.53, P&L 1.7) give a byte-identical `templates.json`; P&L 1.8.3
+  (Kitchen `main`) with ChartKitchen 1.57 (branch `claude/ck-ibcs-backlog-4`) builds 47 templates (24 + 23), 17 of them
+  new. The release itself (`visuals update`) follows once ChartKitchen 1.57 is live.
+- **ChartKitchen catalog entries fixed for 1.57 (review).** Preset keys with a dot (`scale.refLine`, `scale.xRefLine`
+  in C18 and C24) now go to their own object (`objects.scale`), as the visual splits them; before they landed as unknown
+  `chart` properties and the reference lines were missing. Roles that `TEMPLATE_NEEDS` does not name are added from the
+  visual's AGENT-GUIDE: C23 `series` (one path per unit), C24 `bubbleSize` and `bubbleShare` required (otherwise no pie
+  segments), C18 `series`/`bubbleSize`/`multiples`, C20 `series`, `fcFlag`, `lineMeasure`. 11A requires `rowType` and
+  `formulaDef` (without them the tree falls back to a plain hierarchy). `tile add` never picks a ChartKitchen `rowType`
+  on its own (the P&L account table's row type is a different contract), it only lists candidates. A gallery tile
+  without mega preset and view preset fails with a clear message. New catalog check: no property name with a dot.
+
 Three findings from fabscan 0.6.0 on the four dwg apps (Fabric-Apps-Demo, 19 Nov 2026):
 
 - **Fonts ship with the app (fabscan SEC-CDN, 4 of 4 apps).** The Rayfin app template loads Geist and JetBrains Mono
@@ -81,7 +123,7 @@ Fixes from the first public review (fresh clone, full test run, code review):
   adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
   Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
 - `dwg check` reads the spec with the same file-name errors as the other commands.
-- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.53.0.0 and P&L 1.7.0.0 (from 1.5.3.0).
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.57.0.0 (from 1.53.0.0) and P&L 1.8.3.0 (from 1.7.0.0).
 - **P&L 1.7 balance sheet and cash flow:** the catalog has 19 P&L templates (T05A balance sheet at the reporting date,
   T05B cash-flow bridge, group `balance`) and writes `statement.stockMode` (T05A `allStock`, T05B `auto`); period is
   recommended for both, the row type is required for T05B (opening and closing balance need the `stock`/`opening`

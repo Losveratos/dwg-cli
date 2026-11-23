@@ -62,11 +62,35 @@ TABLES.update({
     "Cashflowkonto": ("cashflowkonto", STOCK_DIM),
     "Cashflow": ("cashflow", STOCK_FACT),
 })
+# Seit 23.11.2026: Liquidität (ChartKitchen C20), Markt (C24), Rendite (P&L 11A, Jahr ohne Beziehung zum Kalender)
+TABLES.update({
+    "Liquiditaetsart": ("liquiditaetsart", [
+        ("ArtID", "ArtID", "string"), ("Art", "Art", "string"), ("Art Sort", "ArtSort", "int64"),
+        ("Fluss", "Fluss", "string")]),
+    "Liquiditaet": ("liquiditaet", [
+        ("Datum", "Datum", "dateTime"), ("ArtID", "ArtID", "string"), ("AC", "AC", "double"), ("PY", "PY", "double"),
+        ("PL", "PL", "double"), ("FC", "FC", "double")]),
+    "Marktsegment": ("marktsegment", [
+        ("SegmentID", "SegmentID", "string"), ("Segment", "Segment", "string"), ("Land", "Land", "string"),
+        ("Land Sort", "LandSort", "int64"), ("Sorte", "Sorte", "string"), ("Sorte Sort", "SorteSort", "int64")]),
+    "Markt": ("markt", [
+        ("Datum", "Datum", "dateTime"), ("SegmentID", "SegmentID", "string"),
+        ("Eigenabsatz AC", "EigenabsatzAC", "double"), ("Eigenabsatz PY", "EigenabsatzPY", "double"),
+        ("Marktvolumen AC", "MarktvolumenAC", "double"), ("Marktvolumen PY", "MarktvolumenPY", "double"),
+        ("Wettbewerber AC", "WettbewerberAC", "double"), ("Wettbewerber PY", "WettbewerberPY", "double")]),
+    "Renditekonto": ("renditekonto", STOCK_DIM),
+    "Rendite": ("rendite", [
+        ("Jahr", "Jahr", "int64"), ("KontoID", "KontoID", "string"), ("AC", "AC", "double"), ("PY", "PY", "double"),
+        ("PL", "PL", "double"), ("FC", "FC", "double")]),
+})
 # (Faktentabelle, Spalte, Dimension, Spalte); die Kennung der Fakten-Beziehungen bleibt wie bisher (nur nach Dimension)
 RELATIONSHIPS = [("Fakten", "Datum", "Kalender", "Datum"), ("Fakten", "KontoID", "Konto", "KontoID"),
                  ("Fakten", "KundeID", "Kunde", "KundeID"), ("Fakten", "ProduktID", "Produkt", "ProduktID"),
                  ("Bilanz", "Datum", "Kalender", "Datum"), ("Bilanz", "KontoID", "Bilanzkonto", "KontoID"),
-                 ("Cashflow", "Datum", "Kalender", "Datum"), ("Cashflow", "KontoID", "Cashflowkonto", "KontoID")]
+                 ("Cashflow", "Datum", "Kalender", "Datum"), ("Cashflow", "KontoID", "Cashflowkonto", "KontoID"),
+                 ("Liquiditaet", "Datum", "Kalender", "Datum"), ("Liquiditaet", "ArtID", "Liquiditaetsart", "ArtID"),
+                 ("Markt", "Datum", "Kalender", "Datum"), ("Markt", "SegmentID", "Marktsegment", "SegmentID"),
+                 ("Rendite", "KontoID", "Renditekonto", "KontoID")]
 
 
 def q(name):
