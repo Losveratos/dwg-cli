@@ -215,7 +215,7 @@ Measures must be model measures for Power BI; free DAX expressions work in the a
 | Folder | |
 | --- | --- |
 | `dwg.mjs`, `install.mjs` | CLI entry and installer |
-| `visuals/` | adapter `@dwg/visuals` (original ChartKitchen and P&L code outside Power BI, `daxQuery()`), committed `dist/` incl. `templates.json`, matching `.pbiviz` in `visuals/pbiviz/` |
+| `visuals/` | adapter `@dwg/visuals` (original ChartKitchen and P&L code outside Power BI, `daxQuery()`), committed `dist/` incl. `templates.json`, matching `.pbiviz` in `visuals/pbiviz/` (currently ChartKitchen 1.57.0.0 and P&L Statement 1.8.3.0, 47 templates) |
 | `templates/` | template catalog, field suggestions, `tile add` |
 | `app/` | Fabric App generator and templates (`DwgPage`, `DwgShell`, `DwgVisual`), browser harness, Mini-DAX |
 | `pbip/` | PBIP/PBIR generator, schema validation with the PBIR schemas in `pbip/schemas/` (from microsoft/json-schemas, MIT), parity test (Power BI vs. app) |
@@ -234,7 +234,7 @@ When ChartKitchen or P&L ship a new version, one command brings it in:
 
 ```bash
 node dwg.mjs visuals update --kitchen <clone of PowerBI-Kitchen->        # default: origin/main after git fetch
-node dwg.mjs visuals update --kitchen <clone> --ref v1.53.0 --dry-run    # a tag, and first only the plan
+node dwg.mjs visuals update --kitchen <clone> --ref chartkitchen-1.57.0.0 --dry-run    # a tag, and first only the plan
 ```
 
 It checks the Kitchen state out under `.kitchen/` (a detached git worktree, ignored by git, so chunk hashes do not
