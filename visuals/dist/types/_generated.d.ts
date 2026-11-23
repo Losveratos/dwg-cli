@@ -12,6 +12,8 @@ export declare const ROLES: {
             readonly xValue: "Measure";
             readonly xPrevious: "Measure";
             readonly bubbleSize: "Measure";
+            readonly bubbleSizePrevious: "Measure";
+            readonly bubbleShare: "Measure";
             readonly series: "Grouping";
             readonly colgroup: "Grouping";
             readonly filterInfo: "Measure";
@@ -21,7 +23,7 @@ export declare const ROLES: {
             readonly trend: "Grouping";
             readonly fcFlag: "Grouping";
         };
-        readonly order: readonly ["category", "multiples", "series", "rowType", "fcFlag", "colgroup", "trend", "actual", "previousYear", "plan", "forecast", "prevForecast", "benchmark", "lineMeasure", "xValue", "xPrevious", "bubbleSize", "comments", "filterInfo"];
+        readonly order: readonly ["category", "multiples", "series", "rowType", "fcFlag", "colgroup", "trend", "actual", "previousYear", "plan", "forecast", "prevForecast", "benchmark", "lineMeasure", "xValue", "xPrevious", "bubbleSize", "bubbleSizePrevious", "bubbleShare", "comments", "filterInfo"];
         readonly max: {
             readonly category: 1;
             readonly multiples: 1;
@@ -30,6 +32,8 @@ export declare const ROLES: {
             readonly xValue: 1;
             readonly xPrevious: 1;
             readonly bubbleSize: 1;
+            readonly bubbleSizePrevious: 1;
+            readonly bubbleShare: 1;
             readonly rowType: 1;
             readonly fcFlag: 1;
             readonly trend: 1;
@@ -93,6 +97,6 @@ export declare const ROLES: {
     };
 };
 export declare const VERSIONS: {
-    readonly chartkitchen: "1.53.0.0";
-    readonly pnl: "1.7.0.0";
+    readonly chartkitchen: "1.57.0.0";
+    readonly pnl: "1.8.3.0";
 };

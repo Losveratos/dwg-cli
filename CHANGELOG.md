@@ -98,7 +98,7 @@ Fixes from the first public review (fresh clone, full test run, code review):
   adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
   Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
 - `dwg check` reads the spec with the same file-name errors as the other commands.
-- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.53.0.0 and P&L 1.7.0.0 (from 1.5.3.0).
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.57.0.0 (from 1.53.0.0) and P&L 1.8.3.0 (from 1.7.0.0).
 - **P&L 1.7 balance sheet and cash flow:** the catalog has 19 P&L templates (T05A balance sheet at the reporting date,
   T05B cash-flow bridge, group `balance`) and writes `statement.stockMode` (T05A `allStock`, T05B `auto`); period is
   recommended for both, the row type is required for T05B (opening and closing balance need the `stock`/`opening`

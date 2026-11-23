@@ -141,7 +141,7 @@ node dwg.mjs check --spec quickstart/app-spec.json --model "$M"   # structure, r
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model "$M" \
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report \
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.7.0.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -166,7 +166,7 @@ node dwg.mjs lint --spec quickstart/app-spec.json
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model $M `
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report `
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.53.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.7.0.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 

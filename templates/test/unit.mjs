@@ -1,6 +1,6 @@
 // Template-Katalog und dwg tile add, geprüft gegen die Showcase-Spec (30 Seiten, je Template eine von Hand gebaute
 // Kachel; T05A/T05B ab P&L 1.7 noch nicht im Dienst abgenommen) und das Showcase-Modell:
-//   1. Katalog: 11 ChartKitchen- und 19 P&L-Templates, Titel DE/EN, jede Rolle gibt es im Visual; Bestands-Templates
+//   1. Katalog: 24 ChartKitchen- und 23 P&L-Templates (ChartKitchen 1.57, P&L 1.8.3), Titel DE/EN, jede Rolle gibt es im Visual; Bestands-Templates
 //      (T05A Bilanz, T05B Cashflow) mit statement.stockMode und Zeilentyp-Regel
 //   2. Was das Template im Visual einstellt, steht genauso in der Showcase-Kachel (Extraktion stimmt)
 //   3. Jede Pflichtrolle ist in der Showcase-Kachel gebunden (Rollen-Regeln nicht zu streng)
@@ -36,9 +36,9 @@ const ok = (label, fn) => {
 };
 
 // 1 · Katalog
-ok("Katalog: 11 ChartKitchen- und 19 P&L-Templates", () => {
-    assert.equal(cat.templates.filter(t => t.visual === "chartkitchen").length, 11);
-    assert.equal(cat.templates.filter(t => t.visual === "pnl").length, 19);
+ok("Katalog: 24 ChartKitchen- und 23 P&L-Templates", () => {
+    assert.equal(cat.templates.filter(t => t.visual === "chartkitchen").length, 24);
+    assert.equal(cat.templates.filter(t => t.visual === "pnl").length, 23);
 });
 ok("Bestands-Templates (P&L 1.7): Gruppe balance, statement.stockMode, Zeilentyp bei T05B Pflicht, Periode empfohlen", () => {
     const need = (t, r) => t.roles.find(x => x.role === r).need;
@@ -58,7 +58,8 @@ ok("Bestands-Templates (P&L 1.7): Gruppe balance, statement.stockMode, Zeilentyp
 ok("jedes Template mit Titel DE/EN, Gruppe und Rollen, die es im Visual gibt", () => {
     for (const t of cat.templates) {
         assert.ok(t.title.de && t.title.en && t.group?.title?.de, `${t.id}: Titel oder Gruppe fehlt`);
-        assert.notEqual(t.title.de, t.title.en, `${t.id}: deutscher Titel ist der englische`);
+        // Eigennamen wie „Marimekko“ (C25) heißen in beiden Sprachen gleich; dann muss wenigstens der Zweck übersetzt sein
+        assert.ok(t.title.de !== t.title.en || (t.use?.de && t.use.de !== t.use?.en), `${t.id}: deutscher Titel ist der englische`);
         for (const r of t.roles) { assert.ok(ROLES[t.visual].kind[r.role], `${t.id}: Rolle ${r.role} gibt es in ${t.visual} nicht`); }
         assert.equal(new Set(t.roles.map(r => r.role)).size, t.roles.length, `${t.id}: Rolle doppelt`);
         // Format-Objekte: kein Property-Name mit Punkt (ChartKitchen-Presets wie „scale.refLine“ gehören ins Objekt scale)
