@@ -219,8 +219,10 @@ Herkunft: Operativer Cashflow = CF-JUE + CF-AFA + CF-WC, Investitionen = CF-INV 
 Tilgung und Dividende = CF-TIL + CF-DIV, Kasse und Bank = Bilanz A-KASSE. Jeder Monat hat in jedem Szenario eine
 Bestandszeile, auch Monate ohne Darlehen (Wert 0). Geprüft: Kasse am Monatsende = Anfangsbestand des Monats plus
 Summe der vier Flüsse = Kasse des Vormonats plus Flüsse; Abflüsse nie positiv, Zuflüsse nie negativ.
-Einschränkung: Die Measures summieren, der Bestand stimmt deshalb nur in Monatskörnung. Eine Quartals- oder Jahresachse
-bräuchte eine semi-additive Bestands-Measure (`LASTNONBLANKVALUE`), die die Mini-DAX nicht rechnet.
+Die Measures sind semi-additiv (seit 23.11.2026): Flüsse als Summe, Kasse und Bank als Stand des letzten Monats mit
+Wert im Filterkontext. Damit stimmt der Bestand auch auf Quartal, Jahr und bei „alle Jahre“ (Monatsname Jan = Jan 2025
+und Jan 2026: Kasse Januar 2026, nicht die Summe). Die Mini-DAX rechnet dafür KEEPFILTERS, `<>` und LASTNONBLANK in
+CALCULATE; der Fixture `liquiditaet.json` enthält beide Jahre.
 
 **'Marktsegment'** (16 Zeilen = 4 Länder × 4 Sorten)
 
@@ -389,7 +391,7 @@ Vorjahr, −3,9 % zum Plan.
 
 | Measure | DAX |
 |---|---|
-| Liquidität AC / PY / PL / FC | `SUM ( 'Liquiditaet'[AC] )` usw., Format `#,##0` |
+| Liquidität AC / PY / PL / FC | `CALCULATE ( SUM ( 'Liquiditaet'[AC] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> "stock" ) ) + CALCULATE ( SUM ( 'Liquiditaet'[AC] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = "stock" ), LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( 'Liquiditaet'[AC] ) ) ) )` usw., Format `#,##0` (semi-additiv) |
 
 **09 Markt (in 'Markt', für C24)**
 
@@ -540,8 +542,8 @@ fab import "<Workspace>.Workspace/ZlatyLev Showcase.SemanticModel" -i <abs. Pfad
 python examples/showcase/model/check.py
 ```
 
-Hinweis 23.11.2026: Die Preview der te CLI ist am 31.10.2026 abgelaufen. Ersatzweise lässt sich `model.csx` mit
-Tabular Editor 2 (2.24) anwenden, das Ergebnis ist im TMDL zeichengleich mit dem te-Stand:
-`TabularEditor.exe "<…>.SemanticModel\definition" -S examples\showcase\model\model.csx -TMDL <Ausgabeordner>`, dann den
-Ausgabeordner als `definition` übernehmen. `export_measures.csx` braucht System.Text.Json und läuft nur mit te; mit
-Tabular Editor 2 dieselbe Ausgabe über Newtonsoft (`JsonConvert.SerializeObject(d, Formatting.Indented)`, Zeilenende LF). `te validate` ersetzt das nicht: nach dem Update der te CLI nachholen.
+Hinweis 23.11.2026: Mit te 0.8.1.1 (Preview bis 31.12.2026) neu aufgebaut: `gen_model.py`, `te script … model.csx --save`,
+`te validate --errors-only` ohne Befund, `export_measures.csx` per te. Das TMDL ist bis auf die geänderten Measures
+zeichengleich mit dem vorherigen Stand (Tabular Editor 2.24). Falls te nicht verfügbar ist: `model.csx` mit Tabular
+Editor 2 anwenden (`TabularEditor.exe "<…>.SemanticModel\definition" -S examples\showcase\model\model.csx -TMDL <Ausgabeordner>`)
+und `export_measures.csx` über Newtonsoft nachbilden (`JsonConvert.SerializeObject(d, Formatting.Indented)`, Zeilenende LF).

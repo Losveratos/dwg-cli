@@ -3,7 +3,7 @@
 // showcase/data/gen_showcase.py, Measures wörtlich aus dem Modell (showcase/model/export_measures.csx).
 // Dazu Bilanz und Cashflow 2026 (eigene Konten- und Faktentabellen, für T05A und T05B; Mini-DAX nimmt je Abfrage
 // die Faktentabelle der Measures). Vertrag und Kontrollwerte: showcase/CONTRACT.md.
-// Seit 23.11.2026: Liquidität 2026 (C20), Markt 2026 (C24) und Rendite 2024 bis 2026 (11A; alle Jahre, weil 'Rendite'
+// Seit 23.11.2026: Liquidität 2025 und 2026 (C20, beide Jahre für den semi-additiven Bestand), Markt 2026 (C24) und Rendite 2024 bis 2026 (11A; alle Jahre, weil 'Rendite'
 // keine Beziehung zum Kalender hat und der Jahr-Slicer sie nicht filtert).
 import kalender from "./showcase/kalender.json" with { type: "json" };
 import produkt from "./showcase/produkt.json" with { type: "json" };
@@ -15,7 +15,7 @@ import bilanz from "./showcase/bilanz-2026.json" with { type: "json" };
 import cashflowkonto from "./showcase/cashflowkonto.json" with { type: "json" };
 import cashflow from "./showcase/cashflow-2026.json" with { type: "json" };
 import liquiditaetsart from "./showcase/liquiditaetsart.json" with { type: "json" };
-import liquiditaet from "./showcase/liquiditaet-2026.json" with { type: "json" };
+import liquiditaet from "./showcase/liquiditaet.json" with { type: "json" };
 import marktsegment from "./showcase/marktsegment.json" with { type: "json" };
 import markt from "./showcase/markt-2026.json" with { type: "json" };
 import renditekonto from "./showcase/renditekonto.json" with { type: "json" };

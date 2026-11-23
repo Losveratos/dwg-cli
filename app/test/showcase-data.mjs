@@ -55,7 +55,7 @@ test("Fixtures: 14.124 Faktzeilen 2026, 21 Konten, 83 Measures aus dem Modell (5
     assert.equal(CONTROL.accounts, 21);
     // 50 GuV + 2 Umsatz Δ% (Fakten), 13 Bilanz und Cashflow, 4 Liquidität, 10 Markt, 4 Rendite
     assert.equal(Object.keys(model.measures).length, 83);
-    assert.equal(model.tables.Liquiditaet.rows.length, 12 * 5, "Liquidität 2026: 5 Arten × 12 Monate");
+    assert.equal(model.tables.Liquiditaet.rows.length, 24 * 5, "Liquidität 2025 und 2026: 5 Arten × 24 Monate");
     assert.equal(model.tables.Markt.rows.length, 12 * 16, "Markt 2026: 16 Segmente × 12 Monate");
     assert.equal(model.tables.Rendite.rows.length, 3 * 3, "Rendite: 3 Konten × 3 Jahre (KPI-Zeilen ohne Fakten)");
     assert.equal(model.tables.Bilanz.rows.length, 12 * 8, "Bilanz 2026: 8 Positionen × 12 Monate");
@@ -237,6 +237,34 @@ test("C20 Liquidität: je Monat eine Bestandszeile, Kasse = Anfangsbestand plus 
     near(value("Liquidität AC", [id("L-OP")]), CONTROL_STOCK["Operativer Cashflow AC"], "Operativer Cashflow = Cashflow-Tabelle");
     near(value("Liquidität AC", [id("L-INV")]), CONTROL_STOCK["Investiver Cashflow AC"], "Investitionen = investiver Cashflow");
     near(value("Liquidität AC", [id("L-DAR"), `TREATAS({"2026-06"}, 'Kalender'[Periode])`]), 3_000_000, "Darlehen Juni");
+});
+
+test("C20 alle Jahre: Kasse semi-additiv (letzter Monat mit Wert), Flüsse als Summe, auch ohne Jahr-Slicer", () => {
+    const L = N.liquiditaet;
+    const kasse = `TREATAS({"L-KASSE"}, 'Liquiditaetsart'[ArtID])`, op = `TREATAS({"L-OP"}, 'Liquiditaetsart'[ArtID])`;
+    // Rohwerte je Periode ohne Jahr-Filter: eine Bestandszeile je Monat, beide Jahre
+    const raw = (m, f) => Object.fromEntries(q(`EVALUATE SUMMARIZECOLUMNS('Kalender'[Periode], ${f}, "v", [${m}])`).map(r => [r[0], r[1]]));
+    const ac = raw("Liquidität AC", kasse), pl = raw("Liquidität PL", kasse), flowAc = raw("Liquidität AC", op);
+    assert.equal(Object.keys(pl).length, 24, "PL: 24 Monate Kasse");
+    assert.equal(Object.keys(ac).length, 20, "AC: Jan 2025 bis Aug 2026");
+    // ganzer Zeitraum (Jahr-Slicer „Alle“): Kasse = letzter Monat mit Wert, nicht die Summe über 20 bzw. 24 Monate
+    const all = (m, f) => q(`EVALUATE SUMMARIZECOLUMNS(${f}, "v", [${m}])`)[0][0];
+    near(all("Liquidität AC", kasse), L["Kasse und Bank AC (Stichtag)"], "AC alle Jahre = Kasse August 2026");
+    near(all("Liquidität PL", kasse), L["Kasse und Bank PL Dezember"], "PL alle Jahre = Kasse Plan Dezember 2026");
+    near(all("Liquidität AC", op), Object.values(flowAc).reduce((a, b) => a + b, 0), "Fluss alle Jahre = Summe der Monate");
+    // je Jahr: 2025 endet im Dezember, 2026 im letzten Ist-Monat
+    near(value("Liquidität AC", [kasse]), L["Kasse und Bank AC (Stichtag)"], "2026: Kasse August");
+    near(q(`EVALUATE SUMMARIZECOLUMNS(TREATAS({2025}, 'Kalender'[Jahr]), ${kasse}, "v", [Liquidität AC])`)[0][0], ac["2025-12"], "2025: Kasse Dezember");
+    // Monatsname ohne Jahr (Kategorie der Seite C20 bei „Alle“): Jan = Kasse Januar 2026, Sep = Kasse September 2025
+    const byName = (m, f) => Object.fromEntries(q(`EVALUATE SUMMARIZECOLUMNS('Kalender'[Monatsname], ${f}, "v", [${m}])`).map(r => [r[0], r[1]]));
+    const nAc = byName("Liquidität AC", kasse), nFlow = byName("Liquidität AC", op);
+    near(nAc.Jan, ac["2026-01"], "Jan: Bestand 2026, nicht 2025 + 2026");
+    assert.ok(Math.abs(nAc.Jan - (ac["2025-01"] + ac["2026-01"])) > 1e6, "Jan: die Summe beider Jahre wäre falsch");
+    near(nAc.Sep, ac["2025-09"], "Sep: letzter Monat mit Ist ist September 2025");
+    near(nFlow.Jan, flowAc["2025-01"] + flowAc["2026-01"], "Jan: Fluss = Summe beider Jahre");
+    // Mini-DAX: KEEPFILTERS, <> und LASTNONBLANK wie DAX (Zeile mit Fluss = stock kippt nicht in die Flüsse)
+    const r = q(`EVALUATE SUMMARIZECOLUMNS('Liquiditaetsart'[Fluss], TREATAS({2026}, 'Kalender'[Jahr]), "v", [Liquidität AC])`);
+    near(r.find(x => x[0] === "stock")[1], L["Kasse und Bank AC (Stichtag)"], "Gruppe stock = Kasse August");
 });
 
 test("C24 Markt: Eigenabsatz = Absatz der Fakten je Land und Sorte, Eigenanteil 5 bis 60 %, zwei Segmente mit relativem Anteil über 1", () => {

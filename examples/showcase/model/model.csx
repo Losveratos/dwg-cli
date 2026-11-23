@@ -156,9 +156,20 @@ la.Columns["Art Sort"].IsHidden = true;
 la.Columns["Art Sort"].FormatString = "0";
 la.Columns["Fluss"].Description = "Zeilentyp-Token für ChartKitchen (Rolle rowType, Modus stockflow): stock = Bestand am Monatsende, inflow = Zufluss, outflow = Abfluss, leer = Vorzeichen entscheidet.";
 foreach (var col in la.Columns) col.SummarizeBy = AggregateFunction.None;
-foreach (var s in sc)
-    MT(li, "Liquidität " + s.Key, "SUM ( 'Liquiditaet'[" + s.Key + "] )", EUR, "08 Liquidität",
-       s.Value + " je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).");
+// Semi-additiv: Flüsse (Fluss leer, inflow, outflow) als Summe, der Bestand (Fluss = stock) als Stand des letzten
+// Monats mit Wert im Filterkontext. So addiert „alle Jahre“ (Monatsname Jan = Jan 2025 und Jan 2026) die Kasse nicht.
+// KEEPFILTERS, damit eine Zeile des Visuals mit Fluss = stock nicht in die Flüsse kippt.
+foreach (var s in sc) {
+    var col = "'Liquiditaet'[" + s.Key + "]";
+    MT(li, "Liquidität " + s.Key,
+       "CALCULATE ( SUM ( " + col + " ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> \"stock\" ) )\n" +
+       "    + CALCULATE (\n" +
+       "        SUM ( " + col + " ),\n" +
+       "        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = \"stock\" ),\n" +
+       "        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( " + col + " ) ) )\n" +
+       "    )", EUR, "08 Liquidität",
+       s.Value + " je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).");
+}
 
 // 09 Markt (C24, Blasen mit Anteil): Marktsegment Land × Sorte, ohne Beziehung zu Kunde und Produkt
 var ms = Model.Tables["Marktsegment"];

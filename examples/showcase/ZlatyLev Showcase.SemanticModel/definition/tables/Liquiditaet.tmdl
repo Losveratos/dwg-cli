@@ -2,26 +2,50 @@ table Liquiditaet
 	lineageTag: ffb102c7-317f-5b54-a3b8-b543d9cc557f
 	sourceLineageTag: [dbo].[liquiditaet]
 
-	/// Ist je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
-	measure 'Liquidität AC' = SUM ( 'Liquiditaet'[AC] )
+	/// Ist je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).
+	measure 'Liquidität AC' =
+			CALCULATE ( SUM ( 'Liquiditaet'[AC] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> "stock" ) )
+			    + CALCULATE (
+			        SUM ( 'Liquiditaet'[AC] ),
+			        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = "stock" ),
+			        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( 'Liquiditaet'[AC] ) ) )
+			    )
 		formatString: #,##0
 		displayFolder: 08 Liquidität
 		lineageTag: 37b4e604-7018-5be3-8283-9c2cd8f1ccdf
 
-	/// Vorjahr je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
-	measure 'Liquidität PY' = SUM ( 'Liquiditaet'[PY] )
+	/// Vorjahr je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).
+	measure 'Liquidität PY' =
+			CALCULATE ( SUM ( 'Liquiditaet'[PY] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> "stock" ) )
+			    + CALCULATE (
+			        SUM ( 'Liquiditaet'[PY] ),
+			        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = "stock" ),
+			        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( 'Liquiditaet'[PY] ) ) )
+			    )
 		formatString: #,##0
 		displayFolder: 08 Liquidität
 		lineageTag: 2dcd5c70-b71f-5351-9143-9ec38dab7d61
 
-	/// Plan je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
-	measure 'Liquidität PL' = SUM ( 'Liquiditaet'[PL] )
+	/// Plan je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).
+	measure 'Liquidität PL' =
+			CALCULATE ( SUM ( 'Liquiditaet'[PL] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> "stock" ) )
+			    + CALCULATE (
+			        SUM ( 'Liquiditaet'[PL] ),
+			        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = "stock" ),
+			        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( 'Liquiditaet'[PL] ) ) )
+			    )
 		formatString: #,##0
 		displayFolder: 08 Liquidität
 		lineageTag: 8176afbd-8eee-5f17-b6f4-371e243dc283
 
-	/// Forecast je Liquiditätsart: Flüsse des Monats mit Vorzeichen, Kasse und Bank als Stand am Monatsende. Der Bestand stimmt nur in Monatskörnung (Summe).
-	measure 'Liquidität FC' = SUM ( 'Liquiditaet'[FC] )
+	/// Forecast je Liquiditätsart: Flüsse des Monats mit Vorzeichen als Summe, Kasse und Bank als Stand am Ende des letzten Monats mit Wert im Filterkontext (semi-additiv, auch über mehrere Jahre richtig).
+	measure 'Liquidität FC' =
+			CALCULATE ( SUM ( 'Liquiditaet'[FC] ), KEEPFILTERS ( 'Liquiditaetsart'[Fluss] <> "stock" ) )
+			    + CALCULATE (
+			        SUM ( 'Liquiditaet'[FC] ),
+			        KEEPFILTERS ( 'Liquiditaetsart'[Fluss] = "stock" ),
+			        LASTNONBLANK ( 'Kalender'[Datum], CALCULATE ( SUM ( 'Liquiditaet'[FC] ) ) )
+			    )
 		formatString: #,##0
 		displayFolder: 08 Liquidität
 		lineageTag: c6db1eb7-f39e-5d51-bc02-ef174617c3db
