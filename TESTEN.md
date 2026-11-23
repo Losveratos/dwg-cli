@@ -14,7 +14,7 @@ In beiden stecken dieselben Original-Visuals **ChartKitchen byDatenWG** und **P&
 IBCS angelehnt). In der App laufen sie mit ihrem unveränderten Code, die Daten kommen per DAX aus einem Semantikmodell.
 Zum Testen ersetzt eine kleine DAX-Engine (Mini-DAX) das Modell und rechnet auf Demodaten.
 
-Neu in 0.1: Die 28 Templates der beiden Visuals stehen als Katalog bereit (`dwg templates`), und `dwg tile add` legt eine
+Neu in 0.1: Die 47 Templates der beiden Visuals stehen als Katalog bereit (`dwg templates`), und `dwg tile add` legt eine
 Kachel aus einem Template an und schlägt die Felder aus dem Modell vor.
 
 ## Was du brauchst
@@ -51,7 +51,7 @@ app/test/out/dwg-spike/2-filter.png     ChartKitchen-Seite nach einem Klick (Que
 app/test/out/shell/                     App-Rahmen mit Navigation und Filter-Panel
 ```
 
-Je Seite gibt es mehrere Bilder: hell, nach dem Filtern, dunkel und schmal (Handy-Breite). Alle 30 Templates als
+Je Seite gibt es mehrere Bilder: hell, nach dem Filtern, dunkel und schmal (Handy-Breite). Alle 47 Templates als
 Seiten: `npm run test:showcase`, Bilder unter `app/test/out/showcase/`.
 
 ## Teil 2 · Mit Claude Code ausprobieren (empfohlen)
