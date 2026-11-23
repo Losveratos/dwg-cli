@@ -445,6 +445,12 @@ Dazu: Smíchov Hazy IPA wird im April 2025 eingeführt (PY bis März 2026 klein,
 wächst, Marketing im Mai und Juni 2026 über Plan (Sommerkampagne), Handel 2026 mit höheren Rabatten.
 Gesamtbild: Umsatz +4,4 % zum Vorjahr, −3,9 % zum Plan, EBIT deutlich unter Plan.
 
+Plan 2026 je Kunde (seit 23.11.2026, für den Abweichungs-Scatter C18): innerhalb von Handel Prag (K01, K03, K04, K05) und
+Gastronomie Prag (K08, K09) ist der Plan je Produkt, Monat und Konto neu verteilt (`PLAN_KUNDE_2026` im Generator),
+mit gleicher Summe auch nach dem Runden. Kanal-, Regions-, Länder-, Produkt- und Gesamtsummen sowie alle Kontrollwerte
+bleiben gleich, der Forecast rechnet mit dem ursprünglichen Plan. ΔPL Jan bis Aug je Kunde: Nová Vlna +4,0 %, Diskont
+Sever +2,0 %, Hospoda U Lva +7,0 %, HyperMax −14,1 %, Trh Plus ČR −16,3 %, Pivnice Na Rohu −9,6 %.
+
 ## Kontrollwerte
 
 Aus dem Generator (`examples/showcase/data/control.json`), alle Kunden, Produkte und Konten. „bis Ist“ = Jan bis Aug.

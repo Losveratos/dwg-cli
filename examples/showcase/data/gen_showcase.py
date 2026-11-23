@@ -9,6 +9,8 @@ Faktentabellen, abgeleitet aus dem GuV-EBIT, deterministisch ohne den Zufallsstr
 Seit 23.11.2026 dazu drei Tabellenpaare für neue Templates: Liquidität (ChartKitchen C20, aus Cashflow und Bilanz),
 Markt (C24, Eigenabsatz aus den Fakten, Marktvolumen mit eigenem Zufallsstrom) und Rendite (P&L 11A, Jahreswerte aus
 den Monatsreihen von GuV und Bilanz). Die bisherigen Tabellen bleiben byte-gleich.
+Dazu (C18) der Plan 2026 je Kunde neu verteilt (PLAN_KUNDE_2026): nur Planzeilen einzelner Kunden ändern sich, alle
+Summen über Kanal, Region, Land, Produkt und Monat bleiben gleich.
 
 Ausgabe:
   examples/showcase/data/parquet/<tabelle>.parquet          Quellen für das Lakehouse (Spaltennamen ohne Leerzeichen)
@@ -86,6 +88,12 @@ OHNE = {
     "Gastronomie": {"P10", "P11"},
     "Export": {"P05", "P07", "P08", "P11"},
 }
+
+# Plan 2026 je Kunde neu verteilt (Abweichungs-Scatter C18): innerhalb derselben Gruppe aus Kanal und Region, je Produkt,
+# Monat und Konto mit gleicher Summe (auch nach dem Runden). Kanal-, Regions-, Länder-, Produkt- und Gesamtsummen bleiben
+# byte-gleich, der Forecast rechnet mit dem ursprünglichen Plan. Faktor > 1 = höherer Plan (Kunde liegt weiter unter Plan).
+PLAN_KUNDE_2026 = {"K01": 0.922, "K05": 0.933, "K03": 1.063, "K04": 1.081,      # Handel Prag
+                   "K08": 0.897, "K09": 1.086}                                  # Gastronomie Prag
 
 # KontoID, ParentID, Konto, RowType, SortOrder, FormulaDef, SignConvention, Bereich, Kommentar
 KONTEN = [
@@ -706,11 +714,46 @@ def main():
     def r_hl(x):
         return float(round(x, 1))
 
+    def verteilen(raw, target):
+        """Ganze Einheiten mit vorgegebener Summe: abrunden, dann die größten Reste aufrunden (Hare-Niemeyer)."""
+        base = [math.floor(x) for x in raw]
+        d = int(round(target - sum(base)))
+        order = sorted(range(len(raw)), key=lambda i: raw[i] - base[i], reverse=d >= 0)
+        for j in range(abs(d)):
+            base[order[j % len(order)]] += 1 if d >= 0 else -1
+        return base
+
+    # Plan 2026 je Kunde (PLAN_KUNDE_2026): gerundete Planwerte je Zeile, Gruppensummen wie vorher
+    pl_r = {}
+    gruppe = {}
+    for kd in KUNDEN:
+        if kd[0] in PLAN_KUNDE_2026:
+            gruppe.setdefault((kd[2], kd[3]), []).append(kd[0])
+    for p in PRODUKTE:
+        for m in range(1, 13):
+            for mitglieder in gruppe.values():
+                keys = [(p[0], kid, 2026, m) for kid in mitglieder if (p[0], kid, 2026, m) in pl]
+                if len(keys) < 2:
+                    continue
+                for a, unit in [(x, 1) for x in ACCOUNTS] + [("hl", 10)]:
+                    old = [pl[kk][a] for kk in keys]
+                    neu = [v * PLAN_KUNDE_2026[kk[1]] for v, kk in zip(old, keys)]
+                    f = sum(old) / sum(neu) if sum(neu) else 1.0
+                    target = sum(round(v * unit) for v in old)
+                    for kk, v in zip(keys, verteilen([v * f * unit for v in neu], target)):
+                        pl_r.setdefault(kk, {})[a] = v / unit
+
+    def pl_eur(key, a):
+        return float(pl_r[key][a]) if key in pl_r else r_eur(pl[key][a])
+
+    def pl_hl(key):
+        return float(round(pl_r[key]["hl"], 1)) if key in pl_r else r_hl(pl[key]["hl"])
+
     rows = []
     for p, k in combos:
         for y in YEARS:
             fy_fc = {a: sum(r_eur(fc[(p[0], k[0], y, m)][a]) for m in range(1, 13)) for a in ACCOUNTS}
-            fy_pl = {a: sum(r_eur(pl[(p[0], k[0], y, m)][a]) for m in range(1, 13)) for a in ACCOUNTS}
+            fy_pl = {a: sum(pl_eur((p[0], k[0], y, m), a) for m in range(1, 13)) for a in ACCOUNTS}
             for m in range(1, 13):
                 key = (p[0], k[0], y, m)
                 actual = is_actual(y, m)
@@ -722,13 +765,13 @@ def main():
                         "KontoID": a, "KundeID": k[0], "ProduktID": p[0],
                         "AC": r_eur(ac[key][a]) if actual else None,
                         "PY": r_eur(prev[a]),
-                        "PL": r_eur(pl[key][a]),
+                        "PL": pl_eur(key, a),
                         "FC": r_eur(fc[key][a]),
                         "FC_FY": fy_fc[a],
                         "PL_FY": fy_pl[a],
                         "HektoliterAC": (r_hl(ac[key]["hl"]) if actual else None) if hl_row else None,
                         "HektoliterPY": r_hl(prev["hl"]) if hl_row else None,
-                        "HektoliterPL": r_hl(pl[key]["hl"]) if hl_row else None,
+                        "HektoliterPL": pl_hl(key) if hl_row else None,
                         "HektoliterFC": r_hl(fc[key]["hl"]) if hl_row else None,
                     })
     fakten = pd.DataFrame(rows)

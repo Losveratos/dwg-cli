@@ -766,7 +766,7 @@
       "name": "Sorten als Index über das Jahr",
       "template": "C22",
       "group": "ChartKitchen · Zeitverlauf",
-      "description": "Welche Sorte wächst über das Jahr, welche verliert? Jede Linie startet im Januar bei 100, so lassen sich große und kleine Sorten direkt vergleichen; ab September läuft der Forecast weiter. Die Saison prägt alle Linien, weil der Jahr-Slicer genau ein Jahr zeigt.",
+      "description": "Welche Sorte legt in der Saison am stärksten zu? Jede Linie startet im Januar bei 100, so lassen sich große und kleine Sorten direkt vergleichen; ab September läuft der Forecast weiter. Die Saison prägt alle Linien, weil der Jahr-Slicer genau ein Jahr zeigt.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -862,7 +862,8 @@
             },
             "labels": {
               "fontPreset": "fullhd",
-              "unitSuffix": false
+              "unitSuffix": false,
+              "displayUnits": "none"
             }
           }
         }
@@ -990,7 +991,7 @@
       "name": "Preis-Mengen-Pfad je Kanal",
       "template": "C23",
       "group": "ChartKitchen · Zeitverlauf",
-      "description": "Wie bewegen sich Menge und Umsatz der Kanäle von Monat zu Monat? Jeder Pfad verbindet die Ist-Monate eines Kanals, die Strahlen markieren den Erlös je Hektoliter bei 80, 100 und 120 EUR. Die Saison schiebt die Kanäle entlang ihres Strahls, der Preis entscheidet, auf welchem Strahl sie liegen.",
+      "description": "Wie bewegen sich Menge und Umsatz der Kanäle von Monat zu Monat? Je Kanal eine Kachel mit logarithmischen Achsen: der Pfad verbindet die Ist-Monate, die Strahlen markieren den Erlös je Hektoliter bei 80, 100 und 120 EUR. Die Saison schiebt die Kanäle entlang ihres Strahls, der Preis entscheidet, auf welchem Strahl sie liegen.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -1048,6 +1049,7 @@
             742
           ],
           "bindings": {
+            "multiples": "'Kunde'[Kanal]",
             "category": "'Kalender'[Monatsname]",
             "series": "'Kunde'[Kanal]",
             "actual": "'Fakten'[Umsatz AC]",
@@ -1083,15 +1085,20 @@
               "scatterArrows": false,
               "scatterPlay": false,
               "pinStyle": "round",
-              "chipMenu": true
+              "chipMenu": true,
+              "multiplesColumns": 4
             },
             "scale": {
               "ratioRays": "80;100;120",
-              "ratioRayUnit": "EUR/hl"
+              "ratioRayUnit": "EUR/hl",
+              "xLogScale": true,
+              "yLogScale": true,
+              "xMax": "30k",
+              "yMax": "4M"
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Umsatz in EUR (y) gegen Absatz in hl (x) je Kanal",
+              "kpi": "Umsatz in Mio. EUR (y) gegen Absatz in Tsd. hl (x) je Kanal",
               "period": "Jan..Aug 2026 AC"
             },
             "labels": {
@@ -1655,7 +1662,9 @@
             },
             "labels": {
               "fontPreset": "fullhd",
-              "unitSuffix": false
+              "unitSuffix": false,
+              "displayUnits": "k",
+              "decimals": 0
             }
           }
         }
@@ -2197,8 +2206,8 @@
             }
           ],
           "displayNames": {
-            "[actual]": "ΔPL %",
-            "[xValue]": "ΔPY %",
+            "[actual]": "ΔPL",
+            "[xValue]": "ΔPY",
             "[bubbleSize]": "Umsatz AC"
           },
           "formats": {

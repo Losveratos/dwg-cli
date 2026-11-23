@@ -204,6 +204,9 @@ test("C18: Umsatz ΔPY % und ΔPL % gegen Vorjahr und Plan über dieselben Ist-M
         assert.ok(Math.abs(x) < 0.6 && Math.abs(y) < 0.6 && size > 0, `${k}: ΔPY % ${x}, ΔPL % ${y}`);
     }
     assert.ok(r.some(x => x[2] > 0 && x[3] > 0) && r.some(x => x[2] < 0), "Punkte in mehreren Quadranten");
+    // Plan 2026 je Kunde neu verteilt (PLAN_KUNDE_2026): vier Kunden über Plan, zwei unter Vorjahr, Streuung unter Plan bis −16 %
+    assert.ok(r.filter(x => x[2] > 0).length >= 4 && r.filter(x => x[3] < 0).length >= 2, "Kunden über Plan und unter Vorjahr");
+    assert.ok(Math.min(...r.map(x => x[2])) < -0.12, "Streuung unter Plan");
 });
 
 test("C20 Liquidität: je Monat eine Bestandszeile, Kasse = Anfangsbestand plus Flüsse = Bilanz, Token passen zum Vorzeichen", () => {
