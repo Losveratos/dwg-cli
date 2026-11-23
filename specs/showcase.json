@@ -2241,7 +2241,7 @@
       "name": "Marktsegmente mit unserem Anteil",
       "template": "C24",
       "group": "ChartKitchen · Korrelation",
-      "description": "Wo sind wir stark, und wo wächst der Markt? Jedes Segment aus Land und Sorte ist eine Blase, waagerecht der relative Marktanteil gegen den größten Wettbewerber, senkrecht das Marktwachstum, die Größe ist das Marktvolumen und das Segment darin unser Absatz; die graue Gesamtblase steht für alle Segmente, ein Klick auf eine Landeskarte zeigt ein Land. Auf diese Seite wirkt nur der Jahr-Slicer, Region, Kanal und Sorte filtern die Marktdaten nicht.",
+      "description": "Wo sind wir stark, und wo wächst der Markt? Je Land eine Kachel, darin jede Sorte als Blase: waagerecht der relative Marktanteil gegen den größten Wettbewerber, senkrecht das Marktwachstum, die Größe ist das Marktvolumen in tausend Hektoliter und das Segment darin unser Absatz; die graue Gesamtblase steht für alle Sorten eines Landes, ein Klick auf eine Landeskarte zeigt nur dieses Land. Auf diese Seite wirkt nur der Jahr-Slicer, Region, Kanal und Sorte filtern die Marktdaten nicht.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -2305,7 +2305,8 @@
             742
           ],
           "bindings": {
-            "category": "'Marktsegment'[Segment]",
+            "multiples": "'Marktsegment'[Land]",
+            "category": "'Marktsegment'[Sorte]",
             "series": "'Marktsegment'[Sorte]",
             "actual": "'Markt'[Marktwachstum %]",
             "xValue": "'Markt'[Relativer Marktanteil]",
@@ -2313,6 +2314,7 @@
             "bubbleShare": "'Markt'[Eigenabsatz hl AC]"
           },
           "sortBy": {
+            "'Marktsegment'[Land]": "'Marktsegment'[Land Sort]",
             "'Marktsegment'[Sorte]": "'Marktsegment'[Sorte Sort]"
           },
           "filters": [
@@ -2324,14 +2326,16 @@
             }
           ],
           "displayNames": {
-            "[actual]": "Marktwachstum %",
+            "[actual]": "Marktwachstum",
             "[xValue]": "Relativer Marktanteil",
-            "[bubbleSize]": "Marktvolumen hl",
-            "[bubbleShare]": "Eigenabsatz hl"
+            "[bubbleSize]": "Marktvolumen Tsd. hl",
+            "[bubbleShare]": "Eigenabsatz Tsd. hl"
           },
           "formats": {
             "[actual]": "0.0 %",
-            "[xValue]": "0.00"
+            "[xValue]": "0.00",
+            "[bubbleSize]": "#,##0.0,",
+            "[bubbleShare]": "#,##0.0,"
           },
           "objects": {
             "chart": {
@@ -2345,25 +2349,29 @@
               "scatterValueLabels": true,
               "scatterBubbleOpacity": 100,
               "scatterTotalBubble": true,
-              "scatterMaxRadius": 100,
+              "scatterMaxRadius": 28,
               "scatterTrend": "off",
               "scatterArrows": false,
               "scatterPath": "off",
               "scatterPlay": false,
               "pinStyle": "round",
-              "chipMenu": true
+              "chipMenu": true,
+              "multiplesColumns": 4
             },
             "scale": {
-              "xRefLine": "1"
+              "xRefLine": "1",
+              "yMin": "-0.08",
+              "yMax": "0.15"
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Marktwachstum (y) gegen relativen Marktanteil (x) je Segment",
+              "kpi": "Marktwachstum (y) gegen relativen Marktanteil (x) je Land und Sorte",
               "period": "Jan..Aug 2026 (YTD) AC gegen PY"
             },
             "labels": {
               "fontPreset": "fullhd",
-              "unitSuffix": false
+              "unitSuffix": false,
+              "labelDensity": "all"
             }
           }
         }

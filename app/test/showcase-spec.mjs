@@ -66,6 +66,9 @@ const CK = {
     C25: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false,
         stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true },
 };
+// Bewusst nach dem Anwenden geändert (wie templates/test/unit.mjs SHOWCASE_OWN): C24 mit Kacheln je Land (Blatt 10G)
+// braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100)
+const CK_OWN = { C24: ["scatterMaxRadius"] };
 // Preset-Schlüssel der Form „scale.refLine“ gehören ins Objekt scale, nicht in chart
 const CK_SCALE = { C18: { refLine: "0", xRefLine: "0" }, C24: { xRefLine: "1" } };
 // zusätzliche Rollen je ChartKitchen-Vorlage (TEMPLATE_NEEDS bzw. Doku „Dazu binden“)
@@ -166,7 +169,10 @@ test("ChartKitchen: template = templateApplied, alle Preset-Schalter gesetzt, Ro
         assert.equal(t.visual, "chartkitchen");
         const c = t.objects.chart;
         assert.equal(c.template, p.template); assert.equal(c.templateApplied, p.template);
-        for (const [k, v] of Object.entries(CK[p.template])) { assert.equal(c[k], v, `${p.template}: chart.${k}`); }
+        for (const [k, v] of Object.entries(CK[p.template])) {
+            if ((CK_OWN[p.template] ?? []).includes(k)) { continue; }
+            assert.equal(c[k], v, `${p.template}: chart.${k}`);
+        }
         for (const [k, v] of Object.entries(CK_SCALE[p.template] ?? {})) { assert.equal(t.objects.scale?.[k], v, `${p.template}: scale.${k}`); }
         assert.ok(Object.keys(c).every(k => !k.includes(".")), `${p.template}: Punkt-Schlüssel in chart`);
         for (const r of ["category", "actual", ...(CK_NEEDS[p.template] ?? [])]) { assert.ok(t.bindings[r], `${p.template}: Rolle ${r}`); }

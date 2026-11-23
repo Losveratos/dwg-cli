@@ -120,15 +120,15 @@ function ckRoles(id, props, group, needs, info) {
 
 /**
  * Zusatzrollen neuer ChartKitchen-Templates (1.57) über TEMPLATE_NEEDS hinaus: C23 Zeitpfad je Einheit (series),
- * C24 Blasen mit Anteil (bubbleSize und bubbleShare, sonst keine Kreissegmente), C18 Abweichungs-Scatter (Serie,
- * Blasengröße, Small Multiples), C20 Bestand und Fluss (Flussarten und Bestand als Mitglieder der Serie, Forecast-Flag,
+ * C24 Blasen mit Anteil (bubbleSize und bubbleShare, sonst keine Kreissegmente; Small Multiples wie Blatt 10G),
+ * C18 Abweichungs-Scatter (Serie, Blasengröße, Small Multiples), C20 Bestand und Fluss (Flussarten und Bestand als Mitglieder der Serie, Forecast-Flag,
  * Bestand alternativ über lineMeasure).
  */
 const CK_EXTRA = {
     C18: { series: "recommended", bubbleSize: "optional", multiples: "optional" },
     C20: { series: "required", fcFlag: "optional", lineMeasure: "optional" },
     C23: { series: "required", multiples: "optional", bubbleSize: "optional" },
-    C24: { bubbleSize: "required", bubbleShare: "required", series: "recommended" },
+    C24: { bubbleSize: "required", bubbleShare: "required", series: "recommended", multiples: "optional" },
 };
 
 /**

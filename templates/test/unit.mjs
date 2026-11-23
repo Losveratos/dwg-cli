@@ -91,8 +91,8 @@ ok(`Showcase hat für jedes Template eine Kachel (${tiles.length})`, () => {
 
 // 2 · Einstellungen
 // Bewusste Abweichungen der Showcase-Kacheln vom Template (nach dem Anwenden geändert, wie es ein Autor tut):
-// Nachkommastellen passend zu Mio. EUR, 12G ohne Prozentzeilen.
-const SHOWCASE_OWN = { "12G": ["columns.showPctRows"] };
+// Nachkommastellen passend zu Mio. EUR, 12G ohne Prozentzeilen, C24 mit Kacheln je Land (Blatt 10G) und kleineren Blasen.
+const SHOWCASE_OWN = { "12G": ["columns.showPctRows"], C24: ["chart.scatterMaxRadius"] };
 ok("Schalter des Templates (chart bzw. columns) stehen so in der Showcase-Kachel", () => {
     const diffs = [];
     for (const { tile, id } of tiles) {

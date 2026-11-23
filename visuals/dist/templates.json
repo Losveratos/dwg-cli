@@ -2025,6 +2025,15 @@
           }
         },
         {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
+          }
+        },
+        {
           "role": "comments",
           "need": "optional",
           "kind": "Measure",
