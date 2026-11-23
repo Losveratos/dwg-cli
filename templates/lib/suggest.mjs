@@ -282,7 +282,13 @@ export function suggestBindings(model, template, given = {}, measure = null) {
     // 3 · Ebenen und ihre Tabelle (P&L)
     let levelTable = null;
     if (template.visual === "pnl" && template.data === "structure") {
-        if (!bindings.levels?.length) { alts.levels = columnCandidates(fields, "category", { time: false }).slice(0, 6).map(c => refOf(c.field)); }
+        if (!bindings.levels?.length) {
+            // nur Dimensionen, die mit der Tabelle der Kennzahl verbunden sind (sonst verdrängen z. B. Markt-Spalten die
+            // Kundenregion); ohne Kennzahl oder ohne Treffer alle wie bisher
+            const all = columnCandidates(fields, "category", { time: false });
+            const linked = anchor?.table ? all.filter(c => related(model, c.field.table, anchor.table)) : [];
+            alts.levels = (linked.length ? linked : all).slice(0, 6).map(c => refOf(c.field));
+        }
     } else if (template.visual === "pnl") {
         if (bindings.levels?.length) { levelTable = parseRef(bindings.levels[0]).table; }
         else {

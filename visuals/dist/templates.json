@@ -835,6 +835,33 @@
           }
         },
         {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "fcFlag",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Forecast-Flag (0=Ist · 1=FC · 2=vorläufig)",
+            "en": "Forecast flag (0=actual · 1=FC · 2=preliminary)"
+          }
+        },
+        {
+          "role": "lineMeasure",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Linie (Kombi)",
+            "en": "Line (combo)"
+          }
+        },
+        {
           "role": "comments",
           "need": "optional",
           "kind": "Measure",
@@ -922,6 +949,33 @@
           "label": {
             "de": "X-Achse VJ (Scatter, optional)",
             "en": "X axis PY (scatter, optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "required",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
+          }
+        },
+        {
+          "role": "bubbleSize",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasengröße (optional)",
+            "en": "Bubble size (optional)"
           }
         },
         {
@@ -1891,8 +1945,10 @@
           "scatterTrend": "off",
           "scatterArrows": false,
           "scatterPath": "off",
-          "scatterPlay": false,
-          "scale.xRefLine": "1"
+          "scatterPlay": false
+        },
+        "scale": {
+          "xRefLine": "1"
         }
       },
       "roles": [
@@ -1943,11 +1999,29 @@
         },
         {
           "role": "bubbleSize",
-          "need": "recommended",
+          "need": "required",
           "kind": "Measure",
           "label": {
             "de": "Blasengröße (optional)",
             "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "bubbleShare",
+          "need": "required",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasenanteil (optional)",
+            "en": "Bubble share (optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
           }
         },
         {
@@ -1990,9 +2064,11 @@
           "scatterSizeLegend": true,
           "scatterTrend": "off",
           "scatterArrows": false,
-          "scatterShapes": false,
-          "scale.refLine": "0",
-          "scale.xRefLine": "0"
+          "scatterShapes": false
+        },
+        "scale": {
+          "refLine": "0",
+          "xRefLine": "0"
         }
       },
       "roles": [
@@ -2039,6 +2115,33 @@
           "label": {
             "de": "X-Achse VJ (Scatter, optional)",
             "en": "X axis PY (scatter, optional)"
+          }
+        },
+        {
+          "role": "series",
+          "need": "recommended",
+          "kind": "Grouping",
+          "label": {
+            "de": "Stack-Serie (Gestapelt)",
+            "en": "Stack series (Stacked)"
+          }
+        },
+        {
+          "role": "bubbleSize",
+          "need": "optional",
+          "kind": "Measure",
+          "label": {
+            "de": "Blasengröße (optional)",
+            "en": "Bubble size (optional)"
+          }
+        },
+        {
+          "role": "multiples",
+          "need": "optional",
+          "kind": "Grouping",
+          "label": {
+            "de": "Small Multiples",
+            "en": "Small Multiples"
           }
         },
         {
@@ -7162,7 +7265,7 @@
         },
         {
           "role": "rowType",
-          "need": "recommended",
+          "need": "required",
           "kind": "Grouping",
           "label": {
             "de": "Zeilentyp",
@@ -7171,7 +7274,7 @@
         },
         {
           "role": "formulaDef",
-          "need": "recommended",
+          "need": "required",
           "kind": "Grouping",
           "label": {
             "de": "Formeldefinition",
