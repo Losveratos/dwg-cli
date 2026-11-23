@@ -58,7 +58,7 @@ Ist gibt es bis August 2026, Plan und Forecast für das ganze Jahr. Damit keine 
 | ChartKitchen ab 1.57: Zeitverlauf (C07, C19, C21, C22, C20) | Monate Jan bis Dez mit `forecast` wie C03; C23 (Pfad) mit Ist-Filter, nur Ist-Monate |
 | ChartKitchen ab 1.57: Struktur, Rangfolgen, Korrelation, Brücken (C14 bis C18, C24, C25) | Kachelfilter `'Kalender'[Ist] = TRUE`; C18 bindet Δ-Measures mit „bis Ist“ |
 | P&L ab 1.8 (T01C, T02D) | mit `period` wie T01A |
-| T01D | **ohne** `period` (Gesamtjahr), wie T02E/T02F: mit Periode wäre der Monatsblock August, dort ist FC = AC, und der YTD-Block reines Ist. Die Seitenbeschreibung nennt den Grund |
+| T01D | **ohne** `period` (Gesamtjahr), wie T02E/T02F: mit Periode wäre der Monatsblock August, dort ist FC = AC, und der YTD-Block reines Ist (am 23.11.2026 nachgeprüft: Blöcke „August“ und „_August“, der Berichtsmonat folgt dem letzten Ist). Die Seitenbeschreibung nennt den Grund |
 | 11A | Periode = `'Rendite'[Jahr]` (2024 bis 2026, keine Beziehung zum Kalender): kein Slicer wirkt, auch das Jahr nicht |
 | P&L mit FC oder PL als Minuend (T02E, T02F, T03B, T04D, T04E, 12H) | **ohne** `period`: ein Block über das Gesamtjahr. Mit Periode wäre der FC im YTD-Fenster gleich dem AC (FC = AC in Ist-Monaten) und das Template zeigte nichts. Ohne Periode fällt der zweite Block still weg (`megaKeys`), der einzelne YTD-Block trägt keinen Titel; `periodLine` sagt „Gesamtjahr“ |
 
@@ -115,7 +115,7 @@ Seitenbeschreibungen sagen es; Mini-DAX und DAX lassen Filter ohne Pfad zur Fakt
 | C24 Blasen mit Anteil | Segment ('Marktsegment', Land und Sorte): y Marktwachstum %, x Relativer Marktanteil, Größe Marktvolumen hl, Anteil Eigenabsatz hl, Farbe Sorte, Ist-Filter | Eine Fläche mit 16 Blasen und Gesamtblase (Blatt 10E). Die Variante je Land (10G) bräuchte `multiples`; die Rolle steht für C24 nicht im Katalog, `tile add` lehnt sie ab. `scale.xRefLine` = 1. Karten: Eigenabsatz je Land, ein Klick zeigt ein Land |
 | C25 Marimekko | Kanal × Umsatz AC, Serie Sorte, Ist-Filter | Dicke = Umsatz, Summen- und Anteilsspalte, Σ-Zeile |
 | T01C | Kanal → Kunde × Umsatz AC/PY/PL, Periode | Kanal statt Land, weil nur Kanäle mehrzeilige Blöcke haben (`keepBlockOrder` wirkt erst dann) |
-| T01D | Land → Kunde × Umsatz FC/PY/PL (+AC), ohne Periode | Gesamtjahr (siehe Vergleichszeitraum); Blöcke alphabetisch, weil 'Kunde'[Land] keine Sortierspalte hat |
+| T01D | Sorte → Produkt × Umsatz FC/PY/PL (+AC), ohne Periode | Gesamtjahr (siehe Vergleichszeitraum); vier Blöcke mit zwei bis vier Bieren, Sorten nach 'Produkt'[Sorte Sort]. Vorher Land → Kunde: drei von vier Ländern hatten nur einen Kunden und fielen zu Einzelzeilen zusammen |
 | T02D | Sorte → Bier × Umsatz AC/PL, Periode | Sortierung nach ΔPL % im YTD-Block, Blöcke in Sortenreihenfolge |
 | 11A ROI-Baum | 'Renditekonto' (L1, L2, Konto-Rollen) × 'Rendite' AC/FC/PL, Periode Jahr | Ohne PY (sonst Referenz PY). Baum zeigt AC 2024 und 2025, 2026 als FC schraffiert gegen PL. Karten: EBIT je Jahr (Kachelfilter KontoID R-EBIT), AC&FC gegen PY |
 | T05B | Cashflow ('Cashflowkonto', 'Cashflow'), AC und PY, Periode | `statement.stockMode: auto`: Anfangsbestand `Account opening`, Endbestand `Formula stock`, Flüsse ohne Token. Zwei Blöcke August \| Jan..Aug, Kaskaden PY und AC. Karten: die drei Cashflow-Bereiche Jan bis Aug gegen `Cashflow PY bis Ist` |

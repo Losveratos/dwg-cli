@@ -3643,10 +3643,10 @@
       ]
     },
     {
-      "name": "Forecast je Land und Kunde nach Vorjahresabweichung",
+      "name": "Forecast je Sorte und Bier nach Vorjahresabweichung",
       "template": "T01D",
       "group": "P&L · Struktur-Vergleich",
-      "description": "Wo landen Länder und Kunden im Gesamtjahr gegenüber dem Vorjahr, relativ betrachtet? Der Forecast steht gegen das ganze Vorjahr und den Plan, je Land sind die Kunden nach der prozentualen Vorjahresabweichung sortiert. Die Seite zeigt bewusst das Gesamtjahr ohne Periode, weil der Monatsblock des Templates sonst den August zeigte, in dem Forecast und Ist gleich sind.",
+      "description": "Wo landen Sorten und Biere im Gesamtjahr gegenüber dem Vorjahr, relativ betrachtet? Der Forecast steht gegen das ganze Vorjahr und den Plan, je Sorte sind die Biere nach der prozentualen Vorjahresabweichung sortiert, die Sorten bleiben in ihrer Reihenfolge. Die Seite zeigt bewusst das Gesamtjahr ohne Periode, weil der Monatsblock des Templates sonst den August zeigte, in dem Forecast und Ist gleich sind.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -3661,13 +3661,13 @@
             134
           ],
           "bindings": {
-            "category": "'Produkt'[Sorte]",
+            "category": "'Kunde'[Kanal]",
             "actual": "'Fakten'[Umsatz FC]",
             "previousYear": "'Fakten'[Umsatz PY]",
             "plan": "'Fakten'[Umsatz PL]"
           },
           "sortBy": {
-            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
+            "'Kunde'[Kanal]": "'Kunde'[Kanal Sort]"
           },
           "displayNames": {
             "[actual]": "Umsatz AC&FC",
@@ -3684,7 +3684,7 @@
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Nettoumsatz in EUR je Sorte",
+              "kpi": "Nettoumsatz in EUR je Kanal",
               "period": "2026 AC&FC gegen PY"
             },
             "labels": {
@@ -3705,8 +3705,8 @@
           ],
           "bindings": {
             "levels": [
-              "'Kunde'[Land]",
-              "'Kunde'[Kunde]"
+              "'Produkt'[Sorte]",
+              "'Produkt'[Produkt]"
             ],
             "ac": "'Fakten'[Umsatz AC]",
             "py": "'Fakten'[Umsatz PY]",
@@ -3716,7 +3716,7 @@
           "objects": {
             "titleBlock": {
               "unitLine": "ZLATÝ LEV Brauerei",
-              "measureLine": "Nettoumsatz in Mio. EUR nach Land und Kunde, Forecast gegen Vorjahr und Plan",
+              "measureLine": "Nettoumsatz in Mio. EUR nach Sorte und Bier, Forecast gegen Vorjahr und Plan",
               "periodLine": "2026 AC&FC gegen PY und PL"
             },
             "columns": {
@@ -3770,6 +3770,9 @@
               "fontPreset": "fullhd",
               "density": "compact"
             }
+          },
+          "sortBy": {
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
           }
         }
       ]
