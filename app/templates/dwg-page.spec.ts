@@ -4,11 +4,14 @@ import { describe, expect, it } from 'vitest';
 import { daxQuery } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
   combineFilters,
+  FILTER_BAR_H,
   findPage,
+  fitHeight,
   fixedChipText,
   fixedFilterChips,
   formatSlicerValue,
   isEmptyValue,
+  MIN_FIT,
   MIN_STAGE_WIDTH,
   navGroups,
   normColumn,
@@ -20,12 +23,15 @@ import {
   sameValues,
   selectionFilters,
   selectionLabel,
+  slicerChips,
   slicerDefaults,
   slicerFilters,
   slicerQuery,
   slicerValues,
-  stageScale,
+  stageChrome,
   stagePage,
+  stageScale,
+  templateCount,
   tileBox,
   tileFilters,
   toggleSlicerValue,
@@ -128,6 +134,41 @@ describe('dwg-page', () => {
       [218, 182, 1044, 498],
     ]);
     expect(stagePage(fhd, 1920, chrome)).toBe(fhd);
+
+    // Filter-Panel eingeklappt: keine Filterzone, Kopf mit Filterleiste (64 + 26 bei 1280), Kacheln über die ganze Breite
+    const open = stagePage(fhd, 1920, chrome, { collapsed: false, height: 1080 });
+    expect(open).toBe(fhd);
+    const closed = stagePage(fhd, 1920, chrome, { collapsed: true });
+    expect(closed.zones?.filter).toBeUndefined();
+    expect(closed.zones?.header).toEqual({ x: 0, y: 0, w: 1920, h: 135 });
+    expect(closed.zones?.content).toEqual({ x: 27, y: 160, w: 1866, h: 858 });
+    expect(closed.tiles.map((t) => t.rect)).toEqual([
+      [27, 160, 1866, 128],
+      [27, 306, 1866, 712],
+    ]);
+    expect(stageChrome(chrome, true)).toEqual({ ...chrome, header: { on: true, h: 64 + FILTER_BAR_H }, filter: { ...chrome.filter, on: false } });
+    expect(stageChrome(chrome, false)).toBe(chrome);
+
+    // auf die Fensterhöhe eingepasst: Zeilen im Raster gestaucht, Fuß bleibt unten
+    const fit = stagePage(fhd, 1920, chrome, { height: 960 });
+    expect([fit.width, fit.height]).toEqual([1920, 960]);
+    expect(fit.zones?.footer).toEqual({ x: 0, y: 924, w: 1920, h: 36 });
+    expect(fit.tiles.map((t) => t.rect)).toEqual([
+      [327, 123, 1566, 114],
+      [327, 255, 1566, 642],
+    ]);
+    expect(stagePage(fhd, 1920, chrome, { height: 960, collapsed: true }).tiles.map((t) => t.rect)).toEqual([
+      [27, 160, 1866, 108],
+      [27, 286, 1866, 612],
+    ]);
+  });
+
+  it('passt die Bühne in die Fensterhöhe: höchstens Seitenhöhe, mindestens MIN_FIT', () => {
+    expect(fitHeight(984, 1, 1080)).toBe(984);
+    expect(fitHeight(700, 0.75, 1080)).toBe(933);
+    expect(fitHeight(2000, 1, 1080)).toBe(1080);
+    expect(fitHeight(300, 1, 1080)).toBe(Math.round(1080 * MIN_FIT));
+    expect(fitHeight(0, 1, 1080)).toBe(1080);
   });
 
   it('skaliert die Bühne gleichmäßig, mit Mindestfaktor statt weiter zu schrumpfen', () => {
@@ -189,6 +230,25 @@ describe('dwg-page · Slicer', () => {
     expect(q.query).toContain(`TREATAS({"DE", "AT"}, 'Sales Demo'[Country])`);
     expect(q.query).toContain(`TREATAS({"Mär"}, 'Calender'[Month Name Short])`);
     expect(q.query.match(/'Calender'\[Year\]\)/g)).toHaveLength(1);
+  });
+
+  it('zeigt aktive Slicer als Chips für die Filterleiste, „Alle“ ohne Chip', () => {
+    const defaults = slicerDefaults(slicers);
+    expect(slicerChips(slicers, defaults, defaults)).toEqual([
+      { column: "'Calender'[Year]", label: 'Jahr', values: '2026', changed: false },
+    ]);
+    const state = { ...defaults, "'Calender'[Year]": [2025], "'Sales Demo'[Country]": ['DE', 'AT', 'CH', 'IT'] };
+    expect(slicerChips(slicers, state, defaults)).toEqual([
+      { column: "'Calender'[Year]", label: 'Jahr', values: '2025', changed: true },
+      { column: "'Sales Demo'[Country]", label: 'Land', values: 'DE, AT +2', changed: true },
+    ]);
+    expect(slicerChips(slicers, { ...defaults, "'Calender'[Year]": [] }, defaults)).toEqual([]);
+  });
+
+  it('zählt Templates aus der Spec (verschiedene Kennungen, sonst Seiten)', () => {
+    const pages = [{ ...page, template: 'C01' }, { ...page, template: 'C01' }, { ...page, template: 'T02A' }];
+    expect(templateCount({ pages })).toBe(2);
+    expect(templateCount({ pages: [page, page] })).toBe(2);
   });
 
   it('Schnittmenge ohne Treffer filtert auf BLANK', () => {

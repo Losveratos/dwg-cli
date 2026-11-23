@@ -170,6 +170,19 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   Slicer wirken per TREATAS auf alle Kacheln aller Seiten, zusammen mit dem Querfilter per Klick (gleiche Spalte:
   Schnittmenge). Eine Abfrage je Kachel; Filterwechsel fragt die Kacheln der Seite neu ab, Seitenwechsel nur die neue
   Seite; Theme, Fenstergröße, Auflösung und Kopfzeilen lösen keine Abfrage aus (ein Elementbaum für alle Modi).
+- **Filter-Panel einklappen:** Knopf « im Panelkopf oder Taste F (nicht in Eingabefeldern). Das Panel verschwindet,
+  die Kacheln nutzen die ganze Breite (Pixelraster ohne Filterzone). Unter dem Seitenkopf steht dann eine Filterleiste:
+  „Filter“ öffnet das Panel wieder, jeder aktive Slicer ist ein Chip („Jahr: 2026“) mit ×, das den Filter aufhebt
+  (Auswahl „Alle“), feste Filter der Spec stehen ohne × daneben, „Zurücksetzen“ stellt die Vorgaben her. Der Zustand
+  gilt je Browser (`localStorage` `dwg-filter-panel`), Ein- und Ausklappen fragt nichts neu ab. ARIA: `aria-expanded`
+  und `aria-controls` an beiden Knöpfen, Fokus wandert zum Gegenknopf, × mit `aria-label` („Filter Jahr: 2026
+  entfernen“).
+- **Ganze Seite im Fenster:** In `fullhd` und `hd` passt sich die Bühne der Fensterhöhe unter der Kopfleiste an
+  (höchstens die Seitenhöhe, mindestens 60 % davon, `fitHeight`); die Kacheln werden über das Raster neu verteilt,
+  die Hauptkachel bekommt die restliche Höhe. P&L-Kacheln laufen in der App mit `layout.maximize` (Schrift und Zeilen
+  auf die Kachelhöhe, `fitToTile`; Power BI behält den Wert der Spec). Braucht ein P&L trotzdem mehr Platz (Bildlauf im
+  Visual, z. B. der ROI-Baum 11A), meldet die Kachel die nötige Höhe, die Bühne wird um diesen Betrag höher und
+  skaliert als Ganzes etwas kleiner, damit sie ins Fenster passt.
 - **Kopfzeilen der Visuals:** Standard aus (`visualHeaders: false`), Schalter in der Kopfleiste. Setzt zur Laufzeit
   ChartKitchen `ibcsTitle.show`, `chart.chartButtons`, `chart.cumulativeButton` und P&L `titleBlock.show`,
   `toolbar.show` auf aus. Den Sortier-Chip der ChartKitchen-Karten blendet keine Property aus (hängt an der
@@ -179,8 +192,11 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   Kacheln auf denselben Rechtecken. Wiederholte Läufe behalten die Seiten-IDs.
 - **Tests:** `app/test/unit.mjs` (App-Datei, Zonen, Layout-Vertrag, Pixelraster, Slicer-Prüfung), `pbip/test/unit.mjs`
   (Kopf, Fuß, Slicer-Stapel, Sync-Gruppen, „nicht leer“, gleiche Rechtecke, Schemas), Vitest in der App
-  (`dwg-page.spec.ts`), Browser-Test `app/test/shell.mjs` (43 Prüfungen: Bühne, Seitenpixel, HD, Fließend, sticky
-  Kopf, Mindestfaktor, Kopfzeilen ohne Abfrage, leere Werte, Querfilter, Dark Mode, schmal).
+  (`dwg-page.spec.ts`), Browser-Test `app/test/shell.mjs` (65 Prüfungen: Bühne, Seitenpixel, HD, Fließend, sticky
+  Kopf, Mindestfaktor, Kopfzeilen ohne Abfrage, leere Werte, Querfilter, Dark Mode, schmal, ganze Seite bei 1920 × 1080
+  und 1366 × 768, Panel einklappen per Tastatur und Taste F, Chips mit ×, Fokus, Zustand nach dem Neuladen).
+  `app/test/showcase-e2e.mjs` prüft je Seite zusätzlich, dass die Bühne ins Fenster passt und kein P&L über seine
+  Kachel läuft; `--width/--height`, `--panel closed` und `--dark` für die Varianten.
 
 ![Showcase-Rahmen: Filter-Panel, Navigation, Slicer und Querfilter](../app/docs/shell-filter.png)
 

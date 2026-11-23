@@ -83,6 +83,7 @@ Für Apps mit vielen Seiten (z. B. `specs/showcase.json`). Die App bindet dann `
 | Feld | Fabric App (`DwgShell`) | Power BI (`dwg pbip pages`) |
 | --- | --- | --- |
 | `resolution` | Startmodus, in der Kopfleiste umschaltbar: `fullhd` bzw. `hd` baut die Seite in 1920 bzw. 1280 px auf und skaliert sie als Ganzes (Schrift, Abstände, Visuals im selben Verhältnis; nie kleiner als 1152 px angezeigt, dann waagerecht scrollen); `responsive` skaliert nur die Kacheln. Unter 900 px wird gestapelt | Seite 1920 × 1080 („An Breite anpassen“) |
+| Filter-Panel (Shell) | einklappbar (Knopf « oder Taste F): Kacheln über die ganze Breite, darunter eine Filterleiste mit den aktiven Slicern als Chips (× hebt den Filter auf, Auswahl „Alle“), festen Filtern ohne × und „Filter“ zum Öffnen; Zustand je Browser. Die Bühne passt sich der Fensterhöhe an (ganze Seite ohne Scrollen), P&L-Kacheln mit `layout.maximize` (nur App) | Power BI hat seinen eigenen Filterbereich; Bericht unverändert |
 | `visualHeaders` | Titelblöcke und Bedienleisten der Visuals (Standard `false`: aus, Seitentitel steht darüber); Schalter „Kopfzeilen“ in der Kopfleiste, ohne neue Abfrage | Objekte der Kachel unverändert |
 | `footer` | Fußleiste der Seite | Textfeld in der Fußzone |
 | `slicers[].column` | Filter-Panel links, Werte per DAX (`SUMMARIZECOLUMNS`), Auswahl als TREATAS in jeder Kachel aller Seiten | nativer Slicer (Dropdown) im Filter-Panel jeder Seite, Sync-Gruppe je Spalte |

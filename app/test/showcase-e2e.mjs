@@ -2,7 +2,9 @@
 // Showcase-Datensatz (datasets/showcase.mjs). Jede Seite einmal: Kacheln rendern ohne Fehler, eine Abfrage je
 // Kachel, Erklärtext sichtbar, Δ in Basisskala (ChartKitchen); Screenshot je Seite unter app/test/out/showcase/<nr>-<template>.png.
 //
-//   node app/test/showcase-e2e.mjs [--only C03,T03A] [--width 1440 --height 900]
+// Die Bühne passt in die Fensterhöhe (ganze Seite ohne senkrechtes Scrollen), P&L-Tabellen laufen nicht über ihre Kachel.
+//
+//   node app/test/showcase-e2e.mjs [--only C03,T03A] [--width 1440 --height 900] [--panel closed] [--dark]
 import esbuild from "esbuild";
 import fs from "node:fs";
 import http from "node:http";
@@ -16,7 +18,9 @@ const ROOT = path.resolve(HERE, "../..");
 // --spec: eine andere Spec auf dem Showcase-Modell (z. B. aus `dwg mockup import`), --name: Ordner unter out/
 const argOf = k => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : null; };
 const SPEC_FILE = path.resolve(argOf("spec") ?? path.join(ROOT, "specs", "showcase.json"));
-const OUT = path.join(HERE, "out", argOf("name") ?? (argOf("width") ? `showcase-${argOf("width")}` : "showcase"));
+const PANEL = argOf("panel") === "closed" ? "closed" : "open";
+const DARK = process.argv.includes("--dark");
+const OUT = path.join(HERE, "out", argOf("name") ?? [argOf("width") ? `showcase-${argOf("width")}` : "showcase", PANEL === "closed" ? "zu" : "", DARK ? "dunkel" : ""].filter(Boolean).join("-"));
 const onlyArg = process.argv.indexOf("--only");
 const ONLY = onlyArg > 0 ? new Set(process.argv[onlyArg + 1].split(",")) : null;
 const num = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? Number(process.argv[i + 1]) : d; };
@@ -69,6 +73,8 @@ const base = `http://localhost:${server.address().port}/index.html`;
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: VIEW });
+// Filter-Panel eingeklappt starten (Zustand der Shell im localStorage)
+await page.addInitScript(p => { try { localStorage.setItem("dwg-filter-panel", p); } catch { /* ohne Speicher */ } }, PANEL);
 let errors = [];
 page.on("pageerror", e => errors.push(e.message));
 page.on("console", m => { if (m.type() === "error") { errors.push(m.text()); } });
@@ -82,6 +88,7 @@ const settle = async () => {
 
 await page.goto(base);
 await page.waitForSelector("nav[aria-label=Gruppen] a", { timeout: 45000 });
+if (DARK) { await page.click("#theme"); }
 // alle Seiten-Links einsammeln: je Gruppe anklicken, dann die Seiten-Links lesen
 const groupCount = await page.$$eval("nav[aria-label=Gruppen] a", els => els.length);
 const pages = [];
@@ -145,16 +152,25 @@ for (const p of pages) {
         return { id: el.dataset.dwgTile, n: out.length, maxDev: out.length ? Math.max(...out) : 0, zoom };
     }));
     const scaleBad = scale.filter((s) => s.n > 0 && s.maxDev > 2);
+    // ganze Seite im Fenster: Bühne endet über der Fensterkante; P&L: Tabelle läuft nicht über die Kachel (kein Bildlauf)
+    const fit = await page.evaluate(() => {
+        const st = document.querySelector("[data-dwg-stage]");
+        const pnl = [...document.querySelectorAll(".pnl-root")].map(r => ({ id: r.closest("[data-dwg-tile]")?.dataset.dwgTile,
+            over: r.scrollHeight - r.clientHeight, h: r.clientHeight }));
+        return { bottom: st ? Math.round(st.getBoundingClientRect().bottom) : 0, scrollH: document.documentElement.scrollHeight, pnl };
+    });
     const problems = [
         ...scaleBad.map((s) => `${s.id}: Δ nicht in Basisskala (max. Abweichung ${s.maxDev.toFixed(1)} px über ${s.n} Kategorien${s.zoom !== 1 ? `, Lupe ×${s.zoom}` : ""})`),
         ...tiles.filter(t => t.alert).map(t => `${t.id}: ${t.alert.slice(0, 120)}`),
         ...tiles.filter(t => !t.alert && t.svg < 20).map(t => `${t.id}: nur ${t.svg} SVG-Elemente`),
         ...(desc ? [] : ["kein Erklärtext"]),
+        ...(fit.bottom > VIEW.height + 1 ? [`Seite endet bei ${fit.bottom} px, Fenster ${VIEW.height} px`] : []),
+        ...fit.pnl.filter(t => t.over > 2).map(t => `${t.id}: P&L läuft ${t.over} px über die Kachel (${t.h} px)`),
         ...errors.slice(0, 2).map(e => `Konsole: ${e.slice(0, 120)}`),
     ];
     ok = ok && problems.length === 0;
     const file = `${String(n).padStart(2, "0")}-${tpl}.png`;
-    await page.screenshot({ path: path.join(OUT, file), fullPage: true });
+    await page.screenshot({ path: path.join(OUT, file) });
     results.push({ tpl, label: p.label, ok, tiles: tiles.length, queries, problems: [detail, ...problems].filter(Boolean), file });
     // einmal je Lauf, auf der ersten Seite mit ChartKitchen-Karten: der Zustand des Visuals überlebt ein update() der
     // App. Der Sortier-Chip der Karten schreibt chart.cardSortSel per persistProperties, und ChartKitchen liest den

@@ -59,6 +59,8 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
    `index.html` fliegen raus); `node dwg.mjs check --app <Rayfin-App>` meldet übrige fremde Schriften.
 2. **Einbinden** in `src/App.tsx` (gehört der App): `<DwgPage page={page} connection="<name>" isDark={isDark} />`,
    viele Seiten mit Navigation und Filter-Panel: `<DwgShell app={app} connection="<name>" isDark={isDark} />`.
+   Das Filter-Panel ist einklappbar (Taste F, Chips oben), die Seite passt sich der Fensterhöhe an. Zahlen im
+   Untertitel aus der Spec rechnen (`templateCount(app)` aus `./dwg/dwg-page`), nicht fest eintragen.
 3. **Prüfen** in der App: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 4. **Deploy macht ein Mensch** (Fabric-SSO): `npx rayfin up`. Agenten deployen nicht.
 

@@ -325,29 +325,99 @@ export function stageScale(available: number, base: number): number {
 
 const pick = (z: Zones): DwgZones => ({ header: z.header!, ...(z.filter ? { filter: z.filter } : {}), footer: z.footer!, content: z.content });
 
+/** Höhe der Filterleiste unter dem Seitenkopf bei eingeklapptem Panel (Basis 1280 px, wie die Chrome-Maße) */
+export const FILTER_BAR_H = 26;
+
+/** Kleinste Bühnenhöhe beim Einpassen ins Fenster, als Anteil der Seitenhöhe; darunter scrollt die Seite */
+export const MIN_FIT = 0.6;
+
+export interface DwgStageOptions {
+  /** Höhe der Bühne in Bühnenpixeln (Standard: Seitenhöhe im Verhältnis der Basisbreite), z. B. auf das Fenster eingepasst */
+  height?: number;
+  /** Filter-Panel eingeklappt: keine Filterzone, der Inhalt nutzt die ganze Breite, der Kopf trägt die Filterleiste */
+  collapsed?: boolean;
+}
+
+/** Chrome der Bühne: eingeklappt ohne Filterzone, Kopf um die Filterleiste höher */
+export function stageChrome(chrome: Chrome, collapsed: boolean): Chrome {
+  if (!collapsed || !chrome.filter?.on) return chrome;
+  return {
+    ...chrome,
+    filter: { ...chrome.filter, on: false },
+    ...(chrome.header ? { header: { ...chrome.header, h: chrome.header.h + FILTER_BAR_H } } : {}),
+  };
+}
+
 /**
- * Seite in einer anderen Basisbreite (z. B. HD 1280 statt Full HD 1920): Zonen aus dem Pixelraster dieser Breite,
- * Kacheln über das Raster übertragen (pixelgenau, Zwischenraum dort genau g) bzw. proportional, wenn sie nicht auf
- * dem Raster liegen. Ohne Chrome oder Zonen: alles mit dem Faktor skaliert.
+ * Bühnenhöhe, damit die ganze Seite unter die Kopfleiste passt: verfügbare Fensterhöhe durch den Faktor, höchstens die
+ * Seitenhöhe (die Seite wird nicht gestreckt), mindestens MIN_FIT davon (darunter scrollt sie).
  */
-export function stagePage(page: DwgPageSpec, base: number, chrome?: Chrome): DwgPageSpec {
-  if (base === page.width) return page;
+export function fitHeight(available: number, scale: number, nominal: number): number {
+  if (!(available > 0) || !(scale > 0)) return nominal;
+  return Math.max(Math.round(nominal * MIN_FIT), Math.min(nominal, Math.floor(available / scale)));
+}
+
+/**
+ * Seite in einer anderen Basisbreite (z. B. HD 1280 statt Full HD 1920), auf eine andere Höhe eingepasst oder mit
+ * eingeklapptem Filter-Panel: Zonen aus dem Pixelraster dieser Bühne, Kacheln über das Raster übertragen (pixelgenau,
+ * Zwischenraum dort genau g) bzw. proportional, wenn sie nicht auf dem Raster liegen. Ohne Chrome oder Zonen: alles
+ * mit dem Faktor skaliert.
+ */
+export function stagePage(page: DwgPageSpec, base: number, chrome?: Chrome, opts: DwgStageOptions = {}): DwgPageSpec {
   const f = base / page.width;
-  const height = Math.round(page.height * f);
+  const height = Math.round(opts.height ?? page.height * f);
+  const collapsed = Boolean(opts.collapsed && chrome?.filter?.on);
+  if (base === page.width && height === page.height && !collapsed) return page;
   if (chrome?.header && chrome.footer && page.zones) {
     const from = gridZones({ w: page.width, h: page.height }, chrome);
-    const to = gridZones({ w: base, h: height }, chrome);
+    const to = gridZones({ w: base, h: height }, stageChrome(chrome, collapsed));
     return { ...page, width: base, height, zones: pick(to), tiles: page.tiles.map((t) => ({ ...t, rect: transfer(t.rect, from, to) })) };
   }
-  const r = (b: DwgBox): DwgBox => ({ x: Math.round(b.x * f), y: Math.round(b.y * f), w: Math.round(b.w * f), h: Math.round(b.h * f) });
+  const fy = height / page.height;
+  const r = (b: DwgBox): DwgBox => ({ x: Math.round(b.x * f), y: Math.round(b.y * fy), w: Math.round(b.w * f), h: Math.round(b.h * fy) });
   const z = page.zones;
   return {
     ...page,
     width: base,
     height,
     zones: z && { header: r(z.header), ...(z.filter ? { filter: r(z.filter) } : {}), footer: r(z.footer), content: r(z.content) },
-    tiles: page.tiles.map((t) => ({ ...t, rect: t.rect.map((v) => Math.round(v * f)) as DwgTileSpec['rect'] })),
+    tiles: page.tiles.map((t) => {
+      const [x, y, w, h] = t.rect;
+      return { ...t, rect: [Math.round(x * f), Math.round(y * fy), Math.round(w * f), Math.round(h * fy)] as DwgTileSpec['rect'] };
+    }),
   };
+}
+
+/** Aktiver Slicer als Chip der Filterleiste (eingeklapptes Panel): „Jahr: 2026“, × hebt ihn auf (Alle). */
+export interface DwgSlicerChip {
+  column: string;
+  label: string;
+  /** „2026“, „Handel, Gastronomie“, „Handel, Gastronomie +2“ */
+  values: string;
+  /** Auswahl weicht von der Vorgabe der Spec ab */
+  changed: boolean;
+}
+
+/** Chips für alle Slicer mit Auswahl, in der Reihenfolge der Spec; „Alle“ (leere Auswahl) zeigt keinen Chip. */
+export function slicerChips(slicers: DwgSlicerSpec[], state: DwgSlicerState, defaults: DwgSlicerState = {}): DwgSlicerChip[] {
+  return slicers
+    .filter((s) => (state[s.column] ?? []).length > 0)
+    .map((s) => {
+      const values = state[s.column];
+      const shown = values.slice(0, 2).map((v) => formatSlicerValue(v)).join(', ');
+      return {
+        column: s.column,
+        label: s.label,
+        values: values.length > 2 ? `${shown} +${values.length - 2}` : shown,
+        changed: !sameValues(values, defaults[s.column] ?? []),
+      };
+    });
+}
+
+/** Anzahl der Templates (verschiedene Kennungen) bzw. Seiten ohne Kennung: für Untertitel wie „Alle 47 Templates“. */
+export function templateCount(app: Pick<DwgAppSpec, 'pages'>): number {
+  const ids = new Set(app.pages.map((p) => p.template?.trim()).filter(Boolean));
+  return ids.size || app.pages.length;
 }
 
 /** Titelblöcke und Bedienleisten der Visuals aus (Laufzeit-Override, keine neue Abfrage) */
@@ -359,6 +429,18 @@ export function withoutHeaders(visual: VisualKind, objects: VisualObjects = {}):
   const out: VisualObjects = { ...objects };
   for (const [k, v] of Object.entries(off)) out[k] = { ...objects[k], ...v };
   return out;
+}
+
+/**
+ * P&L füllt die Kachel (Option „Use the whole tile“, layout.maximize): schmale Ränder, Kopf und Fuß kompakt, Schrift und
+ * Zeilen auf die Kachelhöhe skaliert (bis ×1,6 größer, bis 9 px kleiner, dann Bildlauf). So bleibt die ganze Tabelle in
+ * der auf das Fenster eingepassten Kachel sichtbar. Legt die Spec layout.maximize selbst fest, gilt ihr Wert.
+ * Laufzeit-Override der App wie withoutHeaders, keine neue Abfrage; Power BI (PBIP) bleibt beim Wert der Spec.
+ */
+export function fitToTile(visual: VisualKind, objects: VisualObjects = {}): VisualObjects {
+  const layout = (objects.layout ?? {}) as Record<string, unknown>;
+  if (visual !== 'pnl' || layout.maximize !== undefined) return objects;
+  return { ...objects, layout: { ...layout, maximize: true } };
 }
 
 /** Leerer Slicer-Wert (BLANK oder Leertext), Anzeige „(leer)“ */

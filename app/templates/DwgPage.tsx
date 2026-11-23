@@ -13,6 +13,7 @@ import { daxQuery, type DaxFilter, type SelectionKey } from '../vendor/dwg-visua
 import {
   fixedChipText,
   fixedFilterChips,
+  fitToTile,
   pageHeight,
   pageRegion,
   selectionLabel,
@@ -44,10 +45,23 @@ interface TileProps {
   clearToken: number;
   isDark: boolean;
   hideHeaders: boolean;
+  fit: boolean;
   onSelect: (tile: string, keys: SelectionKey[]) => void;
+  onNeed?: (tile: string, height: number) => void;
 }
 
-function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, isDark, hideHeaders, onSelect }: TileProps) {
+function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, isDark, hideHeaders, fit, onSelect, onNeed }: TileProps) {
+  const wrap = useRef<HTMLDivElement>(null);
+  // Höhe, die das Visual meldet: Läuft die P&L-Tabelle über ihre Kachel (Bildlauf im Visual), braucht die Kachel
+  // ihre Höhe plus den Überlauf (Layoutpixel, also Seitenpixel auch auf der skalierten Bühne)
+  const measure = () =>
+    requestAnimationFrame(() => {
+      const root = wrap.current?.querySelector<HTMLElement>('.pnl-root');
+      const section = wrap.current?.parentElement;
+      if (!onNeed || !root || !section) return;
+      const over = root.scrollHeight - root.clientHeight;
+      if (over > 2) onNeed(tile.id, section.offsetHeight + over);
+    });
   const filters = useMemo(
     () => tileFilters(page, tile.id, selection, extraFilters),
     [page, tile.id, selection, extraFilters]
@@ -73,14 +87,14 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
         ? renderError.message
         : null;
   const displayNames = useMemo(() => ({ ...q.displayNames, ...tile.displayNames }), [q.displayNames, tile.displayNames]);
-  // Kopfzeilen aus: nur Formatbereich-Override, keine neue Abfrage
-  const objects = useMemo(
-    () => (hideHeaders ? withoutHeaders(tile.visual, tile.objects) : tile.objects),
-    [hideHeaders, tile.visual, tile.objects]
-  );
+  // Kopfzeilen aus, Kachel füllen: nur Formatbereich-Overrides, keine neue Abfrage
+  const objects = useMemo(() => {
+    const o = hideHeaders ? withoutHeaders(tile.visual, tile.objects) : tile.objects;
+    return fit ? fitToTile(tile.visual, o) : o;
+  }, [hideHeaders, fit, tile.visual, tile.objects]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }} data-dwg-tile={tile.id}>
+    <div ref={wrap} style={{ position: 'relative', width: '100%', height: '100%' }} data-dwg-tile={tile.id}>
       {table && (
         <DwgVisual
           visual={tile.visual}
@@ -93,6 +107,7 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
           isDark={isDark}
           clearToken={clearToken}
           onSelect={(keys) => onSelect(tile.id, keys)}
+          onRendered={onNeed && tile.visual === 'pnl' ? measure : undefined}
           onError={(err) => setRenderError({ query: q.query, message: err instanceof Error ? err.message : String(err) })}
         />
       )}
@@ -199,6 +214,13 @@ interface PageProps {
   hideVisualHeaders?: boolean;
   /** feste Filter der Spec als Chips in der Chip-Zeile zeigen (DwgShell zeigt sie im Seitenkopf und setzt false) */
   showFixedFilters?: boolean;
+  /** Visuals füllen ihre Kachel (P&L: layout.maximize, siehe fitToTile); DwgShell setzt true */
+  fitVisuals?: boolean;
+  /**
+   * Meldet die Höhe, die eine Kachel braucht, wenn ihr Visual mehr Platz will als sie hat (P&L mit Bildlauf):
+   * Kachel-id und nötige Höhe in Seitenpixeln. DwgShell vergrößert damit die Bühne.
+   */
+  onTileNeed?: (tile: string, height: number) => void;
 }
 
 export function DwgPage({
@@ -212,6 +234,8 @@ export function DwgPage({
   chipStyle,
   hideVisualHeaders = false,
   showFixedFilters = true,
+  fitVisuals = false,
+  onTileNeed,
 }: PageProps) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -297,7 +321,9 @@ export function DwgPage({
                 clearToken={clearToken}
                 isDark={isDark}
                 hideHeaders={hideVisualHeaders}
+                fit={fitVisuals}
                 onSelect={onSelect}
+                onNeed={onTileNeed}
               />
             </section>
           ))}
