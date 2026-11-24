@@ -265,10 +265,113 @@ await page.waitForTimeout(600);
 q = await fresh();
 check("Auflösung, Kopfzeilen und Fenstergröße lösen keine Abfragen aus", q.length === 0, `${q.length} Abfragen`);
 
+// 6b. Ganze Seite im Fenster: die Bühne passt sich der Höhe unter der Kopfleiste an (Kacheln über das Raster gestaucht)
+await page.setViewportSize({ width: 1920, height: 1080 });
+await page.waitForTimeout(800);
+const fit = await page.evaluate(() => {
+    const st = document.querySelector("[data-dwg-stage]");
+    const foot = st.querySelector("footer")?.getBoundingClientRect();
+    return { stageH: st.offsetHeight, bottom: Math.round(st.getBoundingClientRect().bottom), foot: Math.round(foot?.bottom ?? 0),
+        scrollH: document.documentElement.scrollHeight, top: Math.round(document.querySelector("[data-dwg-topbar]").offsetHeight) };
+});
+check("1920 × 1080: ganze Seite sichtbar, ohne senkrecht zu scrollen", fit.bottom <= 1080 && fit.foot <= 1080 && fit.scrollH <= 1080 && fit.stageH < 1080,
+    `Kopfleiste ${fit.top} px, Bühne ${fit.stageH} px, unten ${fit.bottom} px, Seite ${fit.scrollH} px`);
+await page.setViewportSize({ width: 1366, height: 768 });
+await page.waitForTimeout(800);
+const fit2 = await page.evaluate(() => ({ bottom: Math.round(document.querySelector("[data-dwg-stage]").getBoundingClientRect().bottom), scrollH: document.documentElement.scrollHeight }));
+check("1366 × 768: ganze Seite sichtbar", fit2.bottom <= 768 && fit2.scrollH <= 768, `unten ${fit2.bottom} px, Seite ${fit2.scrollH} px`);
+await page.setViewportSize({ width: 1600, height: 1100 });
+await page.waitForTimeout(600);
+q = await fresh();
+check("Einpassen in die Fensterhöhe löst keine Abfragen aus", q.length === 0, `${q.length} Abfragen`);
+
+// 6c. Filter-Panel einklappen: Knopf (Tastatur), Filterleiste mit Chips, × hebt einen Filter auf, Taste F, Zustand bleibt
+// Land Germany ist seit Abschnitt 5 gewählt (der Sprung auf #c05 lädt die Seite nicht neu)
+if (!(await pressed("Land")).includes("Germany")) { await page.click(slicerButton("Land", "Germany")); await settle(); }
+await fresh();
+const toggle = await page.$eval("[data-dwg-toggle=panel]", e => ({ expanded: e.getAttribute("aria-expanded"), controls: e.getAttribute("aria-controls"), label: e.getAttribute("aria-label"), keys: e.getAttribute("aria-keyshortcuts") }));
+check("Einklappknopf mit ARIA (aria-expanded, aria-controls, Beschriftung, Tastenkürzel)",
+    toggle.expanded === "true" && toggle.controls === "dwg-filter-panel" && /einklappen/.test(toggle.label) && toggle.keys === "F", JSON.stringify(toggle));
+const wideBefore = await page.$eval('[data-dwg-tile="bruecke"]', e => e.closest("section").offsetWidth);
+await page.focus("[data-dwg-toggle=panel]");
+await page.keyboard.press("Enter");
+await page.waitForTimeout(600);
+const closed = await page.evaluate(() => {
+    const aside = document.querySelector("#dwg-filter-panel");
+    const sec = document.querySelector('[data-dwg-tile="bruecke"]').closest("section");
+    return { mode: document.querySelector("[data-dwg-shell]").dataset.dwgPanel, hidden: getComputedStyle(aside).display === "none",
+        focus: document.activeElement?.dataset?.dwgToggle ?? document.activeElement?.tagName, expanded: document.querySelector("[data-dwg-toggle=filter]")?.getAttribute("aria-expanded"),
+        tileX: sec.offsetLeft, tileW: sec.offsetWidth, chips: [...document.querySelectorAll("[data-dwg-filter-chip]")].map(e => e.textContent.replace("×", "").trim()),
+        removeLabels: [...document.querySelectorAll("[data-dwg-chip-remove]")].map(e => e.getAttribute("aria-label")),
+        barTop: Math.round(document.querySelector("[data-dwg-filterbar]").getBoundingClientRect().top), titleTop: Math.round(document.querySelector("[data-dwg-title]").getBoundingClientRect().top) };
+});
+check("eingeklappt: Panel weg, Kacheln über die ganze Breite", closed.mode === "closed" && closed.hidden && closed.tileX === 27 && closed.tileW > wideBefore + 250,
+    `Kachel ab ${closed.tileX} px, ${wideBefore} → ${closed.tileW} px`);
+check("eingeklappt: Fokus auf „Filter“, aria-expanded=false", closed.focus === "filter" && closed.expanded === "false", `Fokus ${closed.focus}`);
+check("Filterleiste unter dem Seitenkopf mit den aktiven Filtern", closed.barTop > closed.titleTop && closed.chips.join("|") === "Jahr: 2026|Land: Germany", closed.chips.join(" | "));
+check("× je Chip mit aria-label", closed.removeLabels.join("|") === "Filter Jahr: 2026 entfernen|Filter Land: Germany entfernen", closed.removeLabels.join(" | "));
+q = await fresh();
+check("Einklappen löst keine Abfragen aus", q.length === 0, `${q.length} Abfragen`);
+await page.screenshot({ path: path.join(OUT, "6-eingeklappt.png") });
+const tilesHere = (await tileIds()).length;
+await page.focus(`[data-dwg-chip-remove="'Sales Demo'[Country]"]`);
+await page.keyboard.press("Enter");
+await settle();
+q = await fresh();
+const afterRemove = await page.evaluate(() => ({ chips: [...document.querySelectorAll("[data-dwg-filter-chip]")].map(e => e.textContent.replace("×", "").trim()),
+    focus: document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.dataset?.dwgToggle }));
+check("× hebt den Filter auf (Alle): jede Kachel einmal neu, ohne Land",
+    q.length === tilesHere && q.every(x => !x.includes("'Sales Demo'[Country]")) && afterRemove.chips.join() === "Jahr: 2026",
+    `${q.length} Abfragen, Chips ${afterRemove.chips.join(", ")}`);
+check("Fokus wandert nach dem Entfernen zum nächsten Chip", afterRemove.focus === "Filter Jahr: 2026 entfernen", String(afterRemove.focus));
+await page.click(`[data-dwg-chip-remove="'Calender'[Year]"]`);
+await settle();
+await fresh();
+const allOff = await page.evaluate(() => ({ chips: document.querySelectorAll("[data-dwg-filter-chip]").length, text: document.querySelector("[data-dwg-filterbar]").textContent, reset: !!document.querySelector("[data-dwg-reset]") }));
+check("ohne Auswahl: Hinweis statt Chips, Zurücksetzen in der Leiste", allOff.chips === 0 && allOff.text.includes("kein Filter gewählt") && allOff.reset);
+await page.click("[data-dwg-reset]");
+await settle();
+q = await fresh();
+check("Zurücksetzen in der Leiste: Vorgabe Jahr 2026", q.length === tilesHere && q.every(x => x.includes("TREATAS({2026}, 'Calender'[Year])"))
+    && (await page.$$eval("[data-dwg-filter-chip]", els => els.map(e => e.textContent.replace("×", "").trim()).join())) === "Jahr: 2026");
+await page.evaluate(() => { window.location.hash = "#c07"; });
+await settle();
+await fresh();
+const fixedInBar = await page.$$eval("[data-dwg-filterbar] [data-dwg-fixed-filter]", els => els.map(e => ({ text: e.textContent.trim(), button: !!e.querySelector("button") })));
+check("feste Filter der Spec in der Leiste, ohne ×", fixedInBar.length === 1 && fixedInBar[0].text === "Year: 2025, 2026" && !fixedInBar[0].button, JSON.stringify(fixedInBar));
+await page.reload();
+await page.waitForSelector("[data-dwg-filterbar]", { timeout: 30000 });
+await settle();
+seen = (await queries()).length;
+check("eingeklappt bleibt nach dem Neuladen eingeklappt (localStorage)", (await page.$eval("[data-dwg-shell]", e => e.dataset.dwgPanel)) === "closed");
+await page.evaluate(() => document.activeElement?.blur());
+await page.keyboard.press("f");
+await page.waitForTimeout(500);
+check("Taste F klappt das Panel auf", (await page.$eval("[data-dwg-shell]", e => e.dataset.dwgPanel)) === "open");
+await page.keyboard.press("f");
+await page.waitForTimeout(500);
+check("Taste F klappt es wieder ein", (await page.$eval("[data-dwg-shell]", e => e.dataset.dwgPanel)) === "closed");
+await page.click("[data-dwg-toggle=filter]");
+await page.waitForTimeout(500);
+const reopened = await page.evaluate(() => ({ panel: document.querySelector("[data-dwg-shell]").dataset.dwgPanel, focus: document.activeElement?.dataset?.dwgToggle,
+    bar: !!document.querySelector("[data-dwg-filterbar]"), chipsInHead: !!document.querySelector("[data-dwg-title]").parentElement.querySelector("[data-dwg-fixed-filter]") }));
+check("„Filter“ öffnet das Panel, Fokus auf den Einklappknopf, feste Filter wieder neben dem Titel",
+    reopened.panel === "open" && reopened.focus === "panel" && !reopened.bar && reopened.chipsInHead, JSON.stringify(reopened));
+q = await fresh();
+check("Ein- und Ausklappen und Taste F lösen keine Abfragen aus", q.length === 0, `${q.length} Abfragen`);
+await page.evaluate(() => { window.location.hash = "#c05"; });
+await settle();
+await fresh();
+
 // 7. Dark Mode und schmales Fenster ohne neue Abfragen
 await page.click("#theme");
 await page.waitForTimeout(600);
 await page.screenshot({ path: path.join(OUT, "4-dunkel.png"), fullPage: true });
+await page.click("[data-dwg-toggle=panel]");
+await page.waitForTimeout(600);
+await page.screenshot({ path: path.join(OUT, "6-eingeklappt-dunkel.png"), fullPage: true });
+await page.click("[data-dwg-toggle=filter]");
+await page.waitForTimeout(400);
 await page.setViewportSize({ width: 760, height: 1300 });
 await page.waitForTimeout(900);
 const narrow = await page.evaluate(() => {

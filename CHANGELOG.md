@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+- **App shell: collapsible filter panel, whole page in the window (23.11.2026).** `DwgShell` gets a collapse button
+  in the filter panel (and the key F): the panel disappears and the tiles use the full width (pixel grid without the
+  filter zone, `stagePage(..., { collapsed })`). Below the page header a filter bar then shows the active slicers as
+  chips („Jahr: 2026“) with × to clear one (selection „Alle“), the fixed filters of the spec without ×, „Filter“ to
+  reopen the panel and „Zurücksetzen“. The state is kept per browser (`localStorage` `dwg-filter-panel`), toggling
+  sends no query; ARIA `aria-expanded`/`aria-controls`, focus moves to the counterpart button, × has an `aria-label`.
+  In `fullhd`/`hd` the stage fits the window height below the top bar (`fitHeight`: at most the page height, at least
+  60 %); the main tile (largest area) absorbs the difference alone (`absorbHeight`), so KPI cards keep their height and
+  the whole page is visible without scrolling (1920 × 1080 and 1366 × 768). Layouts where a tile only partly overlaps
+  the main tile's band fall back to an even squeeze on the grid. P&L tiles run with `layout.maximize` in the app (`fitToTile`, PBIP
+  unchanged); if a P&L still needs more room (it scrolls, e.g. the ROI tree 11A), the tile reports its height and the
+  stage grows by that amount and scales down a little to stay in the window (at most three steps per page, up to 4 px
+  overflow count as rounding of the fill). The top bar stays two rows: groups and pages each scroll horizontally
+  instead of wrapping (at 1366 px it took four rows before), the active entries are scrolled into view. New helpers `slicerChips`,
+  `templateCount`, `stageChrome`. Tests: shell 65 checks (was 46), Vitest for the new helpers, `showcase-e2e.mjs`
+  checks fit, P&L overflow and clipped ChartKitchen labels per page and takes `--panel closed` and `--dark`. The showcase subtitle counts the
+  templates from the spec (47) instead of the hard-coded 30.
 - **Showcase review fixes (23.11.2026).** C24 gets small multiples per country (sheet 10G): the catalog lists the
   optional role `multiples` for C24, bubble size and share show in thousand hl via `formats`. C20: the liquidity
   measures are semi-additive (flows summed, cash = last month with a value, also across years); Mini-DAX understands

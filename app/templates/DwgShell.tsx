@@ -4,21 +4,29 @@
 // Fußleiste. Die Slicer-Auswahl wirkt per TREATAS auf alle Kacheln aller Seiten, zusammen mit dem Querfilter
 // per Klick. Filterwechsel fragt die Kacheln der Seite neu ab, Seitenwechsel nur die neue Seite.
 //
+// Filter-Panel einklappen (Knopf im Panel oder Taste F): das Panel verschwindet, die Kacheln nutzen die ganze Breite,
+// unter dem Seitenkopf steht eine Filterleiste mit den aktiven Slicern als Chips (× hebt einen Filter auf) und den
+// festen Filtern der Spec (ohne ×); „Filter“ öffnet das Panel wieder. Der Zustand gilt je Browser (localStorage).
+//
 // Auflösung: „fullhd“ bzw. „hd“ baut die Seite in 1920 bzw. 1280 px auf und skaliert sie als Ganzes
 // (Schriften, Abstände und Visuals im selben Verhältnis, Visuals rechnen in Seitenpixeln); unter
-// MIN_STAGE_WIDTH scrollt sie waagerecht. „responsive“ skaliert nur die Kacheln. Unter 900 px wird gestapelt.
+// MIN_STAGE_WIDTH scrollt sie waagerecht. Die Bühne passt sich der Fensterhöhe an (höchstens Seitenhöhe, mindestens
+// MIN_FIT davon): die Kacheln werden über das Pixelraster neu verteilt, damit die ganze Seite ohne Scrollen sichtbar ist.
+// „responsive“ skaliert nur die Kacheln. Unter 900 px wird gestapelt.
 // Layout und Farben als Inline-Styles (ohne Tailwind lauffähig).
 // Von `dwg app page` geschrieben, wird bei jedem Lauf ersetzt.
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
 
 import { useSemanticModelQuery } from '@/hooks/use-semantic-model-query';
 
 import type { DaxValue } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
+  FILTER_BAR_H,
   RESOLUTION_WIDTH,
   columnType,
   findPage,
+  fitHeight,
   formatSlicerValue,
   isEmptyValue,
   navGroups,
@@ -26,6 +34,7 @@ import {
   pageLabel,
   pageRegion,
   sameValues,
+  slicerChips,
   slicerDefaults,
   stagePage,
   slicerFilters,
@@ -259,43 +268,91 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
   );
 }
 
+/** id des Filter-Panels (aria-controls der Knöpfe zum Ein- und Ausklappen) */
+const PANEL_ID = 'dwg-filter-panel';
+/** Tastenkürzel zum Ein- und Ausklappen (ohne Umschalt-, Strg-, Alt- und Meta-Taste, nicht in Eingabefeldern) */
+const PANEL_KEY = 'f';
+/** So oft darf die Bühne je Seite und Panelzustand für die gemeldete Höhe eines Visuals wachsen */
+const NEED_STEPS = 3;
+
+/** Linien-Icons ohne Bibliothek (die Vorlagen laufen auch ohne lucide-react) */
+function Icon({ d, size }: { d: string; size: number }) {
+  return (
+    <svg aria-hidden width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ flex: 'none' }}>
+      <path d={d} />
+    </svg>
+  );
+}
+const ICON_COLLAPSE = 'M11 17l-5-5 5-5M18 17l-5-5 5-5';
+const ICON_FILTER = 'M3 5h18l-7 8.5V19l-4 2v-7.5z';
+
+function smallButton(c: Palette, k: number, active: boolean): CSSProperties {
+  return {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 5 * k,
+    font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
+    padding: `${4 * k}px ${8 * k}px`,
+    borderRadius: 6 * k,
+    border: `1px solid ${c.border}`,
+    background: 'transparent',
+    color: active ? c.accent : c.muted,
+    cursor: active ? 'pointer' : 'default',
+    opacity: active ? 1 : 0.6,
+    whiteSpace: 'nowrap',
+  };
+}
+
 interface PanelProps {
   app: DwgAppSpec;
   state: DwgSlicerState;
   setState: (fn: (prev: DwgSlicerState) => DwgSlicerState) => void;
+  defaults: DwgSlicerState;
   connection: string;
   c: Palette;
   k: number;
   style: CSSProperties;
+  /** eingeklappt: bleibt eingehängt (keine neuen Abfragen der Werte), nur unsichtbar */
+  collapsed: boolean;
+  onCollapse: () => void;
+  collapseRef: Ref<HTMLButtonElement>;
 }
 
-/** Filter-Panel: Slicer, Zurücksetzen, leere Werte einblenden */
-function FilterPanel({ app, state, setState, connection, c, k, style }: PanelProps) {
+/** Filter-Panel: Slicer, Zurücksetzen, leere Werte einblenden, Einklappen */
+function FilterPanel({ app, state, setState, defaults, connection, c, k, style, collapsed, onCollapse, collapseRef }: PanelProps) {
   const [showEmpty, setShowEmpty] = useState(false);
-  const defaults = useMemo(() => slicerDefaults(app.slicers, app.columnTypes), [app.slicers, app.columnTypes]);
   const changed = app.slicers.some((s) => !sameValues(state[s.column] ?? [], defaults[s.column] ?? []));
   return (
-    <aside aria-label="Filter" style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 * k, ...style }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h2 style={{ margin: 0, font: `700 ${12 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.muted }}>
+    <aside
+      id={PANEL_ID}
+      aria-label="Filter"
+      style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 * k, ...style, ...(collapsed ? { display: 'none' } : {}) }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 * k }}>
+        <h2 style={{ margin: 0, marginRight: 'auto', font: `700 ${12 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.muted }}>
           Filter
         </h2>
         <button
           type="button"
           disabled={!changed}
-          onClick={() => setState(() => slicerDefaults(app.slicers, app.columnTypes))}
-          style={{
-            font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
-            padding: `${4 * k}px ${8 * k}px`,
-            borderRadius: 6 * k,
-            border: `1px solid ${c.border}`,
-            background: 'transparent',
-            color: changed ? c.accent : c.muted,
-            cursor: changed ? 'pointer' : 'default',
-            opacity: changed ? 1 : 0.6,
-          }}
+          onClick={() => setState(() => defaults)}
+          style={smallButton(c, k, changed)}
         >
           Zurücksetzen
+        </button>
+        <button
+          ref={collapseRef}
+          type="button"
+          data-dwg-toggle="panel"
+          aria-expanded={true}
+          aria-controls={PANEL_ID}
+          aria-keyshortcuts="F"
+          aria-label="Filter-Panel einklappen"
+          title="Filter einklappen: Kacheln über die ganze Breite (Taste F)"
+          onClick={onCollapse}
+          style={{ ...smallButton(c, k, true), color: c.text, padding: `${4 * k}px ${6 * k}px` }}
+        >
+          <Icon d={ICON_COLLAPSE} size={14 * k} />
         </button>
       </div>
       {app.slicers.map((s) => (
@@ -325,28 +382,169 @@ function FilterPanel({ app, state, setState, connection, c, k, style }: PanelPro
   );
 }
 
-/** Kopf der Seite: Kennung + Name, Gruppe, feste Filter (rechts), Erklärtext */
-function PageHeader({ page, c, k, isDark, style }: { page: DwgPageSpec; c: Palette; k: number; isDark: boolean; style?: CSSProperties }) {
+interface BarProps {
+  app: DwgAppSpec;
+  page: DwgPageSpec;
+  state: DwgSlicerState;
+  setState: (fn: (prev: DwgSlicerState) => DwgSlicerState) => void;
+  defaults: DwgSlicerState;
+  c: Palette;
+  k: number;
+  isDark: boolean;
+  /** Bühne: eine Zeile in fester Höhe (FILTER_BAR_H), sonst umbrechen */
+  height?: number;
+  onOpen: () => void;
+  openRef: Ref<HTMLButtonElement>;
+}
+
+/**
+ * Filterleiste bei eingeklapptem Panel: „Filter“ öffnet das Panel, aktive Slicer als Chips mit × (hebt den Filter auf,
+ * Auswahl „Alle“), feste Filter der Spec ohne ×, Zurücksetzen auf die Vorgaben.
+ */
+function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height, onOpen, openRef }: BarProps) {
+  const chips = slicerChips(app.slicers, state, defaults);
+  const changed = app.slicers.some((s) => !sameValues(state[s.column] ?? [], defaults[s.column] ?? []));
+  const list = useRef<HTMLUListElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  const remove = (column: string, index: number) => {
+    setState((prev) => ({ ...prev, [column]: [] }));
+    // Fokus auf den nächsten Chip (sonst den vorigen, sonst „Filter“), der Knopf × verschwindet mit dem Chip
+    requestAnimationFrame(() => {
+      const left = [...(list.current?.querySelectorAll<HTMLButtonElement>('button[data-dwg-chip-remove]') ?? [])];
+      (left[Math.min(index, left.length - 1)] ?? bar.current?.querySelector<HTMLButtonElement>('[data-dwg-toggle=filter]'))?.focus();
+    });
+  };
+  const font = `500 ${11.5 * k}px/${15 * k}px ${FONT}`;
   return (
-    <div style={{ boxSizing: 'border-box', overflow: 'hidden', ...style }}>
+    <div
+      ref={bar}
+      data-dwg-filterbar=""
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8 * k,
+        flexWrap: height ? 'nowrap' : 'wrap',
+        ...(height ? { height, overflow: 'hidden' } : { marginTop: 10 * k }),
+      }}
+    >
+      <button
+        ref={openRef}
+        type="button"
+        data-dwg-toggle="filter"
+        aria-expanded={false}
+        aria-controls={PANEL_ID}
+        aria-keyshortcuts="F"
+        title="Filter-Panel öffnen (Taste F)"
+        onClick={onOpen}
+        style={{
+          ...smallButton(c, k, true),
+          font: `600 ${12 * k}px/${16 * k}px ${FONT}`,
+          color: c.onAccent,
+          background: c.accent,
+          borderColor: c.accent,
+        }}
+      >
+        <Icon d={ICON_FILTER} size={13 * k} />
+        Filter
+        {chips.length > 0 && <span aria-label={`${chips.length} aktiv`}>({chips.length})</span>}
+      </button>
+      <ul ref={list} aria-label="Aktive Filter" style={{ display: 'flex', flexWrap: height ? 'nowrap' : 'wrap', gap: 6 * k, margin: 0, padding: 0, listStyle: 'none', minWidth: 0 }}>
+        {chips.map((chip, i) => (
+          <li
+            key={chip.column}
+            data-dwg-filter-chip={chip.column}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 2 * k,
+              padding: `${1 * k}px ${2 * k}px ${1 * k}px ${9 * k}px`,
+              borderRadius: 999,
+              border: `1px solid ${chip.changed ? c.accent : c.border}`,
+              background: chip.changed ? c.accentSoft : c.surface,
+              color: c.text,
+              font,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span>
+              <span style={{ color: c.muted }}>{chip.label}:</span> {chip.values}
+            </span>
+            <button
+              type="button"
+              data-dwg-chip-remove={chip.column}
+              aria-label={`Filter ${chip.label}: ${chip.values} entfernen`}
+              title="Filter entfernen (Alle)"
+              onClick={() => remove(chip.column, i)}
+              style={{
+                display: 'grid',
+                placeItems: 'center',
+                width: 20 * k,
+                height: 20 * k,
+                padding: 0,
+                border: 0,
+                borderRadius: 999,
+                background: 'transparent',
+                color: c.muted,
+                font: `500 ${14 * k}px/1 ${FONT}`,
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+          </li>
+        ))}
+      </ul>
+      {chips.length === 0 && <span style={{ font: `400 ${11.5 * k}px/${15 * k}px ${FONT}`, color: c.muted, whiteSpace: 'nowrap' }}>Alle Daten, kein Filter gewählt</span>}
+      <FixedFilterChips page={page} isDark={isDark} k={k * 0.95} colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }} style={{ flexWrap: height ? 'nowrap' : 'wrap' }} />
+      {changed && (
+        <button type="button" data-dwg-reset="" onClick={() => setState(() => defaults)} style={{ ...smallButton(c, k, true), marginLeft: 'auto' }}>
+          Zurücksetzen
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Kopf der Seite: Kennung + Name, Gruppe, feste Filter (rechts), Erklärtext; eingeklappt darunter die Filterleiste */
+function PageHeader({
+  page,
+  c,
+  k,
+  isDark,
+  style,
+  bar,
+}: {
+  page: DwgPageSpec;
+  c: Palette;
+  k: number;
+  isDark: boolean;
+  style?: CSSProperties;
+  /** Filterleiste (eingeklapptes Panel); die festen Filter stehen dann dort statt rechts neben dem Titel */
+  bar?: ReactNode;
+}) {
+  return (
+    <div style={{ boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', ...style }}>
       <div style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: 12 * k, flexWrap: 'wrap' }}>
         <span data-dwg-title="" style={{ font: `700 ${15 * k}px/${20 * k}px ${FONT}`, letterSpacing: '-0.01em', color: c.text }}>
           {pageLabel(page)}
         </span>
         {page.group && <span style={{ font: `600 ${11 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.04em', color: c.accent }}>{page.group}</span>}
-        <FixedFilterChips
-          page={page}
-          isDark={isDark}
-          k={k * 0.9}
-          colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }}
-          style={{ marginLeft: 'auto', alignSelf: 'center' }}
-        />
+        {!bar && (
+          <FixedFilterChips
+            page={page}
+            isDark={isDark}
+            k={k * 0.9}
+            colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }}
+            style={{ marginLeft: 'auto', alignSelf: 'center' }}
+          />
+        )}
       </div>
       {page.description && (
         <p data-dwg-description="" style={{ margin: `${3 * k}px 0 0`, font: `400 ${10.5 * k}px/${15 * k}px ${FONT}`, color: c.muted }}>
           {page.description}
         </p>
       )}
+      {bar && <div style={{ marginTop: 'auto' }}>{bar}</div>}
     </div>
   );
 }
@@ -391,16 +589,118 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
   const foot = footer ?? app.footer;
   const narrow = width > 0 && width < 900;
   const scaled = !narrow && resolution !== 'responsive' && Boolean(page.zones);
+  const defaults = useMemo(() => slicerDefaults(app.slicers, app.columnTypes), [app.slicers, app.columnTypes]);
+
+  // Filter-Panel ein- und ausklappen (Knopf, Taste F); Fokus wandert zum Gegenknopf, der Zustand gilt je Browser
+  const [open, setOpen] = useState(() => stored('dwg-filter-panel', ['open', 'closed'] as const) !== 'closed');
+  const collapsed = hasPanel && !open;
+  const openRef = useRef<HTMLButtonElement>(null);
+  const collapseRef = useRef<HTMLButtonElement>(null);
+  const moveFocus = useRef(false);
+  const togglePanel = useCallback((focus: boolean) => {
+    moveFocus.current = focus;
+    setOpen((o) => {
+      store('dwg-filter-panel', o ? 'closed' : 'open');
+      return !o;
+    });
+  }, []);
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    (open ? collapseRef.current : openRef.current)?.focus();
+  }, [open]);
+  useEffect(() => {
+    if (!hasPanel) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== PANEL_KEY || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.repeat) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      e.preventDefault();
+      // Fokus mitnehmen, wenn er im Panel bzw. auf einem der Knöpfe lag (sonst bleibt er, wo er ist)
+      const inside = t && (t.closest(`#${PANEL_ID}`) || t.closest('[data-dwg-filterbar]'));
+      togglePanel(Boolean(inside));
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [hasPanel, togglePanel]);
+
+  // Fensterhöhe unter der Kopfleiste: die Bühne passt sich ihr an, damit die ganze Seite ohne Scrollen sichtbar ist
+  const topbar = useRef<HTMLElement>(null);
+  const [room, setRoom] = useState(0);
+  useEffect(() => {
+    const measure = () => {
+      const h = document.documentElement.clientHeight - (topbar.current?.offsetHeight ?? 0);
+      if (h > 0) setRoom(h);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    const ro = typeof ResizeObserver === 'undefined' || !topbar.current ? null : new ResizeObserver(measure);
+    if (ro && topbar.current) ro.observe(topbar.current);
+    return () => {
+      window.removeEventListener('resize', measure);
+      ro?.disconnect();
+    };
+  }, []);
 
   // Bühne (fullhd/hd): Seite in Basisbreite, Zonen aus der Spec umgerechnet, als Ganzes skaliert
-  // Seite in Bühnenpixeln: Zonen und Kacheln aus dem Pixelraster der Basisbreite (HD exakt im 1280er-Raster)
+  // Seite in Bühnenpixeln: Zonen und Kacheln aus dem Pixelraster der Basisbreite (HD exakt im 1280er-Raster), auf die
+  // Fensterhöhe eingepasst, eingeklappt ohne Filterzone
   const base = scaled ? RESOLUTION_WIDTH[resolution as 'fullhd' | 'hd'] : page.width;
-  const stage = useMemo(() => (scaled ? stagePage(page, base, app.chrome) : page), [scaled, page, base, app.chrome]);
+  const sWidth = scaled && width > 0 ? stageScale(width, base) : 1;
+  // unter MIN_STAGE_WIDTH scrollt die Bühne waagerecht: die Bildlaufleiste kostet Höhe
+  const hScroll = scaled && width > 0 && Math.round(base * sWidth) > width ? 16 : 0;
+  // Messungen einer vorigen Seite bzw. eines vorigen Panelzustands verwerfen (Schlüssel je Seite, Auflösung, Panel)
+  const needKey = `${pageId(page)}|${base}|${collapsed ? 'zu' : 'auf'}`;
+  const needKeyRef = useRef(needKey);
+  useEffect(() => {
+    needKeyRef.current = needKey;
+  }, [needKey]);
+  const [needs, setNeeds] = useState<{ key: string; steps: number; tiles: Record<string, number> }>({ key: '', steps: 0, tiles: {} });
+  const onTileNeed = useCallback(
+    (tile: string, h: number) => {
+      if (needKeyRef.current !== needKey) return;
+      setNeeds((prev) => {
+        const same = prev.key === needKey;
+        const cur = same ? prev.tiles : {};
+        // höchstens NEED_STEPS Mal je Seite wachsen: ein Visual, das jede Höhe füllt, kann die Bühne nicht aufschaukeln
+        if ((cur[tile] ?? 0) >= h || (same && prev.steps >= NEED_STEPS)) return prev;
+        return { key: needKey, steps: (same ? prev.steps : 0) + 1, tiles: { ...cur, [tile]: Math.ceil(h) } };
+      });
+    },
+    [needKey]
+  );
+
+  // Bühnenhöhe: auf das Fenster eingepasst (fitH), dazu die Höhe, die die Visuals melden (P&L, das trotz
+  // layout.maximize einen Bildlauf braucht, z. B. ein hoher Baum). Dann wird die Bühne so viel höher, dass die Kachel
+  // reicht, und skaliert etwas kleiner, damit sie ins Fenster passt. Je Seite, Auflösung und Panelzustand, nur wachsend.
+  // Ein Memo mit den Rohwerten: dieselbe Seite behält ihr Objekt, Visuals rendern nur bei echten Änderungen neu.
+  const { stage, fitH, needH } = useMemo(() => {
+    const nominal = Math.round((page.height * base) / page.width);
+    const fit = scaled ? fitHeight(room - hScroll, sWidth, nominal) : nominal;
+    const fitted = scaled ? stagePage(page, base, app.chrome, { height: fit, collapsed }) : page;
+    const content = fitted.zones?.content;
+    let need = fit;
+    if (scaled && content && needs.key === needKey) {
+      let extra = 0;
+      for (const [id, h] of Object.entries(needs.tiles)) {
+        const t = fitted.tiles.find((x) => x.id === id);
+        if (!t || h <= t.rect[3]) continue;
+        // die Hauptkachel wächst um den fehlenden Betrag (absorbHeight); sonst wächst jede Rasterzeile anteilig
+        const exact = h - t.rect[3] + 2;
+        const grown = stagePage(page, base, app.chrome, { height: fit + exact, collapsed }).tiles.find((x) => x.id === id);
+        extra = Math.max(extra, grown && grown.rect[3] >= h ? exact : Math.ceil(((h - t.rect[3]) * content.h) / t.rect[3]) + 2);
+      }
+      need = Math.min(fit + extra, Math.round(nominal * 1.6));
+    }
+    const staged = need > fit ? stagePage(page, base, app.chrome, { height: need, collapsed }) : fitted;
+    return { stage: staged, fitH: fit, needH: need };
+  }, [scaled, page, base, app.chrome, room, hScroll, sWidth, collapsed, needs, needKey]);
+  // höhere Bühne: so weit kleiner skalieren, dass sie wieder ins Fenster passt (mittig)
+  const s = needH > fitH && room > 0 ? Math.max(0.4, Math.min(sWidth, (room - hScroll) / needH)) : sWidth;
   const z = stage.zones;
   const f = 1;
   const k = base / 1280;
   const stageH = stage.height;
-  const s = scaled && width > 0 ? stageScale(width, base) : 1;
   const px = (b: DwgBox): CSSProperties => ({
     position: 'absolute',
     boxSizing: 'border-box',
@@ -410,7 +710,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
     height: Math.round(b.h * f),
   });
   const m = z ? Math.round((z.content.x - (z.filter ? z.filter.x + z.filter.w : 0)) * f) : 0;
-  const oneCol = narrow || !hasPanel;
+  const oneCol = narrow || !hasPanel || collapsed;
 
   const chooseResolution = (r: DwgResolution) => {
     setResolution(r);
@@ -422,6 +722,21 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       return !h;
     });
   };
+  // Kopfleiste kompakt: Gruppen und Seiten je eine Zeile, bei Platzmangel waagerecht scrollbar (statt umzubrechen
+  // und der Seite Höhe zu nehmen); die aktive Gruppe und Seite werden in den sichtbaren Bereich gerollt
+  const navRow: CSSProperties = {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    flex: '1 1 0',
+    minWidth: 0,
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    scrollbarWidth: 'thin',
+    padding: '1px 0',
+  };
+  useEffect(() => {
+    topbar.current?.querySelectorAll('nav [aria-current]').forEach((el) => el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
+  }, [page]);
   const ctl = (on: boolean): CSSProperties => ({
     font: `500 12px/16px ${FONT}`,
     padding: '4px 8px',
@@ -438,21 +753,30 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       ref={ref}
       data-dwg-shell=""
       data-dwg-mode={narrow ? 'narrow' : scaled ? resolution : 'responsive'}
+      data-dwg-panel={hasPanel ? (collapsed ? 'closed' : 'open') : undefined}
       style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', background: c.bg, color: c.text, font: `400 14px/20px ${FONT}` }}
     >
       <header
+        ref={topbar}
         data-dwg-topbar=""
         style={{ position: 'sticky', top: 0, zIndex: 20, background: c.surface, borderBottom: `1px solid ${c.border}` }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px 28px', padding: '12px 24px 8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span aria-hidden style={{ width: 10, height: 22, borderRadius: 2, background: c.accent }} />
-            <div>
-              <h1 style={{ margin: 0, font: `700 18px/22px ${FONT}`, letterSpacing: '-0.01em' }}>{title ?? app.name}</h1>
-              {subtitle && <p style={{ margin: 0, font: `400 12px/16px ${FONT}`, color: c.muted }}>{subtitle}</p>}
+        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '10px 28px', padding: '12px 24px 8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '0 1 auto', minWidth: 0, maxWidth: narrow ? '100%' : '42%' }}>
+            <span aria-hidden style={{ flex: 'none', width: 10, height: 22, borderRadius: 2, background: c.accent }} />
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ margin: 0, font: `700 18px/22px ${FONT}`, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>{title ?? app.name}</h1>
+              {subtitle && (
+                <p
+                  title={typeof subtitle === 'string' ? subtitle : undefined}
+                  style={{ margin: 0, font: `400 12px/16px ${FONT}`, color: c.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                >
+                  {subtitle}
+                </p>
+              )}
             </div>
           </div>
-          <nav aria-label="Gruppen" style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <nav aria-label="Gruppen" style={{ ...navRow, gap: 2 }}>
             {groups.map((g) => {
               const on = g === current;
               return (
@@ -461,6 +785,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                   href={`#${pageId(g.pages[0])}`}
                   aria-current={on ? 'true' : undefined}
                   style={{
+                    flex: 'none',
+                    whiteSpace: 'nowrap',
                     padding: '6px 10px',
                     borderRadius: 6,
                     textDecoration: 'none',
@@ -475,8 +801,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
             })}
           </nav>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px 16px', padding: '0 24px 10px' }}>
-          <nav aria-label="Seiten" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '8px 16px', padding: '0 24px 10px' }}>
+          <nav aria-label="Seiten" style={{ ...navRow, gap: 6 }}>
             {current.pages.map((p) => {
               const on = p === page;
               return (
@@ -485,6 +811,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                   href={`#${pageId(p)}`}
                   aria-current={on ? 'page' : undefined}
                   style={{
+                    flex: 'none',
+                    whiteSpace: 'nowrap',
                     display: 'inline-flex',
                     gap: 6,
                     alignItems: 'baseline',
@@ -503,7 +831,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               );
             })}
           </nav>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ marginLeft: 'auto', flex: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div role="group" aria-label="Auflösung" style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 7, background: c.bg }}>
               {RESOLUTIONS.map((r) => (
                 <button
@@ -537,7 +865,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       {/* Ein Elementbaum für alle Modi (nur die Styles wechseln): DwgPage und die Slicer bleiben eingehängt,
           Auflösung, Fensterbreite und Kopfzeilen lösen deshalb keine neuen Abfragen aus. */}
       <div data-dwg-body="" style={scaled ? { overflowX: 'auto', overflowY: 'hidden' } : { flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <div style={scaled ? { position: 'relative', width: Math.round(base * s), height: Math.round(stageH * s) } : { flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div style={scaled ? { position: 'relative', width: Math.round(base * s), height: Math.round(stageH * s), margin: s < sWidth ? '0 auto' : undefined } : { flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div
             data-dwg-stage={scaled ? '' : undefined}
             data-dwg-scale={scaled ? s.toFixed(3) : undefined}
@@ -567,9 +895,26 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               isDark={isDark}
               c={c}
               k={scaled ? k : 1.25}
+              bar={
+                collapsed ? (
+                  <FilterBar
+                    app={app}
+                    page={page}
+                    state={state}
+                    setState={setState}
+                    defaults={defaults}
+                    c={c}
+                    k={scaled ? k : 1}
+                    isDark={isDark}
+                    height={scaled ? Math.round(FILTER_BAR_H * k) : undefined}
+                    onOpen={() => togglePanel(true)}
+                    openRef={openRef}
+                  />
+                ) : undefined
+              }
               style={
                 scaled && z
-                  ? { ...px(z.header), padding: `${Math.round(9 * k)}px ${m}px 0`, borderBottom: `1px solid ${c.border}` }
+                  ? { ...px(z.header), padding: `${Math.round(9 * k)}px ${m}px ${collapsed ? Math.round(3 * k) : 0}px`, borderBottom: `1px solid ${c.border}` }
                   : { gridColumn: oneCol ? '1' : '2', gridRow: narrow ? '2' : '1', padding: narrow ? '12px 12px 0' : '20px 24px 0', maxWidth: 1100 }
               }
             />
@@ -578,9 +923,13 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                 app={app}
                 state={state}
                 setState={setState}
+                defaults={defaults}
                 connection={connection}
                 c={c}
                 k={scaled ? k * 0.85 : 1}
+                collapsed={collapsed}
+                onCollapse={() => togglePanel(true)}
+                collapseRef={collapseRef}
                 style={
                   scaled && z?.filter
                     ? { ...px(z.filter), padding: m, background: c.panel, borderRight: `1px solid ${c.border}`, overflowY: 'auto' }
@@ -610,6 +959,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                 isDark={isDark}
                 filters={filters}
                 hideVisualHeaders={!headers}
+                fitVisuals
+                onTileNeed={scaled ? onTileNeed : undefined}
                 showFixedFilters={false}
                 fixedWidth={scaled ? base : undefined}
                 region={scaled ? undefined : pageRegion(page, true)}
