@@ -100,11 +100,35 @@ await page.goto(`http://localhost:${server.address().port}/index.html`);
 await page.waitForSelector(slicerButton("Jahr", "2026"), { timeout: 30000 });
 await settle();
 
-// 1. Aufbau
-const groups = await page.$$eval("nav[aria-label=Gruppen] a", els => els.map(e => e.textContent.trim()));
-check("Navigation zeigt die Gruppen", groups.join("|") === "ChartKitchen · Zeitverlauf|ChartKitchen · Struktur", groups.join(" | "));
-const pagesNav = await page.$$eval("nav[aria-label=Seiten] a", els => els.map(e => e.textContent.trim()));
+// 1. Aufbau: Kopfleiste in einer Zeile, Seitenmenü (☰) als Popup mit allen Seiten nach Gruppen
+const bar = await page.evaluate(() => ({ h: document.querySelector("[data-dwg-topbar]").offsetHeight,
+    current: document.querySelector("[data-dwg-current]").textContent, menu: !!document.querySelector("[data-dwg-menu]"),
+    toggle: (b => ({ expanded: b.getAttribute("aria-expanded"), controls: b.getAttribute("aria-controls"), label: b.getAttribute("aria-label") }))(document.querySelector("[data-dwg-menu-toggle]")) }));
+check("Kopfleiste einzeilig, aktuelle Seite mit Gruppe und Position", bar.h < 70 && bar.current.includes("ChartKitchen · Zeitverlauf") && bar.current.includes("C03") && bar.current.includes("1/3") && !bar.menu,
+    `${bar.h} px · ${bar.current}`);
+check("☰ mit ARIA (aria-expanded, aria-controls, Beschriftung)", bar.toggle.expanded === "false" && bar.toggle.controls === "dwg-page-menu" && /öffnen/.test(bar.toggle.label), JSON.stringify(bar.toggle));
+await page.focus("[data-dwg-menu-toggle]");
+await page.keyboard.press("Enter");
+await page.waitForSelector("[data-dwg-menu]");
+const groups = await page.$$eval("[data-dwg-nav-group]", els => els.map(e => e.textContent.trim()));
+check("Seitenmenü zeigt die Gruppen", groups.join("|") === "ChartKitchen · Zeitverlauf|ChartKitchen · Struktur", groups.join(" | "));
+const pagesNav = await page.$$eval("nav[aria-label=Seiten] section:first-of-type a", els => els.map(e => e.textContent.trim()));
 check("Seiten der Gruppe mit Template-Kennung", pagesNav.length === 2 && pagesNav[0].startsWith("C03") && pagesNav[1].startsWith("C05"), pagesNav.join(" | "));
+const menuState = await page.evaluate(() => ({ focus: document.activeElement?.getAttribute("aria-label"), expanded: document.querySelector("[data-dwg-menu-toggle]").getAttribute("aria-expanded"),
+    current: document.querySelector("nav[aria-label=Seiten] [aria-current=page]")?.textContent }));
+check("Menü offen: Fokus im Suchfeld, aktuelle Seite markiert", menuState.focus === "Seite suchen" && menuState.expanded === "true" && menuState.current?.startsWith("C03"), JSON.stringify(menuState));
+await page.keyboard.type("brück");
+const found = await page.$$eval("nav[aria-label=Seiten] a", els => els.map(e => e.textContent.trim()));
+check("Suche filtert die Seiten", found.length === 1 && found[0].startsWith("C05"), found.join(" | "));
+await page.keyboard.press("Escape");
+await page.waitForTimeout(200);
+check("Esc schließt das Menü, Fokus zurück auf ☰",
+    !(await page.$("[data-dwg-menu]")) && (await page.evaluate(() => document.activeElement?.hasAttribute("data-dwg-menu-toggle"))));
+await page.click("[data-dwg-current]");
+await page.waitForSelector("[data-dwg-menu]");
+await page.mouse.click(800, 700);
+await page.waitForTimeout(200);
+check("Klick neben das Menü schließt es", !(await page.$("[data-dwg-menu]")));
 const heading = await page.$eval("[data-dwg-title]", e => e.textContent);
 check("Seitentitel mit Kennung", heading === "C03 Säulen im Zeitverlauf", heading);
 const desc = await page.$eval("[data-dwg-description]", e => e.textContent).catch(() => "");
@@ -208,8 +232,10 @@ check("Zurücksetzen ist danach inaktiv",
 await page.click(slicerButton("Land", "Germany"));
 await settle();
 await fresh();
-await page.click("nav[aria-label=Gruppen] >> text=ChartKitchen · Struktur");
+await page.click("[data-dwg-menu-toggle]");
+await page.click("nav[aria-label=Seiten] >> text=Abweichung nach Land");
 await settle();
+check("Auswahl im Menü schließt es", !(await page.$("[data-dwg-menu]")));
 q = await fresh();
 const ids2 = await tileIds();
 check("Seitenwechsel fragt nur die Kacheln der neuen Seite ab", ids2.join() === "laender" && q.length === 1, `${q.length} Abfragen, Kacheln ${ids2.join(", ")}`);
@@ -220,6 +246,16 @@ const chips = await page.$$eval("[data-dwg-fixed-filter]", els => els.map(e => (
 check("fester Filter als Chip im Seitenkopf", chips.length === 1 && chips[0].text === "Year: 2025, 2026" && chips[0].head && !chips[0].tile, JSON.stringify(chips));
 check("fester Filter und Slicer gelten zusammen (Schnittmenge)", q.every(x => x.includes("TREATAS({2026}, 'Calender'[Year])")));
 await page.screenshot({ path: path.join(OUT, "3-seite.png"), fullPage: true });
+const steps = await page.evaluate(() => ({ prev: document.querySelector("[data-dwg-step=prev]")?.getAttribute("aria-label"), next: document.querySelector("[data-dwg-step=next]")?.getAttribute("aria-label") }));
+check("Pfeile vorige/nächste Seite mit Beschriftung", steps.prev === "Vorige Seite: C05 Brücke über die Monate" && steps.next === undefined, JSON.stringify(steps));
+await page.click("[data-dwg-step=prev]");
+await settle();
+await fresh();
+check("‹ geht zur vorigen Seite", (await page.$eval("[data-dwg-title]", e => e.textContent)) === "C05 Brücke über die Monate");
+await page.click("[data-dwg-menu-toggle]");
+await page.waitForSelector("[data-dwg-menu]");
+await page.screenshot({ path: path.join(OUT, "3b-seitenmenue.png") });
+await page.keyboard.press("Escape");
 await page.goto(`http://localhost:${server.address().port}/index.html#c05`);
 await page.waitForSelector(slicerButton("Jahr", "2026"), { timeout: 30000 });
 await settle();
@@ -250,7 +286,7 @@ check("Fließend: keine Bühne, Kacheln skalieren", (await page.$("[data-dwg-sta
 await page.screenshot({ path: path.join(OUT, "4b-fliessend.png"), fullPage: true });
 await page.click("[data-dwg-resolution=fullhd]");
 await page.waitForTimeout(800);
-await page.setViewportSize({ width: 1600, height: 600 });
+await page.setViewportSize({ width: 1600, height: 450 }); // niedriger als die kleinste eingepasste Bühne: die Seite scrollt
 await page.mouse.wheel(0, 400);
 await page.waitForTimeout(300);
 const sticky = await page.$eval("[data-dwg-topbar]", e => Math.round(e.getBoundingClientRect().top));

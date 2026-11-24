@@ -164,8 +164,11 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   Zwischenraum 18, 12er-Raster, Inhalt x 327 bis 1893, y 123 bis 1017. Generator, Shell und PBIP rechnen mit demselben
   Modul; die App bekommt es als `src/vendor/dwg-pixelgrid/`. Im HD-Modus überträgt die Shell die Kacheln über das Raster
   (`stagePage`, `transfer`), also pixelgenau mit Zwischenraum 12 statt mit 2/3 skaliert.
-- **App (`DwgShell`):** Kopfleiste bleibt beim Scrollen stehen (Gruppen, Seiten mit Template-Kennung, Link `#c03`,
-  Schalter Auflösung und Kopfzeilen). Die Seite selbst trägt Titel und Erklärtext im Kopf, das Filter-Panel (Werte per
+- **App (`DwgShell`):** Kopfleiste in einer Zeile, bleibt beim Scrollen stehen: ☰ öffnet das Seitenmenü als Popup
+  (alle Seiten nach Gruppen in Spalten, Suchfeld für Kennung, Name und Gruppe, aktuelle Seite markiert; Auswahl, Esc
+  und Klick daneben schließen es, Fokus zurück auf ☰), daneben Titel, die aktuelle Seite (Gruppe, Kennung, Name,
+  Position wie „12/47“, öffnet ebenfalls das Menü) mit ‹ › für vorige und nächste Seite, rechts die Schalter Auflösung
+  und Kopfzeilen. Link je Seite `#c03`. Die Seite selbst trägt Titel und Erklärtext im Kopf, das Filter-Panel (Werte per
   DAX, Einfach- und Mehrfachauswahl, Zurücksetzen, leere Werte ausgeblendet, „Leere Werte zeigen“) und den Fußtext.
   Slicer wirken per TREATAS auf alle Kacheln aller Seiten, zusammen mit dem Querfilter per Klick (gleiche Spalte:
   Schnittmenge). Eine Abfrage je Kachel; Filterwechsel fragt die Kacheln der Seite neu ab, Seitenwechsel nur die neue
@@ -184,8 +187,7 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   auf die Kachelhöhe, `fitToTile`; Power BI behält den Wert der Spec). Braucht ein P&L trotzdem mehr Platz (Bildlauf im
   Visual, z. B. der ROI-Baum 11A), meldet die Kachel die nötige Höhe, die Bühne wird um diesen Betrag höher und
   skaliert als Ganzes etwas kleiner, damit sie ins Fenster passt (höchstens dreimal je Seite; bis 4 px Überlauf gelten
-  als Rundung beim Füllen). Die Kopfleiste bleibt zweizeilig: Gruppen und Seiten stehen je in einer Zeile und rollen
-  bei Platzmangel waagerecht, die aktive Gruppe und Seite werden in den sichtbaren Bereich gerollt.
+  als Rundung beim Füllen).
 - **Kopfzeilen der Visuals:** Standard aus (`visualHeaders: false`), Schalter in der Kopfleiste. Setzt zur Laufzeit
   ChartKitchen `ibcsTitle.show`, `chart.chartButtons`, `chart.cumulativeButton` und P&L `titleBlock.show`,
   `toolbar.show` auf aus. Den Sortier-Chip der ChartKitchen-Karten blendet keine Property aus (hängt an der
@@ -195,8 +197,8 @@ Für Apps mit vielen Seiten (Showcase mit allen Templates). In der Spec: `slicer
   Kacheln auf denselben Rechtecken. Wiederholte Läufe behalten die Seiten-IDs.
 - **Tests:** `app/test/unit.mjs` (App-Datei, Zonen, Layout-Vertrag, Pixelraster, Slicer-Prüfung), `pbip/test/unit.mjs`
   (Kopf, Fuß, Slicer-Stapel, Sync-Gruppen, „nicht leer“, gleiche Rechtecke, Schemas), Vitest in der App
-  (`dwg-page.spec.ts`), Browser-Test `app/test/shell.mjs` (65 Prüfungen: Bühne, Seitenpixel, HD, Fließend, sticky
-  Kopf, Mindestfaktor, Kopfzeilen ohne Abfrage, leere Werte, Querfilter, Dark Mode, schmal, ganze Seite bei 1920 × 1080
+  (`dwg-page.spec.ts`), Browser-Test `app/test/shell.mjs` (74 Prüfungen: Seitenmenü mit Suche, Esc und Klick daneben,
+  ‹ ›, Bühne, Seitenpixel, HD, Fließend, sticky Kopf, Mindestfaktor, Kopfzeilen ohne Abfrage, leere Werte, Querfilter, Dark Mode, schmal, ganze Seite bei 1920 × 1080
   und 1366 × 768, Panel einklappen per Tastatur und Taste F, Chips mit ×, Fokus, Zustand nach dem Neuladen).
   `app/test/showcase-e2e.mjs` prüft je Seite zusätzlich, dass die Bühne ins Fenster passt und kein P&L über seine
   Kachel läuft und keine Beschriftung einer ChartKitchen-Kachel aus der Kachel ragt; `--width/--height`,

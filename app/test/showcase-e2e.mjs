@@ -87,18 +87,15 @@ const settle = async () => {
 };
 
 await page.goto(base);
-await page.waitForSelector("nav[aria-label=Gruppen] a", { timeout: 45000 });
+await page.waitForSelector("[data-dwg-menu-toggle]", { timeout: 45000 });
 if (DARK) { await page.click("#theme"); }
-// alle Seiten-Links einsammeln: je Gruppe anklicken, dann die Seiten-Links lesen
-const groupCount = await page.$$eval("nav[aria-label=Gruppen] a", els => els.length);
-const pages = [];
-for (let g = 0; g < groupCount; g++) {
-    await page.$$eval("nav[aria-label=Gruppen] a", (els, i) => els[i].click(), g);
-    await page.waitForTimeout(200);
-    for (const p of await page.$$eval("nav[aria-label=Seiten] a", els => els.map(e => ({ href: e.getAttribute("href"), label: e.textContent.trim() })))) {
-        if (!pages.some(x => x.href === p.href)) { pages.push(p); }
-    }
-}
+// alle Seiten-Links aus dem Seitenmenü (☰) einsammeln, dann das Menü wieder schließen
+await page.click("[data-dwg-menu-toggle]");
+await page.waitForSelector("[data-dwg-menu]");
+const pages = await page.$$eval("nav[aria-label=Seiten] a", els => els.map(e => ({ href: e.getAttribute("href"), label: e.textContent.trim() })));
+await page.waitForTimeout(300);
+await page.screenshot({ path: path.join(OUT, "00-seitenmenue.png") });
+await page.keyboard.press("Escape");
 
 const results = [];
 let n = 0;
