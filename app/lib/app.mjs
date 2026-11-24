@@ -7,7 +7,8 @@
 //   vendor/dwg-pixelgrid/ Pixelraster (layout/pixelgrid.mjs) für die Shell
 //   vendor/dwg-fonts/     Geist und JetBrains Mono (woff2 + OFL), in packages/frontend/index.html eingebunden;
 //                         Links zu Schrift-Diensten (aus der Rayfin-Vorlage) fliegen dort raus
-// Mit --model zusätzlich <App>/fabscan.json: Konnektor → Modell für den Governance-Scanner fabscan.
+// <App>/fabscan.json für den Governance-Scanner fabscan: mit --model Konnektor → Modell, dazu die festen Filter der
+// Spec, die die App als Chip zeigt (visibleFilters).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -15,7 +16,7 @@ import { readModel, resolveField, parseRef } from "../../pbip/lib/tmdl.mjs";
 import { valueProblem } from "../../pbip/lib/pbir.mjs";
 import { zones as gridZones, inside, DWG_CHROME } from "../../layout/pixelgrid.mjs";
 import { installFonts } from "./fonts.mjs";
-import { writeFabscanConfig } from "./fabscan.mjs";
+import { visibleFiltersOf, writeFabscanConfig } from "./fabscan.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(HERE, "../../visuals/dist");
@@ -327,11 +328,12 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     if (problems.length) {
         throw new Error(`Felder passen nicht zum Modell:\n  ${problems.join("\n  ")}`);
     }
-    // Modell für fabscan auffindbar machen (Abfragen gegen das Modell prüfen statt LIN-NO-MODEL)
-    let fabscan = null;
-    if (modelDir) {
-        fabscan = writeFabscanConfig({ appDir, connector: con.name, modelDir });
-        written.push(`../../fabscan.json (Konnektor ${con.name} → Modell „${fabscan.model}“, für fabscan)`);
+    // für fabscan: Modell auffindbar (statt LIN-NO-MODEL), feste Filter als sichtbar gemeldet (Hinweis statt QRY-HARDCODED)
+    const visible = visibleFiltersOf(spec, page => slug(page.name));
+    const fabscan = writeFabscanConfig({ appDir, connector: con.name, modelDir, visibleFilters: visible });
+    if (fabscan) {
+        const what = [fabscan.model && `Konnektor ${con.name} → Modell „${fabscan.model}“`, `${visible.length} feste Filter sichtbar`].filter(Boolean);
+        written.push(`../../fabscan.json (${what.join(", ")}, für fabscan)`);
     }
     return { written, connector: con.name, app: appName, slicers: slicers.length, fabscan: fabscan?.file ?? null };
 }
