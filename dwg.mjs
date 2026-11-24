@@ -89,6 +89,7 @@ try {
         const spec = readSpec(a.spec);
         const r = await generateAppPages({ appDir: a.app, spec, connector: a.connector, model: a.model === true ? undefined : a.model });
         for (const f of r.written) { console.log(`  ${f}`); }
+        for (const n of r.notes ?? []) { console.log(`  Hinweis: ${n}`); }
         console.log(r.slicers
             ? `\nIn der App einbinden (App.tsx), ganze Spec mit Navigation und Filter-Panel:\n  import { DwgShell } from './dwg/DwgShell';\n  import { app } from './dwg/apps/${r.app}';\n  <DwgShell app={app} connection="${r.connector}" isDark={isDark} />`
             : `\nIn der App einbinden (z. B. App.tsx):\n  import { DwgPage } from './dwg/DwgPage';\n  import { page } from './dwg/pages/<seite>';\n  <DwgPage page={page} connection="${r.connector}" isDark={isDark} />\n` +

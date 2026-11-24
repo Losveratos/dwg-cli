@@ -135,7 +135,12 @@ Unter `packages/frontend/src/`, bei jedem Lauf ersetzt (nicht von Hand ändern):
 
 Mit `--model` übernimmt `app page` die Formatstrings der Measures aus dem TMDL in die Seiten-Spec (`formats` je Kachel,
 Schlüssel `[rolle]`), wie Power BI sie dem Visual mitgibt: `#,##0` zeigt unter `de-DE` 8.978, ohne Format zeigte die App
-8978. Ein Eintrag in `formats` der Kachel geht vor. Ohne `--model` gilt nur `formats` der Spec.
+8978. Ein Eintrag in `formats` der Kachel geht vor, unter `[rolle]` oder unter dem Measure in jeder Schreibweise
+(`'T'[M]`, `T[M]`, `[M]`). Ohne `--model` gilt nur `formats` der Spec.
+
+**Grenze:** Dynamische Formatstrings (`formatStringDefinition`, DAX je Zelle) wertet die App nicht aus, die Werte
+erscheinen dort ohne Format. `app page --model` meldet solche Measures als Hinweis. Ausweg: ein festes Format im
+Kachelfeld `formats`, z. B. `"[actual]": "#,##0"`.
 
 Mit `--model` schreibt `app page` außerdem `fabscan.json` in den App-Ordner (neben `rayfin/`):
 `{ "connectors": { "<App-Ordner>:<Konnektor>": "<Modellname>" }, "models": ["<Ordner mit dem Modell, relativ zur App>"] }`

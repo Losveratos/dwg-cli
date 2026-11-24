@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { generateAppPages, connectorsOf, slug, checkSpec, tileFormats } from "../lib/app.mjs";
-import { readModel } from "../../pbip/lib/tmdl.mjs";
+import { readModel, unquoteFormat } from "../../pbip/lib/tmdl.mjs";
 import { layoutOf } from "../lib/app.mjs";
 import { place } from "../../layout/pixelgrid.mjs";
 
@@ -492,9 +492,19 @@ await test("Zahlenformate aus dem Modell: Formatstring je Measure-Rolle, formats
     const own = tileFormats({ ...tile, formats: { "[actual]": "0.0 %" } }, model, ck);
     assert.deepEqual(own, { "[actual]": "0.0 %", "[plan]": "#,##0" });
     assert.equal(Object.keys(own)[0], "[actual]");
-    // Eintrag unter der Measure-Referenz gilt ebenfalls und kommt unter den Rollenschlüssel
-    assert.deepEqual(tileFormats({ ...tile, formats: { "Fakten[Umsatz AC]": "0" } }, model, ck),
-        { "Fakten[Umsatz AC]": "0", "[actual]": "0", "[plan]": "#,##0" });
+    // Eintrag unter dem Measure gilt in jeder Schreibweise und kommt unter den Rollenschlüssel
+    for (const key of ["'Fakten'[Umsatz AC]", "Fakten[Umsatz AC]", "[Umsatz AC]"]) {
+        assert.deepEqual(tileFormats({ ...tile, formats: { [key]: "0" } }, model, ck), { [key]: "0", "[actual]": "0", "[plan]": "#,##0" }, key);
+    }
+    // andere Richtung: Bindung unqualifiziert, Kachel-Eintrag qualifiziert (oder ebenfalls unqualifiziert)
+    const bare = { bindings: { category: "'Produkt'[Produkt]", actual: "[Umsatz AC]", plan: "[Umsatz PL]" } };
+    assert.deepEqual(tileFormats(bare, model, ck), { "[actual]": "#,##0", "[plan]": "#,##0" });
+    for (const key of ["'Fakten'[Umsatz AC]", "Fakten[Umsatz AC]", "[Umsatz AC]"]) {
+        assert.deepEqual(tileFormats({ ...bare, formats: { [key]: "0" } }, model, ck), { [key]: "0", "[actual]": "0", "[plan]": "#,##0" }, key);
+    }
+    // eine andere Tabelle mit gleichem Measure-Namen zählt nicht
+    assert.deepEqual(tileFormats({ ...tile, formats: { "'Andere'[Umsatz AC]": "0" } }, model, ck),
+        { "'Andere'[Umsatz AC]": "0", "[actual]": "#,##0", "[plan]": "#,##0" });
     // ohne Modell nur die Kachel, freie Ausdrücke und Measures ohne formatString ohne Format
     assert.equal(tileFormats(tile, null, ck), undefined);
     assert.deepEqual(tileFormats({ ...tile, formats: { "[actual]": "0" } }, null, ck), { "[actual]": "0" });
@@ -502,9 +512,25 @@ await test("Zahlenformate aus dem Modell: Formatstring je Measure-Rolle, formats
     // TMDL mit Formatstring in Anführungszeichen
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dwg-fmt-"));
     fs.mkdirSync(path.join(tmp, "definition", "tables"), { recursive: true });
-    fs.writeFileSync(path.join(tmp, "definition", "tables", "T.tmdl"),
-        ["table T", "", "\tmeasure M = 1", '\t\tformatString: "#,##0 ""EUR"""', "", "\tmeasure N = 2", "", "\tcolumn K", "\t\tdataType: string", ""].join("\n"));
-    assert.deepEqual(tileFormats({ bindings: { category: "T[K]", actual: "T[M]", plan: "T[N]" } }, readModel(tmp), ck), { "[actual]": '#,##0 "EUR"' });
+    fs.writeFileSync(path.join(tmp, "definition", "tables", "T.tmdl"), ["table T", "",
+        "\tmeasure M = 1", '\t\tformatString: "#,##0 ""EUR"""', "",
+        "\tmeasure L = 3", '\t\tformatString: "ca. "#,##0" Stk."', "",
+        "\tmeasure D = 4", '\t\tformatStringDefinition = IF(SELECTEDVALUE(T[K]) = "x", "0.0 %", "#,##0")', "",
+        "\tmeasure N = 2", "", "\tcolumn K", "\t\tdataType: string", ""].join("\n"));
+    const tm = readModel(tmp);
+    // ganzer Wert gequotet: entpackt, "" wird "; Literal-Anführungszeichen im Format (nicht ganz gequotet): bleibt
+    assert.equal(tm.tables.get("T").formats.get("M"), '#,##0 "EUR"');
+    assert.equal(tm.tables.get("T").formats.get("L"), '"ca. "#,##0" Stk."');
+    assert.equal(unquoteFormat('"0.0 %"'), "0.0 %");
+    assert.equal(unquoteFormat('"a"" b"'), 'a" b');
+    assert.equal(unquoteFormat('"a" b"'), '"a" b"');
+    const notes = [];
+    assert.deepEqual(tileFormats({ id: "k", bindings: { category: "T[K]", actual: "T[M]", plan: "T[N]", forecast: "T[L]", previousYear: "T[D]" } }, tm, ck, notes),
+        { "[actual]": '#,##0 "EUR"', "[forecast]": '"ca. "#,##0" Stk."' });
+    // dynamischer Formatstring: kein Format, Hinweis mit Ausweg
+    assert.equal(notes.length, 1);
+    assert.match(notes[0], /Kachel k, Rolle previousYear: 'T'\[D\] hat einen dynamischen Formatstring .*formats der Kachel/);
+    assert.ok(tm.tables.get("T").dynamicFormats.has("D") && !tm.tables.get("T").formats.has("D"));
     // Generator: C14 der Showcase (Biere nach Planabweichung) bekommt #,##0 für AC und PL, wie Power BI (8.978)
     const spec = JSON.parse(fs.readFileSync(path.join(ROOT, "specs", "showcase.json"), "utf8"));
     const c14 = spec.pages.find(p => p.template === "C14");

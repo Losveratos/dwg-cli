@@ -5,8 +5,11 @@
 - **App number formats from the model (24.11.2026).** `dwg app page --model` writes the format string of each bound
   measure from the TMDL into the page spec (`formats`, key `[role]`), as Power BI passes it to the visual as
   `source.format`. Before, the app formatted without a format and showed 8978 where Power BI shows 8.978 (showcase C14).
-  A tile's own `formats` entry wins; an entry under the measure reference is also written under the role key, which is
-  the key the visual finds. TMDL format strings in double quotes are unquoted. The parity test passes the model formats
+  A tile's own `formats` entry wins, under `[role]` or under the measure in any spelling (`'T'[M]`, `T[M]`, `[M]`); an
+  entry under the measure is also written under the role key, which is the key the visual finds. TMDL format strings
+  are unquoted only when the whole value is a quoted TMDL string (`""` becomes `"`). Limit: dynamic format strings
+  (`formatStringDefinition`) are not evaluated in the app, the values show without a format; `app page --model` prints
+  a hint per measure, the way out is a fixed format in the tile's `formats`. The parity test passes the model formats
   in app mode too and fails on numbers of four or more digits without a thousands separator (Befund 4).
   `showcase-e2e.mjs` takes `--out <dir>`.
 

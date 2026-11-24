@@ -182,27 +182,40 @@ function columnTypesOf(model, refs) {
 /**
  * Zahlenformate einer Kachel für die App: Formatstring je Measure-Rolle aus dem TMDL (`[actual]` → `#,##0`), wie
  * Power BI ihn dem Visual als source.format mitgibt. Ohne Format formatiert das Visual ohne Tausendertrennzeichen
- * (8978 statt 8.978). Das Kachelfeld `formats` geht vor: Rollen mit eigenem Eintrag (`[actual]` oder die
- * Measure-Referenz) bekommen kein Modellformat, die Einträge der Kachel stehen vorn. Ein Eintrag unter der
- * Measure-Referenz kommt zusätzlich unter den Rollenschlüssel, denn nur den findet das Visual für Measures.
- * Freie DAX-Ausdrücke und Measures ohne formatString bleiben ohne Format. Das Gebietsschema (Punkt oder Komma) setzt das Visual, wie in Power BI.
+ * (8978 statt 8.978). Das Kachelfeld `formats` geht vor: Rollen mit eigenem Eintrag (`[actual]` oder das Measure in
+ * jeder Schreibweise: `'T'[M]`, `T[M]`, `[M]`) bekommen kein Modellformat, die Einträge der Kachel stehen vorn. Ein
+ * Eintrag unter dem Measure kommt zusätzlich unter den Rollenschlüssel, denn nur den findet das Visual für Measures.
+ * Freie DAX-Ausdrücke und Measures ohne formatString bleiben ohne Format. Dynamische Formatstrings
+ * (formatStringDefinition) kann die App nicht auswerten: ohne Format, Hinweis in `notes`, Ausweg ist `formats`.
+ * Das Gebietsschema (Punkt oder Komma) setzt das Visual, wie in Power BI.
+ * @param {string[]} [notes] nimmt Hinweise auf (dynamischer Formatstring)
  * @returns {Record<string, string> | undefined}
  */
-export function tileFormats(tile, model, roles) {
+export function tileFormats(tile, model, roles, notes) {
     const own = tile.formats ?? {};
     if (!model || !roles) { return tile.formats; }
-    const keyOf = k => { try { const r = parseRef(k); return columnKey(r.table ?? "", r.name); } catch { return k; } };
-    const ownBy = new Map(Object.entries(own).map(([k, v]) => [keyOf(k), v]));
+    const parse = k => { try { return parseRef(k); } catch { return null; } };
+    // qualifiziert und unqualifiziert gelten gleich, nur zwei verschiedene Tabellen schließen sich aus
+    const sameField = (a, b) => Boolean(a && b && a.name === b.name && (!a.table || !b.table || a.table === b.table));
+    const ownList = Object.entries(own).map(([k, v]) => ({ ref: parse(k), v }));
     const fromModel = {};
     for (const [role, refs] of Object.entries(tile.bindings ?? {})) {
         if (roles.kind[role] !== "Measure") { continue; }
         const ref = [].concat(refs)[0];
-        if (typeof ref !== "string" || ownBy.has(keyOf(`[${role}]`))) { continue; }
-        // Eintrag der Kachel unter der Measure-Referenz: gilt, auch unter dem Rollenschlüssel (so findet ihn das Visual)
-        if (ownBy.has(keyOf(ref))) { fromModel[`[${role}]`] = ownBy.get(keyOf(ref)); continue; }
-        let m;
-        try { m = resolveField(model, ref, "Measure"); } catch { continue; }     // freier Ausdruck oder fehlt (meldet checkFields)
-        const fmt = model.tables.get(m.table)?.formats.get(m.name);
+        if (typeof ref !== "string" || ownList.some(o => o.ref && !o.ref.table && o.ref.name === role)) { continue; }
+        let m = null;
+        try { m = resolveField(model, ref, "Measure"); } catch { /* freier Ausdruck oder fehlt (meldet checkFields) */ }
+        // Eintrag der Kachel unter dem Measure: gilt, auch unter dem Rollenschlüssel (so findet ihn das Visual)
+        const hit = ownList.find(o => sameField(o.ref, m ?? parse(ref)));
+        if (hit) { fromModel[`[${role}]`] = hit.v; continue; }
+        if (!m) { continue; }
+        const t = model.tables.get(m.table);
+        if (t?.dynamicFormats?.has(m.name)) {
+            notes?.push(`Kachel ${tile.id}, Rolle ${role}: '${m.table}'[${m.name}] hat einen dynamischen Formatstring ` +
+                `(formatStringDefinition), die App zeigt die Werte ohne Format. Ausweg: formats der Kachel, z. B. "[${role}]": "#,##0".`);
+            continue;
+        }
+        const fmt = t?.formats.get(m.name);
         if (fmt) { fromModel[`[${role}]`] = fmt; }
     }
     const out = { ...own, ...fromModel };
@@ -241,6 +254,7 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     const { daxQuery, ROLES } = await import(pathToFileURL(path.join(DIST, "dwg-visuals.js")).href);
     const model = modelDir ? readModel(modelDir) : null;
     const problems = [];
+    const notes = [];               // Hinweise ohne Abbruch (dynamischer Formatstring)
     const written = [];
 
     const src = path.join(front, "src");
@@ -306,7 +320,7 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
             tiles: page.tiles.map(t => {
                 const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames } = t;
                 // Kachel-formats, ergänzt um die Formatstrings der Measures aus dem Modell (mit --model)
-                const formats = tileFormats(t, model, ROLES[t.visual]);
+                const formats = tileFormats(t, model, ROLES[t.visual], notes);
                 return Object.fromEntries(Object.entries({ id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats })
                     .filter(([, v]) => v !== undefined));
             }),
@@ -368,5 +382,5 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
         const what = [fabscan.model && `Konnektor ${con.name} → Modell „${fabscan.model}“`, `${visible.length} feste Filter sichtbar`].filter(Boolean);
         written.push(`../../fabscan.json (${what.join(", ")}, für fabscan)`);
     }
-    return { written, connector: con.name, app: appName, slicers: slicers.length, fabscan: fabscan?.file ?? null };
+    return { written, connector: con.name, app: appName, slicers: slicers.length, fabscan: fabscan?.file ?? null, notes };
 }
