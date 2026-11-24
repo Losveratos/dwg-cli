@@ -549,6 +549,166 @@ function PageHeader({
   );
 }
 
+/** id des Seitenmenüs (aria-controls von ☰ und der Anzeige der aktuellen Seite) */
+const MENU_ID = 'dwg-page-menu';
+const ICON_MENU = 'M4 6h16M4 12h16M4 18h16';
+const ICON_PREV = 'M15 18l-6-6 6-6';
+const ICON_NEXT = 'M9 18l6-6-6-6';
+
+/** Name einer Seite ohne vorangestellte Template-Kennung */
+const pageName = (p: DwgPageSpec) => (p.template ? pageLabel(p).slice(p.template.length).trim() || p.name : p.name);
+
+interface MenuProps {
+  groups: { group: string; pages: DwgPageSpec[] }[];
+  page: DwgPageSpec;
+  c: Palette;
+  narrow: boolean;
+  /** Platz unter der Kopfleiste (das Menü scrollt darin, die Seite nicht) */
+  maxHeight: number;
+  onClose: (focusToggle: boolean) => void;
+}
+
+/**
+ * Seitenmenü als Popup unter der Kopfleiste: alle Seiten nach Gruppen in Spalten, Suchfeld (Kennung, Name, Gruppe),
+ * aktuelle Seite markiert. Auswahl, Esc und Klick daneben schließen es.
+ */
+function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
+  const [q, setQ] = useState('');
+  const search = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLElement>(null);
+  useEffect(() => {
+    search.current?.focus();
+  }, []);
+  const needle = q.trim().toLowerCase();
+  const shown = groups
+    .map((g) => ({
+      group: g.group,
+      pages: needle ? g.pages.filter((p) => `${pageLabel(p)} ${g.group}`.toLowerCase().includes(needle)) : g.pages,
+    }))
+    .filter((g) => g.pages.length > 0);
+  const total = shown.reduce((n, g) => n + g.pages.length, 0);
+  const first = () => list.current?.querySelector<HTMLAnchorElement>('a[href]') ?? null;
+  return (
+    <div
+      data-dwg-menu=""
+      style={{
+        position: 'absolute',
+        top: '100%',
+        left: narrow ? 8 : 16,
+        right: narrow ? 8 : undefined,
+        width: narrow ? undefined : 'min(1600px, calc(100vw - 32px))',
+        maxHeight,
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+        marginTop: 6,
+        padding: '14px 16px 16px',
+        background: c.surface,
+        border: `1px solid ${c.border}`,
+        borderRadius: 10,
+        boxShadow: '0 12px 32px rgba(0, 0, 0, 0.18)',
+        zIndex: 30,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+        <input
+          ref={search}
+          type="search"
+          value={q}
+          aria-label="Seite suchen"
+          placeholder="Seite suchen, z. B. C21 oder Brücke"
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              first()?.click();
+            } else if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              first()?.focus();
+            }
+          }}
+          style={{
+            flex: '1 1 auto',
+            maxWidth: 360,
+            font: `400 13px/18px ${FONT}`,
+            padding: '6px 10px',
+            borderRadius: 6,
+            border: `1px solid ${c.border}`,
+            background: c.bg,
+            color: c.text,
+          }}
+        />
+        <span style={{ font: `400 12px/16px ${FONT}`, color: c.muted }}>{needle ? `${total} Treffer` : `${total} Seiten`}</span>
+        <button
+          type="button"
+          aria-label="Seitenmenü schließen"
+          title="Schließen (Esc)"
+          onClick={() => onClose(true)}
+          style={{ ...smallButton(c, 1, true), marginLeft: 'auto', color: c.text, font: `500 16px/16px ${FONT}`, padding: '4px 8px' }}
+        >
+          ×
+        </button>
+      </div>
+      <nav
+        ref={list}
+        id={MENU_ID}
+        aria-label="Seiten"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px 20px' }}
+      >
+        {shown.map((g) => {
+          const here = g.pages.includes(page);
+          return (
+            <section key={g.group} aria-label={g.group}>
+              <h2
+                data-dwg-nav-group=""
+                style={{
+                  margin: '0 0 6px',
+                  padding: '0 8px',
+                  font: `700 11px/16px ${FONT}`,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: here ? c.accent : c.muted,
+                }}
+              >
+                {g.group}
+              </h2>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {g.pages.map((p) => {
+                  const on = p === page;
+                  return (
+                    <li key={pageId(p)}>
+                      <a
+                        href={`#${pageId(p)}`}
+                        aria-current={on ? 'page' : undefined}
+                        title={pageLabel(p)}
+                        onClick={() => onClose(false)}
+                        style={{
+                          display: 'flex',
+                          gap: 8,
+                          alignItems: 'baseline',
+                          padding: '3px 8px',
+                          borderRadius: 6,
+                          textDecoration: 'none',
+                          font: `${on ? 600 : 400} 13px/18px ${FONT}`,
+                          color: on ? c.accent : c.text,
+                          background: on ? c.accentSoft : 'transparent',
+                        }}
+                      >
+                        {p.template && <span style={{ flex: 'none', minWidth: 38, fontWeight: 700 }}>{p.template}</span>}
+                        <span style={{ minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{pageName(p)}</span>
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          );
+        })}
+        {shown.length === 0 && <p style={{ margin: 0, font: `400 13px/18px ${FONT}`, color: c.muted }}>Keine Seite passt zur Suche.</p>}
+      </nav>
+    </div>
+  );
+}
+
 interface ShellProps {
   app: DwgAppSpec;
   connection: string;
@@ -722,21 +882,56 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       return !h;
     });
   };
-  // Kopfleiste kompakt: Gruppen und Seiten je eine Zeile, bei Platzmangel waagerecht scrollbar (statt umzubrechen
-  // und der Seite Höhe zu nehmen); die aktive Gruppe und Seite werden in den sichtbaren Bereich gerollt
-  const navRow: CSSProperties = {
-    display: 'flex',
-    flexWrap: 'nowrap',
-    flex: '1 1 0',
-    minWidth: 0,
-    overflowX: 'auto',
-    overflowY: 'hidden',
-    scrollbarWidth: 'thin',
-    padding: '1px 0',
-  };
+  // Navigation: eine Zeile mit ☰ (Seitenmenü als Popup), aktueller Seite und vorige/nächste Seite
+  const [menu, setMenu] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const closeMenu = useCallback((focusToggle: boolean) => {
+    setMenu(false);
+    if (focusToggle) menuButton.current?.focus();
+  }, []);
   useEffect(() => {
-    topbar.current?.querySelectorAll('nav [aria-current]').forEach((el) => el.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
-  }, [page]);
+    if (!menu) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMenu(true);
+    };
+    const onDown = (e: MouseEvent) => {
+      if (topbar.current && !topbar.current.contains(e.target as Node)) closeMenu(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [menu, closeMenu]);
+  const at = app.pages.indexOf(page);
+  const prev = at > 0 ? app.pages[at - 1] : null;
+  const next = at >= 0 && at < app.pages.length - 1 ? app.pages[at + 1] : null;
+  const step = (p: DwgPageSpec | null, dir: 'prev' | 'next') =>
+    p ? (
+      <a
+        href={`#${pageId(p)}`}
+        data-dwg-step={dir}
+        aria-label={`${dir === 'prev' ? 'Vorige' : 'Nächste'} Seite: ${pageLabel(p)}`}
+        title={pageLabel(p)}
+        style={{
+          display: 'grid',
+          placeItems: 'center',
+          flex: 'none',
+          width: 30,
+          height: 30,
+          borderRadius: 6,
+          border: `1px solid ${c.border}`,
+          color: c.text,
+        }}
+      >
+        <Icon d={dir === 'prev' ? ICON_PREV : ICON_NEXT} size={16} />
+      </a>
+    ) : (
+      <span aria-hidden style={{ display: 'grid', placeItems: 'center', flex: 'none', width: 30, height: 30, borderRadius: 6, border: `1px solid ${c.border}`, color: c.border }}>
+        <Icon d={dir === 'prev' ? ICON_PREV : ICON_NEXT} size={16} />
+      </span>
+    );
   const ctl = (on: boolean): CSSProperties => ({
     font: `500 12px/16px ${FONT}`,
     padding: '4px 8px',
@@ -761,11 +956,38 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
         data-dwg-topbar=""
         style={{ position: 'sticky', top: 0, zIndex: 20, background: c.surface, borderBottom: `1px solid ${c.border}` }}
       >
-        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '10px 28px', padding: '12px 24px 8px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '0 1 auto', minWidth: 0, maxWidth: narrow ? '100%' : '42%' }}>
-            <span aria-hidden style={{ flex: 'none', width: 10, height: 22, borderRadius: 2, background: c.accent }} />
+        <div style={{ position: 'relative', display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '8px 16px', padding: '10px 24px' }}>
+          <button
+            ref={menuButton}
+            type="button"
+            data-dwg-menu-toggle=""
+            aria-expanded={menu}
+            aria-controls={MENU_ID}
+            aria-haspopup="true"
+            aria-label={menu ? 'Seitenmenü schließen' : 'Seitenmenü öffnen'}
+            title="Alle Seiten"
+            onClick={() => setMenu((m) => !m)}
+            style={{
+              display: 'grid',
+              placeItems: 'center',
+              flex: 'none',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              border: `1px solid ${menu ? c.accent : c.border}`,
+              background: menu ? c.accentSoft : c.surface,
+              color: menu ? c.accent : c.text,
+              cursor: 'pointer',
+            }}
+          >
+            <Icon d={ICON_MENU} size={18} />
+          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '0 1 auto', minWidth: 0, maxWidth: narrow ? '70%' : '30%' }}>
+            <span aria-hidden style={{ flex: 'none', width: 8, height: 22, borderRadius: 2, background: c.accent }} />
             <div style={{ minWidth: 0 }}>
-              <h1 style={{ margin: 0, font: `700 18px/22px ${FONT}`, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>{title ?? app.name}</h1>
+              <h1 style={{ margin: 0, font: `700 17px/21px ${FONT}`, letterSpacing: '-0.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {title ?? app.name}
+              </h1>
               {subtitle && (
                 <p
                   title={typeof subtitle === 'string' ? subtitle : undefined}
@@ -776,61 +998,41 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               )}
             </div>
           </div>
-          <nav aria-label="Gruppen" style={{ ...navRow, gap: 2 }}>
-            {groups.map((g) => {
-              const on = g === current;
-              return (
-                <a
-                  key={g.group}
-                  href={`#${pageId(g.pages[0])}`}
-                  aria-current={on ? 'true' : undefined}
-                  style={{
-                    flex: 'none',
-                    whiteSpace: 'nowrap',
-                    padding: '6px 10px',
-                    borderRadius: 6,
-                    textDecoration: 'none',
-                    font: `${on ? 600 : 500} 13px/18px ${FONT}`,
-                    color: on ? c.accent : c.muted,
-                    background: on ? c.accentSoft : 'transparent',
-                  }}
-                >
-                  {g.group}
-                </a>
-              );
-            })}
-          </nav>
-        </div>
-        <div style={{ display: 'flex', flexWrap: narrow ? 'wrap' : 'nowrap', alignItems: 'center', gap: '8px 16px', padding: '0 24px 10px' }}>
-          <nav aria-label="Seiten" style={{ ...navRow, gap: 6 }}>
-            {current.pages.map((p) => {
-              const on = p === page;
-              return (
-                <a
-                  key={pageId(p)}
-                  href={`#${pageId(p)}`}
-                  aria-current={on ? 'page' : undefined}
-                  style={{
-                    flex: 'none',
-                    whiteSpace: 'nowrap',
-                    display: 'inline-flex',
-                    gap: 6,
-                    alignItems: 'baseline',
-                    padding: '4px 12px',
-                    borderRadius: 999,
-                    textDecoration: 'none',
-                    border: `1px solid ${on ? c.accent : c.border}`,
-                    background: on ? c.accent : c.surface,
-                    color: on ? c.onAccent : c.text,
-                    font: `500 13px/18px ${FONT}`,
-                  }}
-                >
-                  {p.template && <span style={{ fontWeight: 700 }}>{p.template}</span>}
-                  <span>{p.template ? pageLabel(p).slice(p.template.length).trim() || p.name : p.name}</span>
-                </a>
-              );
-            })}
-          </nav>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '1 1 auto', minWidth: 0 }}>
+            {step(prev, 'prev')}
+            <button
+              type="button"
+              data-dwg-current=""
+              aria-expanded={menu}
+              aria-controls={MENU_ID}
+              title="Seite wechseln"
+              onClick={() => setMenu((m) => !m)}
+              style={{
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: 8,
+                minWidth: 0,
+                maxWidth: '100%',
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: `1px solid ${c.border}`,
+                background: c.bg,
+                color: c.text,
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
+            >
+              <span style={{ flex: 'none', font: `600 11px/16px ${FONT}`, letterSpacing: '0.04em', color: c.accent, whiteSpace: 'nowrap' }}>{current.group}</span>
+              <span style={{ font: `500 13px/18px ${FONT}`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>
+                {page.template && <b style={{ fontWeight: 700 }}>{page.template} </b>}
+                {pageName(page)}
+              </span>
+              <span aria-hidden style={{ flex: 'none', color: c.muted, font: `400 11px/16px ${FONT}` }}>
+                {at + 1}/{app.pages.length}
+              </span>
+            </button>
+            {step(next, 'next')}
+          </div>
           <div style={{ marginLeft: 'auto', flex: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
             <div role="group" aria-label="Auflösung" style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 7, background: c.bg }}>
               {RESOLUTIONS.map((r) => (
@@ -859,6 +1061,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
             </button>
             {actions}
           </div>
+          {menu && <PageMenu groups={groups} page={page} c={c} narrow={narrow} maxHeight={Math.max(240, room - 24)} onClose={closeMenu} />}
         </div>
       </header>
 

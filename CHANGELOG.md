@@ -14,9 +14,11 @@
   the main tile's band fall back to an even squeeze on the grid. P&L tiles run with `layout.maximize` in the app (`fitToTile`, PBIP
   unchanged); if a P&L still needs more room (it scrolls, e.g. the ROI tree 11A), the tile reports its height and the
   stage grows by that amount and scales down a little to stay in the window (at most three steps per page, up to 4 px
-  overflow count as rounding of the fill). The top bar stays two rows: groups and pages each scroll horizontally
-  instead of wrapping (at 1366 px it took four rows before), the active entries are scrolled into view. New helpers `slicerChips`,
-  `templateCount`, `stageChrome`. Tests: shell 65 checks (was 46), Vitest for the new helpers, `showcase-e2e.mjs`
+  overflow count as rounding of the fill). Navigation moves into one top bar row (58 px instead of up to four rows): a ☰ button opens a page
+  menu as a popup with all pages grouped in columns, a search field (code, name, group) and the current page marked;
+  selecting, Esc and a click outside close it. Next to it the current page (group, code, name, position such as
+  „12/47“) and ‹ › for the previous and next page. New helpers `slicerChips`,
+  `templateCount`, `stageChrome`. Tests: shell 74 checks (was 46), Vitest for the new helpers, `showcase-e2e.mjs`
   checks fit, P&L overflow and clipped ChartKitchen labels per page and takes `--panel closed` and `--dark`. The showcase subtitle counts the
   templates from the spec (47) instead of the hard-coded 30.
 - **Showcase review fixes (23.11.2026).** C24 gets small multiples per country (sheet 10G): the catalog lists the
