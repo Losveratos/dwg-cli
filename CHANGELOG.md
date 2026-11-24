@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- **App number formats from the model (24.11.2026).** `dwg app page --model` writes the format string of each bound
+  measure from the TMDL into the page spec (`formats`, key `[role]`), as Power BI passes it to the visual as
+  `source.format`. Before, the app formatted without a format and showed 8978 where Power BI shows 8.978 (showcase C14).
+  A tile's own `formats` entry wins; an entry under the measure reference is also written under the role key, which is
+  the key the visual finds. TMDL format strings in double quotes are unquoted. The parity test passes the model formats
+  in app mode too and fails on numbers of four or more digits without a thousands separator (Befund 4).
+  `showcase-e2e.mjs` takes `--out <dir>`.
+
 - **`visibleFilters` per spec (25.11.2026).** An app can get its pages from several specs with their own connectors
   (e.g. the dwg spike app: demo model and utilisation model). Each `app page` run now replaces only the
   `"source": "dwg"` entries for the pages it writes; entries of other pages and own entries stay. Before, the second
@@ -17,7 +25,6 @@
   This also happens without `--model`; without fixed filters and without `--model` no new file appears. Entries with
   `"source": "dwg"` are replaced on every run, own entries (objects or DAX text) stay; the key disappears when nothing
   is left. fabscan 0.6.2 (Kitchen PR #74) reads `<app>/fabscan.json` per app and turns matching findings into ℹ.
-
 - **App shell: collapsible filter panel, whole page in the window (23.11.2026).** `DwgShell` gets a collapse button
   in the filter panel (and the key F): the panel disappears and the tiles use the full width (pixel grid without the
   filter zone, `stagePage(..., { collapsed })`). Below the page header a filter bar then shows the active slicers as

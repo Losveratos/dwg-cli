@@ -4,7 +4,7 @@
 //
 // Die Bühne passt in die Fensterhöhe (ganze Seite ohne senkrechtes Scrollen), P&L-Tabellen laufen nicht über ihre Kachel.
 //
-//   node app/test/showcase-e2e.mjs [--only C03,T03A] [--width 1440 --height 900] [--panel closed] [--dark]
+//   node app/test/showcase-e2e.mjs [--only C03,T03A] [--width 1440 --height 900] [--panel closed] [--dark] [--out <ordner>]
 import esbuild from "esbuild";
 import fs from "node:fs";
 import http from "node:http";
@@ -20,7 +20,8 @@ const argOf = k => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? pr
 const SPEC_FILE = path.resolve(argOf("spec") ?? path.join(ROOT, "specs", "showcase.json"));
 const PANEL = argOf("panel") === "closed" ? "closed" : "open";
 const DARK = process.argv.includes("--dark");
-const OUT = path.join(HERE, "out", argOf("name") ?? [argOf("width") ? `showcase-${argOf("width")}` : "showcase", PANEL === "closed" ? "zu" : "", DARK ? "dunkel" : ""].filter(Boolean).join("-"));
+// --out: Ausgabeordner außerhalb von app/test/out (z. B. ein Scratch-Ordner), sonst out/<name>
+const OUT = argOf("out") ? path.resolve(argOf("out")) : path.join(HERE, "out", argOf("name") ?? [argOf("width") ? `showcase-${argOf("width")}` : "showcase", PANEL === "closed" ? "zu" : "", DARK ? "dunkel" : ""].filter(Boolean).join("-"));
 const onlyArg = process.argv.indexOf("--only");
 const ONLY = onlyArg > 0 ? new Set(process.argv[onlyArg + 1].split(",")) : null;
 const num = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? Number(process.argv[i + 1]) : d; };

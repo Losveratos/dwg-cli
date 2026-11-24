@@ -109,6 +109,7 @@ npm run test:all
 | `filters` (Kachel) | TREATAS nur in dieser Abfrage | Visual-Filter |
 | Klick in einer Kachel | TREATAS für die anderen Kacheln, Filter-Chip | Querfilter von Power BI |
 | `sortBy` | ORDER BY | nur Prüfung: „Nach Spalte sortieren" muss im Modell stehen |
+| `formats` (Kachel) | Formatstring je Measure-Rolle (`[actual]`); ohne Eintrag gilt mit `--model` der Formatstring des Measures aus dem TMDL | Formatstring des Measures im Modell |
 | `showItemsWithNoData` | ADDMISSINGITEMS (mit Filtern in CALCULATETABLE: aufgefüllt wird nur innerhalb der Filter) | `showAll` je Gruppierungsrolle |
 | `rect` | Position, skaliert auf die Breite; unter 900 px untereinander | Position auf der Seite |
 | `slicers` (Spec) | Filter-Panel links (`DwgShell`), TREATAS in jeder Kachel aller Seiten | Slicer im Filter-Panel je Seite, Sync-Gruppe |
@@ -131,6 +132,10 @@ Unter `packages/frontend/src/`, bei jedem Lauf ersetzt (nicht von Hand ändern):
   beide Schriften von Google Fonts; `app page` entfernt diese Links (auch `preconnect`) aus `packages/frontend/index.html`
   und bindet dort `/src/vendor/dwg-fonts/dwg-fonts.css` ein. Vite bündelt CSS und woff2 nach `dist/assets/`, die App
   lädt keine Schriften von fremden Servern. Andere Stellen (z. B. ein `@import` in `global.css`) meldet `dwg check --app`.
+
+Mit `--model` übernimmt `app page` die Formatstrings der Measures aus dem TMDL in die Seiten-Spec (`formats` je Kachel,
+Schlüssel `[rolle]`), wie Power BI sie dem Visual mitgibt: `#,##0` zeigt unter `de-DE` 8.978, ohne Format zeigte die App
+8978. Ein Eintrag in `formats` der Kachel geht vor. Ohne `--model` gilt nur `formats` der Spec.
 
 Mit `--model` schreibt `app page` außerdem `fabscan.json` in den App-Ordner (neben `rayfin/`):
 `{ "connectors": { "<App-Ordner>:<Konnektor>": "<Modellname>" }, "models": ["<Ordner mit dem Modell, relativ zur App>"] }`

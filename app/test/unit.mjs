@@ -5,7 +5,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-import { generateAppPages, connectorsOf, slug, checkSpec } from "../lib/app.mjs";
+import { generateAppPages, connectorsOf, slug, checkSpec, tileFormats } from "../lib/app.mjs";
+import { readModel } from "../../pbip/lib/tmdl.mjs";
 import { layoutOf } from "../lib/app.mjs";
 import { place } from "../../layout/pixelgrid.mjs";
 
@@ -478,6 +479,46 @@ await test("feste Filter als Chips (fixedFilterChips, fixedChipText)", async () 
     assert.deepEqual(fixedChipText(chips[3]), { text: "Region: Nord, Süd, Ost +1", scope: "nur Umsatz", title: "Fester Filter aus der App-Spec ('Sales'[Region]), gilt für Umsatz" });
     assert.equal(fixedChipText(chips[0]).scope, null);
     assert.deepEqual(fixedFilterChips({ ...page, filters: [], tiles: [tile("a")] }), []);
+});
+
+await test("Zahlenformate aus dem Modell: Formatstring je Measure-Rolle, formats der Kachel geht vor", async () => {
+    const { ROLES } = await import(pathToFileURL(path.join(ROOT, "visuals", "dist", "dwg-visuals.js")).href);
+    const SHOWCASE = path.join(ROOT, "examples", "showcase", "ZlatyLev Showcase.SemanticModel");
+    const model = readModel(SHOWCASE);
+    const ck = ROLES.chartkitchen;
+    const tile = { bindings: { category: "'Produkt'[Produkt]", actual: "'Fakten'[Umsatz AC]", plan: "'Fakten'[Umsatz PL]" } };
+    assert.deepEqual(tileFormats(tile, model, ck), { "[actual]": "#,##0", "[plan]": "#,##0" });
+    // Rollenschlüssel der Kachel gewinnt, die Kachel-Einträge stehen vorn (das Visual nimmt den ersten Treffer)
+    const own = tileFormats({ ...tile, formats: { "[actual]": "0.0 %" } }, model, ck);
+    assert.deepEqual(own, { "[actual]": "0.0 %", "[plan]": "#,##0" });
+    assert.equal(Object.keys(own)[0], "[actual]");
+    // Eintrag unter der Measure-Referenz gilt ebenfalls und kommt unter den Rollenschlüssel
+    assert.deepEqual(tileFormats({ ...tile, formats: { "Fakten[Umsatz AC]": "0" } }, model, ck),
+        { "Fakten[Umsatz AC]": "0", "[actual]": "0", "[plan]": "#,##0" });
+    // ohne Modell nur die Kachel, freie Ausdrücke und Measures ohne formatString ohne Format
+    assert.equal(tileFormats(tile, null, ck), undefined);
+    assert.deepEqual(tileFormats({ ...tile, formats: { "[actual]": "0" } }, null, ck), { "[actual]": "0" });
+    assert.equal(tileFormats({ bindings: { actual: "SUM('Fakten'[Menge])" } }, model, ck), undefined);
+    // TMDL mit Formatstring in Anführungszeichen
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "dwg-fmt-"));
+    fs.mkdirSync(path.join(tmp, "definition", "tables"), { recursive: true });
+    fs.writeFileSync(path.join(tmp, "definition", "tables", "T.tmdl"),
+        ["table T", "", "\tmeasure M = 1", '\t\tformatString: "#,##0 ""EUR"""', "", "\tmeasure N = 2", "", "\tcolumn K", "\t\tdataType: string", ""].join("\n"));
+    assert.deepEqual(tileFormats({ bindings: { category: "T[K]", actual: "T[M]", plan: "T[N]" } }, readModel(tmp), ck), { "[actual]": '#,##0 "EUR"' });
+    // Generator: C14 der Showcase (Biere nach Planabweichung) bekommt #,##0 für AC und PL, wie Power BI (8.978)
+    const spec = JSON.parse(fs.readFileSync(path.join(ROOT, "specs", "showcase.json"), "utf8"));
+    const c14 = spec.pages.find(p => p.template === "C14");
+    const one = { ...spec, pages: [c14] };
+    const app = fakeApp();
+    await generateAppPages({ appDir: app, spec: one, connector: "guv", model: SHOWCASE });
+    const ts = fs.readFileSync(path.join(app, "packages/frontend/src/dwg/pages", `${slug(c14.name)}.ts`), "utf8");
+    const pageSpec = JSON.parse(ts.slice(ts.indexOf("= {") + 2).replace(/;\s*$/, ""));
+    const vorlage = pageSpec.tiles.find(t => t.id === "vorlage");
+    assert.deepEqual(vorlage.formats, { "[actual]": "#,##0", "[plan]": "#,##0" });
+    // ohne --model bleibt es bei formats der Spec (hier keine)
+    const app2 = fakeApp();
+    await generateAppPages({ appDir: app2, spec: one, connector: "guv" });
+    assert.ok(!fs.readFileSync(path.join(app2, "packages/frontend/src/dwg/pages", `${slug(c14.name)}.ts`), "utf8").includes('"formats"'));
 });
 
 console.log(`app unit: ${n} Tests grün`);

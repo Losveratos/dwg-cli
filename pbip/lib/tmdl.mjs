@@ -10,11 +10,14 @@ const MEMBER_RX = new RegExp(String.raw`^\t(column|measure)\s+${NAME}`);
 const PROP_RX = /^\t\t(dataType|sortByColumn|formatString):\s*(.+?)\s*$/;
 const PROP_KEY = { dataType: "dataType", sortByColumn: "sortBy", formatString: "formatString" };
 
+/** TMDL schreibt Formatstrings meist ohne Anführungszeichen (`#,##0`), mit Sonderzeichen auch als `"…"` */
+const unquoteFormat = f => (/^".*"$/s.test(f) ? f.slice(1, -1).replace(/""/g, '"') : f);
+
 export const unquote = n => (n.startsWith("'") ? n.slice(1, -1).replace(/''/g, "'") : n);
 
 /**
- * Formatstrings der Measures (`formats`) braucht der Paritätstest: Power BI gibt sie dem Visual als source.format mit,
- * die App nicht.
+ * Formatstrings der Measures (`formats`): Power BI gibt sie dem Visual als source.format mit; `dwg app page --model`
+ * schreibt sie in die Seiten-Spec der App (tileFormats in app/lib/app.mjs), der Paritätstest nimmt sie für beide Seiten.
  * @returns {{ tables: Map<string, {columns: Map<string, {dataType?: string, sortBy?: string, formatString?: string}>, measures: Set<string>, formats: Map<string, string>}>, measureHome: Map<string, string[]>, relationships: {from: [string, string], to: [string, string]}[] }}
  */
 export function readModel(modelDir) {
@@ -51,7 +54,7 @@ export function readModel(modelDir) {
             const p = member && PROP_RX.exec(line);
             if (!p) { continue; }
             if (member.measure) {
-                if (p[1] === "formatString") { table.formats.set(member.measure, p[2]); }
+                if (p[1] === "formatString") { table.formats.set(member.measure, unquoteFormat(p[2])); }
             } else {
                 member[PROP_KEY[p[1]]] = p[1] === "formatString" ? p[2] : unquote(p[2]);
             }

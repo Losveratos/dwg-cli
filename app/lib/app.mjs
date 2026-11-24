@@ -179,6 +179,36 @@ function columnTypesOf(model, refs) {
     return out;
 }
 
+/**
+ * Zahlenformate einer Kachel für die App: Formatstring je Measure-Rolle aus dem TMDL (`[actual]` → `#,##0`), wie
+ * Power BI ihn dem Visual als source.format mitgibt. Ohne Format formatiert das Visual ohne Tausendertrennzeichen
+ * (8978 statt 8.978). Das Kachelfeld `formats` geht vor: Rollen mit eigenem Eintrag (`[actual]` oder die
+ * Measure-Referenz) bekommen kein Modellformat, die Einträge der Kachel stehen vorn. Ein Eintrag unter der
+ * Measure-Referenz kommt zusätzlich unter den Rollenschlüssel, denn nur den findet das Visual für Measures.
+ * Freie DAX-Ausdrücke und Measures ohne formatString bleiben ohne Format. Das Gebietsschema (Punkt oder Komma) setzt das Visual, wie in Power BI.
+ * @returns {Record<string, string> | undefined}
+ */
+export function tileFormats(tile, model, roles) {
+    const own = tile.formats ?? {};
+    if (!model || !roles) { return tile.formats; }
+    const keyOf = k => { try { const r = parseRef(k); return columnKey(r.table ?? "", r.name); } catch { return k; } };
+    const ownBy = new Map(Object.entries(own).map(([k, v]) => [keyOf(k), v]));
+    const fromModel = {};
+    for (const [role, refs] of Object.entries(tile.bindings ?? {})) {
+        if (roles.kind[role] !== "Measure") { continue; }
+        const ref = [].concat(refs)[0];
+        if (typeof ref !== "string" || ownBy.has(keyOf(`[${role}]`))) { continue; }
+        // Eintrag der Kachel unter der Measure-Referenz: gilt, auch unter dem Rollenschlüssel (so findet ihn das Visual)
+        if (ownBy.has(keyOf(ref))) { fromModel[`[${role}]`] = ownBy.get(keyOf(ref)); continue; }
+        let m;
+        try { m = resolveField(model, ref, "Measure"); } catch { continue; }     // freier Ausdruck oder fehlt (meldet checkFields)
+        const fmt = model.tables.get(m.table)?.formats.get(m.name);
+        if (fmt) { fromModel[`[${role}]`] = fmt; }
+    }
+    const out = { ...own, ...fromModel };
+    return Object.keys(out).length ? out : undefined;
+}
+
 /** Felder der Spec gegen ein TMDL-Modell prüfen (optional, wenn das Modell als PBIP vorliegt) */
 export function checkFields(tile, model, roles) {
     const problems = [];
@@ -274,7 +304,9 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
             filters: page.filters ?? [],
             ...(Object.keys(columnTypes).length ? { columnTypes } : {}),
             tiles: page.tiles.map(t => {
-                const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats } = t;
+                const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames } = t;
+                // Kachel-formats, ergänzt um die Formatstrings der Measures aus dem Modell (mit --model)
+                const formats = tileFormats(t, model, ROLES[t.visual]);
                 return Object.fromEntries(Object.entries({ id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats })
                     .filter(([, v]) => v !== undefined));
             }),
