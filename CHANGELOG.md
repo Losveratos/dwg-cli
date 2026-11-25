@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Visuals ChartKitchen 1.58.0.0 and P&L 1.8.4.0 (25.11.2026, Kitchen 536970c).** Adapter, template catalog,
+  `.pbiviz` (byte-identical with the Kitchen `dist/` packages) and both example reports. New in the catalog: every
+  template writes `labels.roundedZero` (ChartKitchen) or `numbers.roundedZero` (P&L) = `plain`, a variance that rounds
+  to zero is shown as 0,0 like the reference sheets; the visual default stays `signed` (+0,0). Scatter templates (C09,
+  C10, C18, C23, C24) switch off `scatterScenarioTag` (no „(AC)“ at the Y axis) and `scatterTypeTitle`; C01, C02, C05,
+  C07 and C25 switch off `panelTypeTitles`. The showcase spec sets `roundedZero: "plain"` itself in every tile of both
+  visuals (context cards and 11A included) and the new template switches on its main tiles; `showcase-spec.mjs` checks
+  both. The showcase report is regenerated from the spec. `dwg doctor` reports 1.58.0.0 / 1.8.4.0 as published.
+
 - **App number formats from the model (24.11.2026).** `dwg app page --model` writes the format string of each bound
   measure from the TMDL into the page spec (`formats`, key `[role]`), as Power BI passes it to the visual as
   `source.format`. Before, the app formatted without a format and showed 8978 where Power BI shows 8.978 (showcase C14).
