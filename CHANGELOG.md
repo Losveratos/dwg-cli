@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **`visibleFilters` per spec (25.11.2026).** An app can get its pages from several specs with their own connectors
+  (e.g. the dwg spike app: demo model and utilisation model). Each `app page` run now replaces only the
+  `"source": "dwg"` entries for the pages it writes; entries of other pages and own entries stay. Before, the second
+  run removed the visible filters of the first.
+
 - **fabscan.json lists the fixed filters as `visibleFilters` (24.11.2026, for fabscan 0.6.2).** fabscan kept reporting
   the fixed spec filters of dwg apps (TREATAS in the `.dax` files, e.g. year and month of the GuV spec,
   `'Kalender'[Ist] = true`) as QRY-HARDCODED warnings, although the app shows them as chips. `dwg app page` now writes

@@ -58,10 +58,10 @@ export function modelName(modelDir) {
 
 /**
  * <appDir>/fabscan.json schreiben: mit modelDir die Zuordnung Konnektor → Modell, dazu die festen Filter der Spec
- * (visibleFilters, Einträge mit source "dwg" werden ersetzt). Vorhandene eigene Einträge bleiben.
+ * (visibleFilters; Einträge mit source "dwg" zu den Seiten in pageFiles werden ersetzt, andere bleiben).
  * Ohne Modell und ohne feste Filter entsteht keine neue Datei. @returns Pfad und Inhalt, null wenn nichts zu schreiben war
  */
-export function writeFabscanConfig({ appDir, connector, modelDir, visibleFilters = [] }) {
+export function writeFabscanConfig({ appDir, connector, modelDir, visibleFilters = [], pageFiles = null }) {
     const file = path.join(appDir, "fabscan.json");
     if (!modelDir && !visibleFilters.length && !fs.existsSync(file)) { return null; }
     let cfg = {};
@@ -81,7 +81,10 @@ export function writeFabscanConfig({ appDir, connector, modelDir, visibleFilters
         out.connectors = { ...(cfg.connectors ?? {}), [`${app}:${connector}`]: name };
         out.models = [...new Set([...(Array.isArray(cfg.models) ? cfg.models : []), rel])];
     }
-    const own = (Array.isArray(cfg.visibleFilters) ? cfg.visibleFilters : []).filter(e => !(e && typeof e === "object" && e.source === "dwg"));
+    // dwg-Einträge der Seiten dieses Laufs ersetzen; andere Seiten (zweite Spec in derselben App) und eigene Einträge bleiben
+    const mine = new Set(pageFiles ?? []);
+    const own = (Array.isArray(cfg.visibleFilters) ? cfg.visibleFilters : [])
+        .filter(e => !(e && typeof e === "object" && e.source === "dwg" && (pageFiles == null || mine.has(e.file))));
     if (own.length || visibleFilters.length) { out.visibleFilters = [...own, ...visibleFilters]; } else { delete out.visibleFilters; }
     const text = `${JSON.stringify(out, null, 2)}\n`;
     const changed = !fs.existsSync(file) || fs.readFileSync(file, "utf8") !== text;

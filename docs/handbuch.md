@@ -144,8 +144,9 @@ Hat die Spec feste Filter (`pages[].filters`, `tiles[].filters`), schreibt `app 
 Die App zeigt diese Filter als Chips; fabscan ab 0.6.2 meldet die passenden TREATAS-Stellen dann als Hinweis
 (ℹ „Fester Filter, für Nutzer sichtbar“) statt als Warnung QRY-HARDCODED. Datumswerte stehen in der Abfrage als
 `DATE(…)`, ihr Eintrag hat deshalb keine `values` (jeder feste Wert der Spalte in dieser Datei gilt als sichtbar).
-Slicer gehören nicht dazu, sie stehen nicht in den `.dax`-Dateien. Einträge mit `"source": "dwg"` ersetzt jeder Lauf,
-eigene Einträge bleiben.
+Slicer gehören nicht dazu, sie stehen nicht in den `.dax`-Dateien. Jeder Lauf ersetzt die Einträge mit
+`"source": "dwg"` zu den Seiten, die er schreibt; Einträge anderer Seiten (eine zweite Spec mit eigenem Konnektor in
+derselben App) und eigene Einträge bleiben.
 
 Eingebunden wird die Seite in der App selbst (`App.tsx` gehört der App):
 
