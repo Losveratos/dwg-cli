@@ -414,9 +414,31 @@ await test("fabscan.json: visibleFilters aus Seiten- und Kachelfiltern, je Seite
     const onlySlicer = structuredClone(SPEC);
     delete onlySlicer.pages[0].filters;
     const app2 = fakeApp();
-    fs.writeFileSync(path.join(app2, "fabscan.json"), JSON.stringify({ visibleFilters: [{ column: "'A'[B]", values: [1], file: "x.dax", source: "dwg" }] }));
+    fs.writeFileSync(path.join(app2, "fabscan.json"), JSON.stringify({ visibleFilters: [{ column: "'A'[B]", values: [1], file: "packages/frontend/src/dwg/pages/dwg-spike.dax", source: "dwg" }] }));
     await generateAppPages({ appDir: app2, spec: onlySlicer, connector: "guv" });
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app2, "fabscan.json"), "utf8")), {});
+});
+
+await test("fabscan.json: zwei Specs in einer App (zwei Konnektoren), jeder Lauf ersetzt nur seine Seiten", async () => {
+    const app = fakeApp("connectors:\n  - name: guv\n    type: fabric-semanticmodel\n  - name: zweite\n    type: fabric-semanticmodel\n");
+    const cfg = path.join(app, "fabscan.json");
+    const a = structuredClone(SPEC);
+    a.pages[0].filters = [{ column: "'Calender'[Year]", values: [2026] }];
+    const b = structuredClone(SPEC);
+    b.name = "Zweite";
+    b.pages[0].name = "Zweite Seite";
+    b.pages[0].filters = [{ column: "'Calender'[Month]", values: [1, 2] }];
+    await generateAppPages({ appDir: app, spec: a, connector: "guv", model: MODEL });
+    await generateAppPages({ appDir: app, spec: b, connector: "zweite" });
+    let j = JSON.parse(fs.readFileSync(cfg, "utf8"));
+    const fa = "packages/frontend/src/dwg/pages/dwg-spike.dax", fb = "packages/frontend/src/dwg/pages/zweite-seite.dax";
+    assert.deepEqual(j.visibleFilters.map(e => [e.column, e.file]), [["'Calender'[Year]", fa], ["'Calender'[Month]", fb]]);
+    assert.deepEqual(Object.keys(j.connectors), [`${path.basename(app)}:guv`], "zweiter Lauf ohne --model ändert die Zuordnung nicht");
+    // erste Spec mit anderem Jahr: nur ihr Eintrag wird ersetzt
+    a.pages[0].filters = [{ column: "'Calender'[Year]", values: [2025] }];
+    await generateAppPages({ appDir: app, spec: a, connector: "guv", model: MODEL });
+    j = JSON.parse(fs.readFileSync(cfg, "utf8"));
+    assert.deepEqual(j.visibleFilters.map(e => [e.column, e.values, e.file]), [["'Calender'[Month]", [1, 2], fb], ["'Calender'[Year]", [2025], fa]]);
 });
 
 await test("visibleFiltersOf: Showcase-Spec, eine Datei je Seite, keine doppelten Einträge", async () => {

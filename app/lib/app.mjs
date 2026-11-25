@@ -16,7 +16,7 @@ import { readModel, resolveField, parseRef } from "../../pbip/lib/tmdl.mjs";
 import { valueProblem } from "../../pbip/lib/pbir.mjs";
 import { zones as gridZones, inside, DWG_CHROME } from "../../layout/pixelgrid.mjs";
 import { installFonts } from "./fonts.mjs";
-import { visibleFiltersOf, writeFabscanConfig } from "./fabscan.mjs";
+import { PAGES_DAX, visibleFiltersOf, writeFabscanConfig } from "./fabscan.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.resolve(HERE, "../../visuals/dist");
@@ -330,7 +330,8 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     }
     // für fabscan: Modell auffindbar (statt LIN-NO-MODEL), feste Filter als sichtbar gemeldet (Hinweis statt QRY-HARDCODED)
     const visible = visibleFiltersOf(spec, page => slug(page.name));
-    const fabscan = writeFabscanConfig({ appDir, connector: con.name, modelDir, visibleFilters: visible });
+    const fabscan = writeFabscanConfig({ appDir, connector: con.name, modelDir, visibleFilters: visible,
+        pageFiles: pageModules.map(m => `${PAGES_DAX}/${m}.dax`) });
     if (fabscan) {
         const what = [fabscan.model && `Konnektor ${con.name} → Modell „${fabscan.model}“`, `${visible.length} feste Filter sichtbar`].filter(Boolean);
         written.push(`../../fabscan.json (${what.join(", ")}, für fabscan)`);
