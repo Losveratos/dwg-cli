@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- **Visuals ChartKitchen 1.58.0.0 and P&L 1.8.4.0 (25.11.2026, Kitchen 536970c).** Adapter, template catalog,
+  `.pbiviz` (byte-identical with the Kitchen `dist/` packages) and both example reports. New in the catalog: every
+  template writes `labels.roundedZero` (ChartKitchen) or `numbers.roundedZero` (P&L) = `plain`, a variance that rounds
+  to zero is shown as 0,0 like the reference sheets; the visual default stays `signed` (+0,0). Scatter templates (C09,
+  C10, C18, C23, C24) switch off `scatterScenarioTag` (no „(AC)“ at the Y axis) and `scatterTypeTitle`; C01, C02, C05,
+  C07 and C25 switch off `panelTypeTitles`. The showcase spec sets `roundedZero: "plain"` itself in every tile of both
+  visuals (context cards and 11A included) and the new template switches on its main tiles; `showcase-spec.mjs` checks
+  both. The showcase report is regenerated from the spec. `dwg doctor` reports 1.58.0.0 / 1.8.4.0 as published.
+
+- **App number formats from the model (24.11.2026).** `dwg app page --model` writes the format string of each bound
+  measure from the TMDL into the page spec (`formats`, key `[role]`), as Power BI passes it to the visual as
+  `source.format`. Before, the app formatted without a format and showed 8978 where Power BI shows 8.978 (showcase C14).
+  A tile's own `formats` entry wins, under `[role]` or under the measure in any spelling (`'T'[M]`, `T[M]`, `[M]`); an
+  entry under the measure is also written under the role key, which is the key the visual finds. TMDL format strings
+  are unquoted only when the whole value is a quoted TMDL string (`""` becomes `"`). Limit: dynamic format strings
+  (`formatStringDefinition`) are not evaluated in the app, the values show without a format; `app page --model` prints
+  a hint per measure, the way out is a fixed format in the tile's `formats`. The parity test passes the model formats
+  in app mode too and fails on numbers of four or more digits without a thousands separator (Befund 4).
+  `showcase-e2e.mjs` takes `--out <dir>`.
+
 - **`visibleFilters` per spec (25.11.2026).** An app can get its pages from several specs with their own connectors
   (e.g. the dwg spike app: demo model and utilisation model). Each `app page` run now replaces only the
   `"source": "dwg"` entries for the pages it writes; entries of other pages and own entries stay. Before, the second
@@ -158,7 +178,8 @@ Fixes from the first public review (fresh clone, full test run, code review):
   adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
   Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
 - `dwg check` reads the spec with the same file-name errors as the other commands.
-- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.57.0.0 (from 1.53.0.0) and P&L 1.8.3.0 (from 1.7.0.0).
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.58.0.0 (from 1.53.0.0, via 1.57.0.0) and P&L 1.8.4.0
+  (from 1.7.0.0, via 1.8.3.0).
 - **P&L 1.7 balance sheet and cash flow:** the catalog has 19 P&L templates (T05A balance sheet at the reporting date,
   T05B cash-flow bridge, group `balance`) and writes `statement.stockMode` (T05A `allStock`, T05B `auto`); period is
   recommended for both, the row type is required for T05B (opening and closing balance need the `stock`/`opening`

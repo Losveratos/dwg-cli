@@ -26,21 +26,22 @@ const tiles = function* () { for (const p of spec.pages) { for (const t of p.til
 const main = p => p.tiles.find(t => t.id === "vorlage");
 
 // ---------------------------------------------------------------- erwartete Presets (Quelle: Kitchen-Repo)
-// ChartKitchen ibcsInspiredChartDeck/src/visual.ts CHART_TEMPLATES (1.57); Punkt-Schlüssel (scale.*) stehen in CK_SCALE
+// ChartKitchen ibcsInspiredChartDeck/src/visual.ts CHART_TEMPLATES (1.58); Punkt-Schlüssel (scale.*) stehen in CK_SCALE,
+// labels.roundedZero (ab 1.58 in jedem Template) prüft der Test unten für jede ChartKitchen-Kachel
 const CK = {
-    C01: { orientation: "columns", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false },
-    C02: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false },
+    C01: { orientation: "columns", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false, panelTypeTitles: false },
+    C02: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false, panelTypeTitles: false },
     C03: { orientation: "columns", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, waterfallStyle: false },
     C04: { orientation: "bars", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, waterfallStyle: false },
-    C05: { orientation: "intwaterfall", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false },
+    C05: { orientation: "intwaterfall", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, panelTypeTitles: false },
     C06: { orientation: "catbridge", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, bridgeOrientation: "columns" },
     C08: { orientation: "line", comparisonMode: "auto", showAbsoluteVariance: true, showRelativeVariance: false, dualVariance: false },
-    C09: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "mean", scatterColorBy: "single" },
-    C10: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "mean", scatterColorBy: "single", scatterSizeLegend: true },
+    C09: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "mean", scatterColorBy: "single", scatterTypeTitle: false, scatterScenarioTag: false },
+    C10: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "mean", scatterColorBy: "single", scatterSizeLegend: true, scatterTypeTitle: false, scatterScenarioTag: false },
     C12: { orientation: "waterfall", comparisonMode: "auto", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false },
     C13: { multiplesTotal: true, multiplesSameScale: true },
     C07: { orientation: "columns", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false,
-        stackShape: "area", areaTotalLine: true, areaValueLabels: "auto", stackLegendDirect: true, stackLegendPos: "end", showTotal: false, scenarioLabels: true },
+        stackShape: "area", areaTotalLine: true, areaValueLabels: "auto", stackLegendDirect: true, stackLegendPos: "end", showTotal: false, scenarioLabels: true, panelTypeTitles: false },
     C14: { orientation: "table", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, showTotal: true,
         totalRowPosition: "bottom", tableTotalLegend: true, tableSort: "dabs_desc", gridLines: "none", cumulative: false, topN: 0 },
     C15: { orientation: "table", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, showTotal: true,
@@ -50,7 +51,7 @@ const CK = {
     C17: { orientation: "catbridge", bridgeOrientation: "bars", comparisonMode: "py", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false,
         pyTriangle: false, groupEvery: 4, driverNote: false },
     C18: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "off", scatterColorBy: "group", scatterSizeLegend: true, scatterTrend: "off",
-        scatterArrows: false, scatterShapes: false },
+        scatterArrows: false, scatterShapes: false, scatterTypeTitle: false, scatterScenarioTag: false },
     C19: { orientation: "columns", comparisonMode: "plan", showAbsoluteVariance: true, showRelativeVariance: true, dualVariance: false, waterfallStyle: false,
         cumulative: false, yearColumn: true, scenarioLabels: true, pinStyle: "square" },
     C20: { orientation: "stockflow", sfNet: true, sfArea: true, scenarioLabels: true, showTotal: false, highlightStyle: "ellipse" },
@@ -60,11 +61,11 @@ const CK = {
     C22: { orientation: "line", lineSeries: true, lineIndex: "base100", lineSeriesLabels: "groups", lineSeriesColor: "tones", lineMarkerShape: "square",
         showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, cumulative: false, showTotal: false },
     C23: { orientation: "scatter", comparisonMode: "auto", scatterPath: "line", scatterPathLabels: "auto", scatterColorBy: "group", scatterQuadrant: "off",
-        scatterTrend: "off", scatterArrows: false, scatterPlay: false },
+        scatterTrend: "off", scatterArrows: false, scatterPlay: false, scatterTypeTitle: false, scatterScenarioTag: false },
     C24: { orientation: "scatter", comparisonMode: "auto", scatterQuadrant: "off", scatterColorBy: "group", scatterSizeLegend: false, scatterValueLabels: true,
-        scatterBubbleOpacity: 100, scatterTotalBubble: true, scatterMaxRadius: 100, scatterTrend: "off", scatterArrows: false, scatterPath: "off", scatterPlay: false },
+        scatterBubbleOpacity: 100, scatterTotalBubble: true, scatterMaxRadius: 100, scatterTrend: "off", scatterArrows: false, scatterPath: "off", scatterPlay: false, scatterTypeTitle: false, scatterScenarioTag: false },
     C25: { orientation: "bars", comparisonMode: "auto", showAbsoluteVariance: false, showRelativeVariance: false, dualVariance: false, waterfallStyle: false,
-        stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true },
+        stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true, panelTypeTitles: false },
 };
 // Bewusst nach dem Anwenden geändert (wie templates/test/unit.mjs SHOWCASE_OWN): C24 mit Kacheln je Land (Blatt 10G)
 // braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100)
@@ -76,7 +77,7 @@ const CK_NEEDS = { C01: ["series"], C02: ["series"], C03: ["previousYear"], C04:
     C09: ["xValue"], C10: ["xValue", "bubbleSize"], C13: ["multiples"],
     C07: ["series"], C14: ["plan"], C15: ["plan"], C16: ["plan"], C17: ["previousYear"], C18: ["xValue", "series"], C19: ["plan"],
     C20: ["rowType", "series"], C21: ["plan"], C22: ["series"], C23: ["xValue", "series"], C24: ["xValue", "bubbleSize", "bubbleShare"], C25: ["series"] };
-// P&L pnlByDatenWG/src/megatable.ts MEGA_PRESETS (1.8.3): Minuend, Wertspalten und Δ-Schalter; „total“ = structureTotal,
+// P&L pnlByDatenWG/src/megatable.ts MEGA_PRESETS (1.8.4): Minuend, Wertspalten und Δ-Schalter; „total“ = structureTotal,
 // „keep“ = keepBlockOrder (beide ab 1.8)
 // Dezimalen bewusst abweichend vom Template-Preset: IBCS höchstens 4 Ziffern in Tabellen, deshalb Mio. EUR mit
 // 2 Nachkommastellen (auch T02C in Tsd. hl, damit Monatswerte nicht auf 0,0 fallen) und Δ% einheitlich mit 1 Nachkommastelle; 12G ohne Margenzeilen,
@@ -231,6 +232,19 @@ test("P&L: template = templateApplied, Preset-Schalter und Dezimalen wie im Visu
         } else {
             assert.ok(!t.bindings.account && t.bindings.levels?.length, `${p.template}: Strukturdimension über Ebenen`);
             assert.equal(c.pctRevenue, false, `${p.template}: kein % vom Umsatz bei Strukturdaten`);
+        }
+    }
+});
+
+// Visual-Standard ist „signed“ (+0,0), die Templates schreiben „plain“; die Showcase setzt es selbst in jeder Kachel,
+// auch in Kontextkarten und 11A (Ansichtsvorlage ohne Template). Scatter ohne „(AC)“ an der Y-Achse
+test("roundedZero = plain in jeder Kachel beider Visuals, Scatter ohne Szenario-Kürzel und Typtitel", () => {
+    for (const { page: p, tile: t } of tiles()) {
+        const obj = t.visual === "pnl" ? "numbers" : "labels";
+        assert.equal(t.objects?.[obj]?.roundedZero, "plain", `${p.template}/${t.id}: ${obj}.roundedZero`);
+        if (t.visual === "chartkitchen" && t.objects.chart?.orientation === "scatter") {
+            assert.equal(t.objects.chart.scatterScenarioTag, false, `${p.template}/${t.id}: scatterScenarioTag`);
+            assert.equal(t.objects.chart.scatterTypeTitle, false, `${p.template}/${t.id}: scatterTypeTitle`);
         }
     }
 });

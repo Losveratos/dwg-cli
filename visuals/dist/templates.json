@@ -1,7 +1,7 @@
 {
   "versions": {
-    "chartkitchen": "1.57.0.0",
-    "pnl": "1.8.3.0"
+    "chartkitchen": "1.58.0.0",
+    "pnl": "1.8.4.0"
   },
   "templates": [
     {
@@ -31,7 +31,11 @@
           "showAbsoluteVariance": false,
           "showRelativeVariance": false,
           "dualVariance": false,
-          "waterfallStyle": false
+          "waterfallStyle": false,
+          "panelTypeTitles": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -134,7 +138,11 @@
           "stackLegendDirect": true,
           "stackLegendPos": "end",
           "showTotal": false,
-          "scenarioLabels": true
+          "scenarioLabels": true,
+          "panelTypeTitles": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -231,6 +239,9 @@
           "showRelativeVariance": true,
           "dualVariance": false,
           "waterfallStyle": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -322,6 +333,9 @@
           "yearColumn": true,
           "scenarioLabels": true,
           "pinStyle": "square"
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -407,7 +421,11 @@
           "comparisonMode": "py",
           "showAbsoluteVariance": true,
           "showRelativeVariance": true,
-          "dualVariance": false
+          "dualVariance": false,
+          "panelTypeTitles": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -494,6 +512,9 @@
           "showAbsoluteVariance": true,
           "showRelativeVariance": false,
           "dualVariance": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -589,6 +610,9 @@
           "lineMarkerShape": "square",
           "scenarioLabels": true,
           "showTotal": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -681,6 +705,9 @@
           "dualVariance": false,
           "cumulative": false,
           "showTotal": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -777,6 +804,9 @@
           "scenarioLabels": true,
           "showTotal": false,
           "highlightStyle": "ellipse"
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -902,7 +932,12 @@
           "scatterQuadrant": "off",
           "scatterTrend": "off",
           "scatterArrows": false,
-          "scatterPlay": false
+          "scatterPlay": false,
+          "scatterTypeTitle": false,
+          "scatterScenarioTag": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1016,7 +1051,11 @@
           "showAbsoluteVariance": false,
           "showRelativeVariance": false,
           "dualVariance": false,
-          "waterfallStyle": false
+          "waterfallStyle": false,
+          "panelTypeTitles": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1119,7 +1158,11 @@
           "showTotal": true,
           "stackTotalRow": true,
           "sortMode": "ac",
-          "stackLegendDirect": true
+          "stackLegendDirect": true,
+          "panelTypeTitles": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1216,6 +1259,9 @@
           "showRelativeVariance": true,
           "dualVariance": false,
           "waterfallStyle": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1303,6 +1349,9 @@
           "showRelativeVariance": true,
           "dualVariance": false,
           "bridgeOrientation": "columns"
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1393,6 +1442,9 @@
           "pyTriangle": false,
           "groupEvery": 4,
           "driverNote": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1486,6 +1538,9 @@
           "gridLines": "none",
           "cumulative": false,
           "topN": 0
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1579,6 +1634,9 @@
           "gridLines": "none",
           "cumulative": false,
           "topN": 0
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1672,6 +1730,9 @@
           "gridLines": "none",
           "cumulative": false,
           "topN": 0
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1756,7 +1817,12 @@
           "orientation": "scatter",
           "comparisonMode": "auto",
           "scatterQuadrant": "mean",
-          "scatterColorBy": "single"
+          "scatterColorBy": "single",
+          "scatterTypeTitle": false,
+          "scatterScenarioTag": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1842,7 +1908,12 @@
           "comparisonMode": "auto",
           "scatterQuadrant": "mean",
           "scatterColorBy": "single",
-          "scatterSizeLegend": true
+          "scatterSizeLegend": true,
+          "scatterTypeTitle": false,
+          "scatterScenarioTag": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -1945,10 +2016,15 @@
           "scatterTrend": "off",
           "scatterArrows": false,
           "scatterPath": "off",
-          "scatterPlay": false
+          "scatterPlay": false,
+          "scatterTypeTitle": false,
+          "scatterScenarioTag": false
         },
         "scale": {
           "xRefLine": "1"
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2073,11 +2149,16 @@
           "scatterSizeLegend": true,
           "scatterTrend": "off",
           "scatterArrows": false,
-          "scatterShapes": false
+          "scatterShapes": false,
+          "scatterTypeTitle": false,
+          "scatterScenarioTag": false
         },
         "scale": {
           "refLine": "0",
           "xRefLine": "0"
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2191,6 +2272,9 @@
           "showAbsoluteVariance": true,
           "showRelativeVariance": true,
           "dualVariance": false
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2283,6 +2367,9 @@
           "templateApplied": "C13",
           "multiplesTotal": true,
           "multiplesSameScale": true
+        },
+        "labels": {
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2405,7 +2492,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2622,7 +2710,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -2839,7 +2928,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -3056,7 +3146,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -3273,7 +3364,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -3490,7 +3582,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -3707,7 +3800,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -3924,7 +4018,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -4141,7 +4236,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -4358,7 +4454,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -4575,7 +4672,8 @@
         },
         "numbers": {
           "decimals": 1,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -4792,7 +4890,8 @@
         },
         "numbers": {
           "decimals": 2,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -5009,7 +5108,8 @@
         },
         "numbers": {
           "decimals": 2,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -5226,7 +5326,8 @@
         },
         "numbers": {
           "decimals": 1,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -5443,7 +5544,8 @@
         },
         "numbers": {
           "decimals": 1,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -5660,7 +5762,8 @@
         },
         "numbers": {
           "decimals": 2,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -5877,7 +5980,8 @@
         },
         "numbers": {
           "decimals": 2,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -6094,7 +6198,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         },
         "statement": {
           "stockMode": "allStock"
@@ -6314,7 +6419,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         },
         "statement": {
           "stockMode": "auto"
@@ -6534,7 +6640,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         }
       },
       "roles": [
@@ -6751,7 +6858,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         },
         "titleBlock": {
           "headline": true
@@ -6989,7 +7097,8 @@
         },
         "numbers": {
           "decimals": 0,
-          "pctDecimals": 1
+          "pctDecimals": 1,
+          "roundedZero": "plain"
         },
         "titleBlock": {
           "headline": true

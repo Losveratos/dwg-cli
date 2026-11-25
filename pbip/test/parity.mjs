@@ -4,7 +4,8 @@
 //   1. Projektionen mit `active` (Drill-Zustand): Hat eine Rolle mit mehreren Feldern aktive Projektionen, fragt Power BI
 //      nur diese ab, auch bei Visuals ohne drilldown-Capability (P&L `levels`: sonst kommt nur L1 an).
 //   2. Anzeigename: `displayName` der Projektion, sonst der Name im Modell. Die App nimmt `displayNames` der Spec.
-//   3. Format: Power BI gibt den Formatstring des Measures aus dem TMDL mit, die App nur `formats` der Spec.
+//   3. Format: Power BI gibt den Formatstring des Measures aus dem TMDL mit. Die App bekommt ihn seit 24.11.2026 auch
+//      (`dwg app page --model` schreibt ihn in die Seiten-Spec, tileFormats); `formats` der Kachel geht dort vor.
 //   4. Viewport: Kachel minus Innenabstand und Rahmen des Visual-Containers (visualContainerObjects, sonst Theme;
 //      Fluent2: 16/14/16/16 px). Die App zieht 8 px Innenabstand und 1 px Rand ab.
 // Daten: Mini-DAX auf dem Showcase-Datensatz (wie showcase-spec.mjs), Filter aus Slicer-Startauswahl, Seiten- und
@@ -19,6 +20,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { createEngine } from "../../app/test/minidax.mjs";
 import { readModel } from "../lib/tmdl.mjs";
 import { modelDirOf, VISUAL_KINDS } from "../lib/report.mjs";
+import { tileFormats } from "../../app/lib/app.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DWG = path.resolve(HERE, "../..");
@@ -32,7 +34,7 @@ const OUT = path.join(HERE, "out", APP_MODE ? "parity-app" : "parity");
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 
-const { daxQuery } = await import(pathToFileURL(path.join(DWG, "visuals", "dist", "dwg-visuals.js")).href);
+const { daxQuery, ROLES } = await import(pathToFileURL(path.join(DWG, "visuals", "dist", "dwg-visuals.js")).href);
 const { model: data } = await import(pathToFileURL(path.join(DWG, "app", "test", "datasets", "showcase.mjs")).href);
 const engine = createEngine(data);
 const readJson = f => JSON.parse(fs.readFileSync(f, "utf8"));
@@ -99,7 +101,7 @@ if (APP_MODE) {
             });
             // App-Kachel: 8 px Innenabstand (p-200) und 1 px Rand
             jobs.push({ page: page.template, tile: tile.id, visual: tile.visual, table: engine.query(q.query), bindings: q.bindings,
-                objects: tile.objects ?? {}, displayNames: { ...q.displayNames, ...tile.displayNames }, formats: tile.formats ?? {},
+                objects: tile.objects ?? {}, displayNames: { ...q.displayNames, ...tile.displayNames }, formats: tileFormats(tile, model, ROLES[tile.visual]) ?? {},
                 levels: [].concat(tile.bindings.levels ?? []), roles: Object.keys(tile.bindings),
                 width: tile.rect[2] - 18, height: tile.rect[3] - 18 });
         }
@@ -246,6 +248,15 @@ for (const job of jobs) {
             if (!py || !pl) { fail(job, `Karten nur mit ${py ? "ΔPY" : "ΔPL"} (ΔPY ${py}×, ΔPL ${pl}×)`); }
         }
     }
+    // Befund 4 (24.11.2026, C14): Zahlen ohne Tausendertrennzeichen (8978 statt 8.978). Power BI formatiert mit dem
+    // Formatstring des Measures (#,##0 → 8.978 unter de-DE); fehlt er, gruppiert das Visual nicht. Ausgenommen sind
+    // Werte der gruppierenden Spalten (Kategorien) und Jahreszahlen.
+    const groupVals = new Set();
+    job.table.columns.forEach((c, i) => {
+        if (!/^\[.*\]$/.test(c.name ?? c)) { job.table.rows.forEach(r => groupVals.add(String(r[i]))); }
+    });
+    const flat = s.texts.find(t => /^[+−-]?\d{4,}([.,]\d+)?\s?%?$/.test(t) && !/^(19|20)\d\d$/.test(t) && !groupVals.has(t));
+    if (flat) { fail(job, `Zahl ohne Tausendertrennzeichen „${flat}“ (Formatstring des Measures fehlt?)`); }
 }
 fs.writeFileSync(path.join(OUT, "texts.json"), JSON.stringify(seen, null, 1));
 for (const e of errors) { failures.push(`Seitenfehler: ${e}`); }

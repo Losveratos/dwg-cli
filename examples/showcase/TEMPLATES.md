@@ -1,8 +1,9 @@
 # Showcase · Notizen zu den Templates
 
-Stand 23.11.2026 (17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 ergänzt; Bilanz und Cashflow 29.10.2026, sonst
+Stand 25.11.2026 (Visuals auf ChartKitchen 1.58 und P&L 1.8.4; 17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 am
+23.11.2026 ergänzt; Bilanz und Cashflow 29.10.2026, sonst
 19.10.2026). Spec: `specs/showcase.json` (47 Seiten, je Template eine), Test: `node app/test/showcase-spec.mjs`.
-Visuals: ChartKitchen 1.57.0.0, P&L Statement 1.8.3.0 (Adapter `visuals/dist`).
+Visuals: ChartKitchen 1.58.0.0, P&L Statement 1.8.4.0 (Adapter `visuals/dist`).
 Datenvertrag: `showcase/CONTRACT.md`. Die Templates sind an IBCS angelehnt.
 Die ersten 28 Seiten sind mit einem kleinen Generator erzeugt (`gen-showcase.mjs` im Notizordner der Sessions), danach
 ist die Spec von Hand gepflegt. Den Generator nicht mehr laufen lassen: er kennt weder das heutige Layout noch T05A,
@@ -39,6 +40,13 @@ Ab P&L 1.8 gehören `columns.structureTotal` (Gesamtzeile über mehrere Wurzeln)
 
 **Punkt-Schlüssel (ChartKitchen 1.57).** C18 und C24 setzen `scale.refLine` bzw. `scale.xRefLine`; die Spec legt sie
 unter `objects.scale` ab, nicht unter `chart` (ebenso die frei gewählten Quotenstrahlen von C23).
+
+**Gerundete Null (ab ChartKitchen 1.58 und P&L 1.8.4).** Eine Abweichung, die nicht null ist, aber auf null rundet,
+zeigt das Visual standardmäßig mit Vorzeichen (`signed`, „+0,0“). Alle Templates schreiben `plain` („0,0“ wie auf den
+Blättern). Die Showcase setzt es selbst in jeder Kachel: `labels.roundedZero: "plain"` bei ChartKitchen,
+`numbers.roundedZero: "plain"` bei P&L, auch in den Kontextkarten und in 11A (Ansichtsvorlage ohne Template).
+Scatter-Seiten (C09, C10, C18, C23, C24) setzen `scatterScenarioTag` und `scatterTypeTitle` auf `false`: kein „(AC)“
+an der Y-Achse, kein Typtitel „Scatter · AC × X“. C01, C02, C05, C07 und C25 setzen `panelTypeTitles: false`.
 
 Der Test prüft beides gegen eine Kopie der Preset-Tabellen und alle Objekte gegen die `capabilities.json` der Visuals.
 
@@ -146,6 +154,12 @@ Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Sum
   Fehler und Rasterbefunde, `dwg app page --model` in eine Wegwerf-App ohne Fehler, `dwg pbip pages` in den
   Beispielbericht und `dwg validate` 47 Seiten schemagültig, `npm run test:showcase` 48/48 ohne Befund. Nicht im
   Dienst und nicht in Power BI Desktop geprüft; die sechs neuen Tabellen liegen noch nicht im Lakehouse.
+- 25.11.2026 (ChartKitchen 1.58, P&L 1.8.4, Kitchen 536970c): `showcase-spec.mjs` 20/20 (mit `DWG_KITCHEN` auf
+  `.kitchen`), `templates/test/unit.mjs` 27/27, `npm test` grün (Parität App und PBIP ohne Befund), `dwg pbip pages`
+  und `dwg validate` 47 Seiten, 376 Visuals schemagültig, `npm run test:showcase` 48/48 ohne Befund. Im Bild geprüft:
+  C14 Doppellinie an der ΔPL-Achse und Tausenderpunkt (8.978), C03 Pinköpfe in Szenario-Notation (FC schraffiert),
+  C18 ohne „(AC)“ und ohne Typtitel, 12G Kopf „FY“ über PY, YTD und AC&FC, T01A gerundete Null als „0,00“ ohne
+  Vorzeichen, Kontextkarten 11A mit „n.a.“. Nicht im Dienst und nicht in Power BI Desktop geprüft.
 
 ## Befunde
 

@@ -37,7 +37,7 @@ Einen fremden Skill gleichen Namens ersetzt er nur mit `--force`. Für Claude De
 | Ordner | Inhalt |
 | --- | --- |
 | [`dwg.mjs`](../dwg.mjs) | einziger Einstieg: `visuals build`, `app page`, `pbip …`, `validate`, `lint`, `check`, `mockup build`, `mockup import`, `templates`, `tile add` |
-| [`visuals/`](../visuals) | Adapter `@visuals`: ChartKitchen und P&L außerhalb von Power BI, `daxQuery()`. `dist/` ist committet. Eingebunden sind derzeit ChartKitchen 1.57.0.0 und P&L Statement 1.8.3.0 (`dwg doctor` prüft den Stand) |
+| [`visuals/`](../visuals) | Adapter `@visuals`: ChartKitchen und P&L außerhalb von Power BI, `daxQuery()`. `dist/` ist committet. Eingebunden sind derzeit ChartKitchen 1.58.0.0 und P&L Statement 1.8.4.0 (`dwg doctor` prüft den Stand) |
 | [`app/`](../app) | Generator für Rayfin-Apps und Vorlagen (`DwgPage`, `DwgVisual`, `dwg-page.ts`), Browser-Test mit Mock-Konnektor |
 | [`pbip/`](../pbip) | Generator für PBIP/PBIR und Schema-Prüfung |
 | [`templates/`](../templates) | Template-Katalog lesen (`dwg templates`), Feldvorschläge aus dem Modell und `dwg tile add`; Katalog `visuals/dist/templates.json` erzeugt `visuals build` |
@@ -109,6 +109,7 @@ npm run test:all
 | `filters` (Kachel) | TREATAS nur in dieser Abfrage | Visual-Filter |
 | Klick in einer Kachel | TREATAS für die anderen Kacheln, Filter-Chip | Querfilter von Power BI |
 | `sortBy` | ORDER BY | nur Prüfung: „Nach Spalte sortieren" muss im Modell stehen |
+| `formats` (Kachel) | Formatstring je Measure-Rolle (`[actual]`); ohne Eintrag gilt mit `--model` der Formatstring des Measures aus dem TMDL | Formatstring des Measures im Modell |
 | `showItemsWithNoData` | ADDMISSINGITEMS (mit Filtern in CALCULATETABLE: aufgefüllt wird nur innerhalb der Filter) | `showAll` je Gruppierungsrolle |
 | `rect` | Position, skaliert auf die Breite; unter 900 px untereinander | Position auf der Seite |
 | `slicers` (Spec) | Filter-Panel links (`DwgShell`), TREATAS in jeder Kachel aller Seiten | Slicer im Filter-Panel je Seite, Sync-Gruppe |
@@ -131,6 +132,15 @@ Unter `packages/frontend/src/`, bei jedem Lauf ersetzt (nicht von Hand ändern):
   beide Schriften von Google Fonts; `app page` entfernt diese Links (auch `preconnect`) aus `packages/frontend/index.html`
   und bindet dort `/src/vendor/dwg-fonts/dwg-fonts.css` ein. Vite bündelt CSS und woff2 nach `dist/assets/`, die App
   lädt keine Schriften von fremden Servern. Andere Stellen (z. B. ein `@import` in `global.css`) meldet `dwg check --app`.
+
+Mit `--model` übernimmt `app page` die Formatstrings der Measures aus dem TMDL in die Seiten-Spec (`formats` je Kachel,
+Schlüssel `[rolle]`), wie Power BI sie dem Visual mitgibt: `#,##0` zeigt unter `de-DE` 8.978, ohne Format zeigte die App
+8978. Ein Eintrag in `formats` der Kachel geht vor, unter `[rolle]` oder unter dem Measure in jeder Schreibweise
+(`'T'[M]`, `T[M]`, `[M]`). Ohne `--model` gilt nur `formats` der Spec.
+
+**Grenze:** Dynamische Formatstrings (`formatStringDefinition`, DAX je Zelle) wertet die App nicht aus, die Werte
+erscheinen dort ohne Format. `app page --model` meldet solche Measures als Hinweis. Ausweg: ein festes Format im
+Kachelfeld `formats`, z. B. `"[actual]": "#,##0"`.
 
 Mit `--model` schreibt `app page` außerdem `fabscan.json` in den App-Ordner (neben `rayfin/`):
 `{ "connectors": { "<App-Ordner>:<Konnektor>": "<Modellname>" }, "models": ["<Ordner mit dem Modell, relativ zur App>"] }`
