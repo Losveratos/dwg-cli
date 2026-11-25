@@ -141,7 +141,7 @@ node dwg.mjs check --spec quickstart/app-spec.json --model "$M"   # structure, r
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model "$M" \
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report \
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.58.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.4.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -166,7 +166,7 @@ node dwg.mjs lint --spec quickstart/app-spec.json
 node dwg.mjs pbip new --out quickstart/Quickstart.Report --name Quickstart --model $M `
   --template "examples/showcase/ZlatyLev Showcase.Report"
 node dwg.mjs pbip register --report quickstart/Quickstart.Report `
-  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.57.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.3.0.pbiviz
+  --pbiviz visuals/pbiviz/chartKitchenByDatenWG.1.58.0.0.pbiviz --pbiviz visuals/pbiviz/pnlByDatenWG.1.8.4.0.pbiviz
 node dwg.mjs pbip pages --report quickstart/Quickstart.Report --spec quickstart/app-spec.json
 node dwg.mjs validate quickstart/Quickstart.Report
 
@@ -215,7 +215,7 @@ Measures must be model measures for Power BI; free DAX expressions work in the a
 | Folder | |
 | --- | --- |
 | `dwg.mjs`, `install.mjs` | CLI entry and installer |
-| `visuals/` | adapter `@dwg/visuals` (original ChartKitchen and P&L code outside Power BI, `daxQuery()`), committed `dist/` incl. `templates.json`, matching `.pbiviz` in `visuals/pbiviz/` (currently ChartKitchen 1.57.0.0 and P&L Statement 1.8.3.0, 47 templates) |
+| `visuals/` | adapter `@dwg/visuals` (original ChartKitchen and P&L code outside Power BI, `daxQuery()`), committed `dist/` incl. `templates.json`, matching `.pbiviz` in `visuals/pbiviz/` (currently ChartKitchen 1.58.0.0 and P&L Statement 1.8.4.0, 47 templates) |
 | `templates/` | template catalog, field suggestions, `tile add` |
 | `app/` | Fabric App generator and templates (`DwgPage`, `DwgShell`, `DwgVisual`), browser harness, Mini-DAX |
 | `pbip/` | PBIP/PBIR generator, schema validation with the PBIR schemas in `pbip/schemas/` (from microsoft/json-schemas, MIT), parity test (Power BI vs. app) |

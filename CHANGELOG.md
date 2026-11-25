@@ -28,6 +28,7 @@
   This also happens without `--model`; without fixed filters and without `--model` no new file appears. Entries with
   `"source": "dwg"` are replaced on every run, own entries (objects or DAX text) stay; the key disappears when nothing
   is left. fabscan 0.6.2 (Kitchen PR #74) reads `<app>/fabscan.json` per app and turns matching findings into ℹ.
+
 - **App shell: collapsible filter panel, whole page in the window (23.11.2026).** `DwgShell` gets a collapse button
   in the filter panel (and the key F): the panel disappears and the tiles use the full width (pixel grid without the
   filter zone, `stagePage(..., { collapsed })`). Below the page header a filter bar then shows the active slicers as
@@ -168,7 +169,8 @@ Fixes from the first public review (fresh clone, full test run, code review):
   adapter with the `.pbiviz`, the example reports and the published version (Share repo, Kitchen `latest.json`).
   Found on the first run: the GuV example report still carried ChartKitchen 1.51.1.0 and P&L 1.4.2.0.
 - `dwg check` reads the spec with the same file-name errors as the other commands.
-- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.57.0.0 (from 1.53.0.0) and P&L 1.8.3.0 (from 1.7.0.0).
+- **Visuals:** adapter, `.pbiviz` and example reports on ChartKitchen 1.58.0.0 (from 1.53.0.0, via 1.57.0.0) and P&L 1.8.4.0
+  (from 1.7.0.0, via 1.8.3.0).
 - **P&L 1.7 balance sheet and cash flow:** the catalog has 19 P&L templates (T05A balance sheet at the reporting date,
   T05B cash-flow bridge, group `balance`) and writes `statement.stockMode` (T05A `allStock`, T05B `auto`); period is
   recommended for both, the row type is required for T05B (opening and closing balance need the `stock`/`opening`

@@ -37,7 +37,7 @@ Einen fremden Skill gleichen Namens ersetzt er nur mit `--force`. Für Claude De
 | Ordner | Inhalt |
 | --- | --- |
 | [`dwg.mjs`](../dwg.mjs) | einziger Einstieg: `visuals build`, `app page`, `pbip …`, `validate`, `lint`, `check`, `mockup build`, `mockup import`, `templates`, `tile add` |
-| [`visuals/`](../visuals) | Adapter `@visuals`: ChartKitchen und P&L außerhalb von Power BI, `daxQuery()`. `dist/` ist committet. Eingebunden sind derzeit ChartKitchen 1.57.0.0 und P&L Statement 1.8.3.0 (`dwg doctor` prüft den Stand) |
+| [`visuals/`](../visuals) | Adapter `@visuals`: ChartKitchen und P&L außerhalb von Power BI, `daxQuery()`. `dist/` ist committet. Eingebunden sind derzeit ChartKitchen 1.58.0.0 und P&L Statement 1.8.4.0 (`dwg doctor` prüft den Stand) |
 | [`app/`](../app) | Generator für Rayfin-Apps und Vorlagen (`DwgPage`, `DwgVisual`, `dwg-page.ts`), Browser-Test mit Mock-Konnektor |
 | [`pbip/`](../pbip) | Generator für PBIP/PBIR und Schema-Prüfung |
 | [`templates/`](../templates) | Template-Katalog lesen (`dwg templates`), Feldvorschläge aus dem Modell und `dwg tile add`; Katalog `visuals/dist/templates.json` erzeugt `visuals build` |
