@@ -154,6 +154,12 @@ Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Sum
   Fehler und Rasterbefunde, `dwg app page --model` in eine Wegwerf-App ohne Fehler, `dwg pbip pages` in den
   Beispielbericht und `dwg validate` 47 Seiten schemagültig, `npm run test:showcase` 48/48 ohne Befund. Nicht im
   Dienst und nicht in Power BI Desktop geprüft; die sechs neuen Tabellen liegen noch nicht im Lakehouse.
+- 25.11.2026 (ChartKitchen 1.58, P&L 1.8.4, Kitchen 536970c): `showcase-spec.mjs` 20/20 (mit `DWG_KITCHEN` auf
+  `.kitchen`), `templates/test/unit.mjs` 27/27, `npm test` grün (Parität App und PBIP ohne Befund), `dwg pbip pages`
+  und `dwg validate` 47 Seiten, 376 Visuals schemagültig, `npm run test:showcase` 48/48 ohne Befund. Im Bild geprüft:
+  C14 Doppellinie an der ΔPL-Achse und Tausenderpunkt (8.978), C03 Pinköpfe in Szenario-Notation (FC schraffiert),
+  C18 ohne „(AC)“ und ohne Typtitel, 12G Kopf „FY“ über PY, YTD und AC&FC, T01A gerundete Null als „0,00“ ohne
+  Vorzeichen, Kontextkarten 11A mit „n.a.“. Nicht im Dienst und nicht in Power BI Desktop geprüft.
 
 ## Befunde
 
