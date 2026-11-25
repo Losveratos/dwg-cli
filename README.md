@@ -187,7 +187,7 @@ clear (several measure families, a structure axis), it stops and lists candidate
 | `visuals update [--kitchen <clone>] [--ref origin/main] [--dry-run] [--commit]` | bring a new visual release into this repo in one step: checkout under `.kitchen/`, adapter, `.pbiviz`, example reports, docs, CHANGELOG, `npm test` |
 | `templates [<ID>] [--visual chartkitchen\|pnl] [--lang en] [--json]` | template catalog |
 | `tile add --spec … (--page … \| --new-page … [--description …]) --template <ID> [--model …] [--measure …] [--<role> …] [--title …] [--rect x,y,w,h] [--dry-run]` | add a tile from a template; `--title` is the title line inside the visual |
-| `app page --app … --spec … --connector … [--model …]` | write the pages into a Rayfin app |
+| `app page --app … --spec … --connector … [--model …]` | write the pages into a Rayfin app; fonts ship locally, `fabscan.json` maps the connector to the model (`--model`) and lists the fixed filters the app shows (`visibleFilters`) for the governance scanner fabscan |
 | `pbip new`, `pbip register`, `pbip pages` | create a PBIP report, register the `.pbiviz`, write the pages |
 | `validate [<X.Report>]` | validate a report against the PBIR schemas |
 | `lint --spec … [--strict] [--json]` | pixel grid and accessibility |

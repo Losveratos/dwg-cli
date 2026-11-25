@@ -55,7 +55,8 @@ zu öffnen oder das Repo zu klonen. Ohne Repo kannst du Specs entwerfen und erkl
 1. **Erzeugen:** `node dwg.mjs app page --app <Rayfin-App> --spec <spec> --connector <name> [--model <X>.SemanticModel]`.
    Der Konnektor (Typ `fabric-semanticmodel`) muss in `rayfin/rayfin.yml` stehen, der Hook
    `use-semantic-model-query` (Pack `analytics`) in der App. Immer mit `--model`, wenn das Modell als PBIP vorliegt:
-   dann schreibt dwg `fabscan.json` für den Governance-Scanner. Schriften liefert dwg lokal mit (Google-Links in
+   dann schreibt dwg `fabscan.json` für den Governance-Scanner (feste Filter der Spec stehen dort als `visibleFilters`,
+   auch ohne `--model`; nicht von Hand pflegen, jeder Lauf ersetzt sie). Schriften liefert dwg lokal mit (Google-Links in
    `index.html` fliegen raus); `node dwg.mjs check --app <Rayfin-App>` meldet übrige fremde Schriften.
 2. **Einbinden** in `src/App.tsx` (gehört der App): `<DwgPage page={page} connection="<name>" isDark={isDark} />`,
    viele Seiten mit Navigation und Filter-Panel: `<DwgShell app={app} connection="<name>" isDark={isDark} />`.

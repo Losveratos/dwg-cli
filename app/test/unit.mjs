@@ -351,8 +351,10 @@ await test("app page liefert die Schriften lokal mit und entfernt die Google-Lin
 await test("app page --model schreibt fabscan.json (Konnektor → Modell) und behält eigene Einträge", async () => {
     const app = fakeApp();
     const cfg = path.join(app, "fabscan.json");
-    await generateAppPages({ appDir: app, spec: SPEC, connector: "guv" });
-    assert.ok(!fs.existsSync(cfg), "ohne --model keine fabscan.json");
+    const nofilter = structuredClone(SPEC);
+    delete nofilter.pages[0].filters;
+    await generateAppPages({ appDir: app, spec: nofilter, connector: "guv" });
+    assert.ok(!fs.existsSync(cfg), "ohne --model und ohne feste Filter keine fabscan.json");
     fs.writeFileSync(cfg, JSON.stringify({ connectors: { "andere:x": "Y" }, models: ["../Y.SemanticModel"], ausnahmen: [{ id: "SEC-CDN" }] }));
     const r = await generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL });
     assert.equal(r.fabscan, cfg);
@@ -362,12 +364,70 @@ await test("app page --model schreibt fabscan.json (Konnektor → Modell) und be
     assert.deepEqual(j.models, ["../Y.SemanticModel", rel]);
     assert.deepEqual(j.ausnahmen, [{ id: "SEC-CDN" }]);
     assert.ok(fs.existsSync(path.resolve(app, rel, path.basename(MODEL))), "Ordner des Modells relativ zur App");
-    assert.ok(r.written.some(w => w.includes("fabscan.json (Konnektor guv → Modell „ChartKitchen byDatenWG Demo“")), r.written.join("\n"));
+    assert.ok(r.written.some(w => w.includes("fabscan.json (Konnektor guv → Modell „ChartKitchen byDatenWG Demo“, 1 feste Filter sichtbar")), r.written.join("\n"));
     // zweiter Lauf: kein doppelter Modellpfad
     await generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL });
     assert.deepEqual(JSON.parse(fs.readFileSync(cfg, "utf8")).models, ["../Y.SemanticModel", rel]);
     fs.writeFileSync(cfg, "{ kaputt");
     await assert.rejects(generateAppPages({ appDir: app, spec: SPEC, connector: "guv", model: MODEL }), /fabscan\.json: .*reparieren oder löschen/);
+});
+
+await test("fabscan.json: visibleFilters aus Seiten- und Kachelfiltern, je Seite mit ihrer .dax-Datei", async () => {
+    const app = fakeApp();
+    const cfg = path.join(app, "fabscan.json");
+    const spec = structuredClone(SPEC);
+    spec.pages[0].filters = [{ column: "'Calender'[Year]", values: [2026] }, { column: "'Calender'[Month]", values: [1, 2, 3, 4] }];
+    spec.pages[0].tiles[0].filters = [{ column: "'Sales Demo'[Scenario]", values: ["AC"] }, { column: "'Calender'[Month]", values: [3, 4, 5] }];
+    spec.pages[0].tiles[1].filters = [{ column: "'Calender'[Date]", values: ["2026-03-01"] }];
+    spec.slicers = undefined;
+    // ohne --model: nur visibleFilters, keine connectors/models
+    const r = await generateAppPages({ appDir: app, spec, connector: "guv" });
+    assert.ok(r.written.some(w => w === "../../fabscan.json (4 feste Filter sichtbar, für fabscan)" || w.includes("feste Filter sichtbar")), r.written.join("\n"));
+    let j = JSON.parse(fs.readFileSync(cfg, "utf8"));
+    assert.equal(j.connectors, undefined);
+    const file = "packages/frontend/src/dwg/pages/dwg-spike.dax";
+    assert.ok(fs.existsSync(path.join(app, file)), "Dateipfad relativ zum App-Ordner zeigt auf die Seiten-Abfragen");
+    assert.deepEqual(j.visibleFilters, [
+        { column: "'Calender'[Year]", values: [2026], file, source: "dwg" },
+        { column: "'Calender'[Month]", values: [1, 2, 3, 4], file, source: "dwg" },
+        { column: "'Sales Demo'[Scenario]", values: ["AC"], file, source: "dwg" },
+        // Seite 1..4 und Kachel 3..5 auf derselben Spalte: in der Abfrage zwei TREATAS, also zwei Einträge
+        { column: "'Calender'[Month]", values: [3, 4, 5], file, source: "dwg" },
+        // Datum steht in der Abfrage als DATE(…), daher ohne values
+        { column: "'Calender'[Date]", file, source: "dwg" },
+    ]);
+    const dax = fs.readFileSync(path.join(app, file), "utf8");
+    assert.ok(dax.includes("TREATAS({3, 4, 5}, 'Calender'[Month])") && dax.includes("TREATAS({1, 2, 3, 4}, 'Calender'[Month])"), "Werte wie in der Abfrage");
+    // eigene Einträge bleiben, die von dwg werden ersetzt (Filter aus der Spec entfernt → Eintrag weg)
+    j.visibleFilters.push("'Kalender'[Ist] = TRUE", { column: "'X'[Y]", values: [1], file: "a.dax" });
+    fs.writeFileSync(cfg, JSON.stringify(j));
+    spec.pages[0].tiles[0].filters = undefined;
+    spec.pages[0].tiles[1].filters = undefined;
+    await generateAppPages({ appDir: app, spec, connector: "guv" });
+    j = JSON.parse(fs.readFileSync(cfg, "utf8"));
+    assert.deepEqual(j.visibleFilters, [
+        "'Kalender'[Ist] = TRUE", { column: "'X'[Y]", values: [1], file: "a.dax" },
+        { column: "'Calender'[Year]", values: [2026], file, source: "dwg" },
+        { column: "'Calender'[Month]", values: [1, 2, 3, 4], file, source: "dwg" },
+    ]);
+    // Slicer landen nicht in visibleFilters; ohne feste Filter verschwindet der Schlüssel
+    const onlySlicer = structuredClone(SPEC);
+    delete onlySlicer.pages[0].filters;
+    const app2 = fakeApp();
+    fs.writeFileSync(path.join(app2, "fabscan.json"), JSON.stringify({ visibleFilters: [{ column: "'A'[B]", values: [1], file: "x.dax", source: "dwg" }] }));
+    await generateAppPages({ appDir: app2, spec: onlySlicer, connector: "guv" });
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app2, "fabscan.json"), "utf8")), {});
+});
+
+await test("visibleFiltersOf: Showcase-Spec, eine Datei je Seite, keine doppelten Einträge", async () => {
+    const { visibleFiltersOf } = await import("../lib/fabscan.mjs");
+    const show = JSON.parse(fs.readFileSync(SHOWCASE, "utf8"));
+    const v = visibleFiltersOf(show, p => slug(p.name));
+    const keys = v.map(e => JSON.stringify(e));
+    assert.equal(new Set(keys).size, keys.length);
+    assert.ok(v.every(e => e.file.startsWith("packages/frontend/src/dwg/pages/") && e.file.endsWith(".dax") && e.source === "dwg"));
+    assert.ok(v.some(e => e.column === "'Kalender'[Ist]" && e.values?.[0] === true));
+    assert.ok(!v.some(e => e.column === "'Kalender'[Jahr]"), "Jahr ist in der Showcase-Spec ein Slicer, kein fester Filter");
 });
 
 await test("feste Filter als Chips (fixedFilterChips, fixedChipText)", async () => {

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **fabscan.json lists the fixed filters as `visibleFilters` (24.11.2026, for fabscan 0.6.2).** fabscan kept reporting
+  the fixed spec filters of dwg apps (TREATAS in the `.dax` files, e.g. year and month of the GuV spec,
+  `'Kalender'[Ist] = true`) as QRY-HARDCODED warnings, although the app shows them as chips. `dwg app page` now writes
+  every fixed filter from `pages[].filters` and `tiles[].filters` into `<app>/fabscan.json`, one entry per filter and
+  page: `{ "column", "values", "file": "packages/frontend/src/dwg/pages/<page>.dax", "source": "dwg" }`, exactly as the
+  `.dax` file holds it (page and tile filter on the same column are two TREATAS, so two entries). Date values become
+  `DATE(…)` in the query, so their entry has no `values`. Slicers are not listed (they are not in the `.dax` files).
+  This also happens without `--model`; without fixed filters and without `--model` no new file appears. Entries with
+  `"source": "dwg"` are replaced on every run, own entries (objects or DAX text) stay; the key disappears when nothing
+  is left. fabscan 0.6.2 (Kitchen PR #74) reads `<app>/fabscan.json` per app and turns matching findings into ℹ.
+
 - **App shell: collapsible filter panel, whole page in the window (23.11.2026).** `DwgShell` gets a collapse button
   in the filter panel (and the key F): the panel disappears and the tiles use the full width (pixel grid without the
   filter zone, `stagePage(..., { collapsed })`). Below the page header a filter bar then shows the active slicers as
