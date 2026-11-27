@@ -173,6 +173,42 @@ export function rebaseObjects(base: VisualObjects, log: unknown[]): VisualObject
     return log.reduce<VisualObjects>((o, c) => applyPersist(o, c), JSON.parse(JSON.stringify(base ?? {})));
 }
 
+/**
+ * Log ohne die Eigenschaften, die die App seit `prev` neu gesetzt hat (`next`): Eine Wahl der App (z. B. im
+ * Optionen-Panel die Zeilenebene) gewinnt dann über das, was das Visual vorher für dieselbe Eigenschaft gespeichert
+ * hat, wie in Power BI, wo eine spätere Änderung im Formatbereich den gespeicherten Wert ersetzt. Alles andere im Log
+ * bleibt. Ein replace-Eintrag bekommt für diese Eigenschaften den neuen Wert der App.
+ */
+export function dropOverridden(log: unknown[], prev: VisualObjects, next: VisualObjects): unknown[] {
+    type Inst = { objectName: string; properties?: Record<string, unknown> };
+    type Change = { merge?: Inst[]; replace?: Inst[]; remove?: Inst[] };
+    const p = (prev ?? {}) as Record<string, Record<string, unknown> | undefined>;
+    const n = (next ?? {}) as Record<string, Record<string, unknown> | undefined>;
+    const changed = new Set<string>();
+    for (const o of new Set([...Object.keys(p), ...Object.keys(n)])) {
+        for (const k of new Set([...Object.keys(p[o] ?? {}), ...Object.keys(n[o] ?? {})])) {
+            if (JSON.stringify(p[o]?.[k]) !== JSON.stringify(n[o]?.[k])) { changed.add(`${o}\u0000${k}`); }
+        }
+    }
+    if (!changed.size) { return log; }
+    const strip = (list: Inst[] | undefined, keepEmpty: boolean, fill: boolean) => list?.map(i => {
+        const props: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(i.properties ?? {})) {
+            if (!changed.has(`${i.objectName}\u0000${k}`)) { props[k] = v; }
+            else if (fill && n[i.objectName]?.[k] !== undefined) { props[k] = n[i.objectName]?.[k]; }
+        }
+        return { ...i, properties: props };
+    }).filter(i => keepEmpty || Object.keys(i.properties).length > 0);
+    return log.map(entry => {
+        const c = (entry ?? {}) as Change;
+        const out: Change = {};
+        if (c.merge) { out.merge = strip(c.merge, false, false); }
+        if (c.replace) { out.replace = strip(c.replace, true, true); }
+        if (c.remove) { out.remove = strip(c.remove, false, false); }
+        return out;
+    });
+}
+
 export function createHost(state: HostState, events: HostEvents) {
     const selection = new SelectionManager(events);
     const host = {

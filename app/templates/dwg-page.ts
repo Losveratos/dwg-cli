@@ -32,6 +32,15 @@ export interface DwgTileSpec {
   displayNames?: Record<string, string>;
   /** Formatstring je Ergebnisspalte, z. B. { "[actual]": "0.0 %" } (nur App; Power BI nimmt den Formatstring des Measures) */
   formats?: Record<string, string>;
+  /** Live-Optionen (nur App): einklappbares Panel neben dem Visual, jede Wahl setzt Formatbereich-Objekte ohne neue Abfrage */
+  options?: DwgTileOption[];
+}
+
+/** Eine Live-Option: Knöpfe, jede Wahl überschreibt Teile von `objects` (Reihenfolge der Optionen = Reihenfolge des Mischens) */
+export interface DwgTileOption {
+  id: string;
+  label: string;
+  choices: { label: string; set: VisualObjects }[];
 }
 
 export interface DwgPageSpec {
@@ -95,6 +104,10 @@ export interface DwgSlicerSpec {
 export interface DwgAppSpec {
   name: string;
   about?: string;
+  /** Sprache der Bedienelemente (Standard: de); en schaltet auch die Visuals auf en-US */
+  lang?: DwgLang;
+  /** Gebietsschema der Visuals (Zahlen, Monatsnamen, Texte der Visuals); Standard aus lang: de-DE bzw. en-US */
+  locale?: string;
   /** Fußtext, z. B. Datenhinweis und Markenhinweis */
   footer?: string;
   /** Auflösungsmodus beim Start (in der Shell umschaltbar) */
@@ -191,12 +204,12 @@ export function selectionFilters(sel: DwgSelection | null): DaxFilter[] {
 }
 
 /** Text für den Filter-Chip: erste Spalte der Auswahl mit bis zu drei Werten. */
-export function selectionLabel(sel: DwgSelection | null): string {
+export function selectionLabel(sel: DwgSelection | null, lang: DwgLang = 'de', locale?: string): string {
   if (!sel || !sel.keys.length) return '';
   const [name] = Object.keys(sel.keys[0]);
   const parts = name ? splitColumn(name) : null;
   if (!parts) return '';
-  const values = [...new Set(sel.keys.map((k) => (k[name] == null ? '(leer)' : formatSlicerValue(k[name] as DaxValue))))];
+  const values = [...new Set(sel.keys.map((k) => formatSlicerValue((k[name] ?? null) as DaxValue, lang, locale)))];
   const more = values.length > 3 ? ` +${values.length - 3}` : '';
   return `${parts[1]}: ${values.slice(0, 3).join(', ')}${more}`;
 }
@@ -214,13 +227,13 @@ export interface DwgFixedChip {
 }
 
 /** „1 bis 8“ für lückenlose ganze Zahlen ab drei Werten, sonst bis zu drei Werte und „+n“. */
-function fixedValuesText(values: DaxValue[]): string {
+function fixedValuesText(values: DaxValue[], lang: DwgLang, locale?: string): string {
   const ints = values.every((v) => typeof v === 'number' && Number.isInteger(v));
   if (ints && values.length >= 3) {
     const sorted = [...(values as number[])].sort((a, b) => a - b);
-    if (sorted.every((v, i) => i === 0 || v === sorted[i - 1] + 1)) return `${sorted[0]} bis ${sorted[sorted.length - 1]}`;
+    if (sorted.every((v, i) => i === 0 || v === sorted[i - 1] + 1)) return uiText(lang).range(sorted[0], sorted[sorted.length - 1]);
   }
-  const shown = values.slice(0, 3).map((v) => formatSlicerValue(v));
+  const shown = values.slice(0, 3).map((v) => formatSlicerValue(v, lang, locale));
   return values.length > 3 ? `${shown.join(', ')} +${values.length - 3}` : shown.join(', ');
 }
 
@@ -228,7 +241,7 @@ function fixedValuesText(values: DaxValue[]): string {
  * Feste Filter der Seite und ihrer Kacheln als Chips. Seitenfilter gelten für alle Kacheln; ein Kachelfilter, den
  * alle Kacheln gleich haben, zählt ebenso für die ganze Seite. Sonst nennt der Chip die Kacheln (Titel bzw. id).
  */
-export function fixedFilterChips(page: DwgPageSpec): DwgFixedChip[] {
+export function fixedFilterChips(page: DwgPageSpec, lang: DwgLang = 'de', locale?: string): DwgFixedChip[] {
   const chips = new Map<string, DwgFixedChip & { ids: Set<string> }>();
   const add = (f: DaxFilter, tile: DwgTileSpec | null) => {
     const column = normColumn(f.column);
@@ -237,7 +250,7 @@ export function fixedFilterChips(page: DwgPageSpec): DwgFixedChip[] {
     const parts = splitColumn(column);
     const chip = chips.get(key) ?? {
       label: parts ? parts[1] : column,
-      values: fixedValuesText(f.values.map((v) => filterValue(v, type))),
+      values: fixedValuesText(f.values.map((v) => filterValue(v, type)), lang, locale),
       column,
       tiles: [],
       ids: new Set<string>(),
@@ -257,11 +270,11 @@ export function fixedFilterChips(page: DwgPageSpec): DwgFixedChip[] {
 }
 
 /** Beschriftung eines Chips: „Year: 2026“, bei Kachelfiltern mit „nur <Kachel>“ bzw. „<n> Kacheln“. */
-export function fixedChipText(chip: DwgFixedChip): { text: string; scope: string | null; title: string } {
+export function fixedChipText(chip: DwgFixedChip, lang: DwgLang = 'de'): { text: string; scope: string | null; title: string } {
+  const t = uiText(lang);
   const text = `${chip.label}: ${chip.values}`;
-  const scope = !chip.tiles ? null : chip.tiles.length === 1 ? `nur ${chip.tiles[0]}` : `${chip.tiles.length} Kacheln`;
-  const where = chip.tiles ? `gilt für ${chip.tiles.join(', ')}` : 'gilt für alle Kacheln der Seite';
-  return { text, scope, title: `Fester Filter aus der App-Spec (${chip.column}), ${where}` };
+  const scope = !chip.tiles ? null : chip.tiles.length === 1 ? t.onlyTile(chip.tiles[0]) : t.tileCount(chip.tiles.length);
+  return { text, scope, title: t.fixedTitle(chip.column, chip.tiles) };
 }
 
 /**
@@ -441,12 +454,18 @@ export interface DwgSlicerChip {
 }
 
 /** Chips für alle Slicer mit Auswahl, in der Reihenfolge der Spec; „Alle“ (leere Auswahl) zeigt keinen Chip. */
-export function slicerChips(slicers: DwgSlicerSpec[], state: DwgSlicerState, defaults: DwgSlicerState = {}): DwgSlicerChip[] {
+export function slicerChips(
+  slicers: DwgSlicerSpec[],
+  state: DwgSlicerState,
+  defaults: DwgSlicerState = {},
+  lang: DwgLang = 'de',
+  locale?: string
+): DwgSlicerChip[] {
   return slicers
     .filter((s) => (state[s.column] ?? []).length > 0)
     .map((s) => {
       const values = state[s.column];
-      const shown = values.slice(0, 2).map((v) => formatSlicerValue(v)).join(', ');
+      const shown = values.slice(0, 2).map((v) => formatSlicerValue(v, lang, locale)).join(', ');
       return {
         column: s.column,
         label: s.label,
@@ -517,10 +536,10 @@ export function findPage(app: DwgAppSpec, hash: string): DwgPageSpec {
 }
 
 /** Gruppen der Navigation in der Reihenfolge ihres ersten Auftretens. */
-export function navGroups(pages: DwgPageSpec[]): { group: string; pages: DwgPageSpec[] }[] {
+export function navGroups(pages: DwgPageSpec[], lang: DwgLang = 'de'): { group: string; pages: DwgPageSpec[] }[] {
   const out: { group: string; pages: DwgPageSpec[] }[] = [];
   for (const p of pages) {
-    const group = p.group?.trim() || 'Seiten';
+    const group = p.group?.trim() || uiText(lang).pages;
     const g = out.find((x) => x.group === group);
     if (g) g.pages.push(p);
     else out.push({ group, pages: [p] });
@@ -599,12 +618,185 @@ export function slicerValues(
   return out;
 }
 
-/** Anzeige eines Slicer-Werts: Jahre ohne Tausenderpunkt, Datum deutsch, leer als „(leer)“. */
-export function formatSlicerValue(v: DaxValue): string {
-  if (v === null || v === '') return '(leer)';
-  if (typeof v === 'boolean') return v ? 'Ja' : 'Nein';
-  if (v instanceof Date) return v.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toLocaleString('de-DE');
+/**
+ * Anzeige eines Slicer-Werts: Jahre ohne Tausendertrennzeichen, Zahlen und Datum im Gebietsschema der Visuals
+ * (Standard aus lang: de-DE bzw. en-US), leer als „(leer)“ bzw. „(blank)“.
+ */
+export function formatSlicerValue(v: DaxValue, lang: DwgLang = 'de', locale?: string): string {
+  const t = uiText(lang);
+  const loc = visualLocale(lang, locale);
+  if (v === null || v === '') return t.blank;
+  if (typeof v === 'boolean') return v ? t.yes : t.no;
+  if (v instanceof Date) return v.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : v.toLocaleString(loc);
   const d = /^(\d{4})-(\d{2})-(\d{2})(T00:00:00(\.0+)?Z?)?$/.exec(v);
-  return d ? `${d[3]}.${d[2]}.${d[1]}` : v;
+  if (!d) return v;
+  if (loc === 'de-DE') return `${d[3]}.${d[2]}.${d[1]}`;
+  const date = new Date(Date.UTC(Number(d[1]), Number(d[2]) - 1, Number(d[3])));
+  return date.toLocaleDateString(loc, { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' });
+}
+
+/** Startwahl je Option: die erste Wahl, deren Werte schon in `objects` stehen, sonst -1 (keine) */
+export function defaultChoices(options: DwgTileOption[], objects: VisualObjects = {}): number[] {
+  const has = (set: VisualObjects) =>
+    Object.entries(set).every(([o, props]) =>
+      Object.entries(props ?? {}).every(([k, v]) => (objects[o] as Record<string, unknown> | undefined)?.[k] === v)
+    );
+  return options.map((o) => o.choices.findIndex((c) => has(c.set)));
+}
+
+/**
+ * Wahl der Optionen nach einem persistProperties des Visuals (z. B. Ebenen-Knopf in der Bedienleiste der P&L): Optionen,
+ * deren Eigenschaften sich zwischen `before` und `after` geändert haben, zeigen die Wahl, die jetzt passt. Passt keine,
+ * bleibt die bisherige Wahl. Andere Optionen bleiben, wie sie sind.
+ */
+export function persistedChoices(options: DwgTileOption[], chosen: number[], before: VisualObjects, after: VisualObjects): number[] {
+  const get = (o: VisualObjects, obj: string, k: string) => (o[obj] as Record<string, unknown> | undefined)?.[k];
+  const touched = (opt: DwgTileOption) =>
+    opt.choices.some((ch) =>
+      Object.entries(ch.set).some(([obj, props]) =>
+        Object.keys(props ?? {}).some((k) => JSON.stringify(get(before, obj, k)) !== JSON.stringify(get(after, obj, k)))
+      )
+    );
+  return options.map((opt, i) => {
+    if (!touched(opt)) return chosen[i] ?? -1;
+    const m = defaultChoices([opt], after)[0];
+    return m >= 0 ? m : (chosen[i] ?? -1);
+  });
+}
+
+/** `objects` mit den gewählten Live-Optionen (in der Reihenfolge der Optionen gemischt); -1 = keine Wahl */
+export function applyOptions(objects: VisualObjects = {}, options: DwgTileOption[] = [], chosen: number[] = []): VisualObjects {
+  const out: VisualObjects = { ...objects };
+  options.forEach((o, i) => {
+    const choice = o.choices[chosen[i] ?? -1];
+    if (!choice) return;
+    for (const [k, v] of Object.entries(choice.set)) out[k] = { ...out[k], ...v };
+  });
+  return out;
+}
+
+/** Sprache der Bedienelemente; Deutsch ist Standard */
+export type DwgLang = 'de' | 'en';
+
+const UI = {
+  de: {
+    all: 'Alle',
+    loading: 'lädt …',
+    valuesMissing: 'Werte fehlen',
+    selected: (n: number) => `${n} gewählt`,
+    filters: 'Filter',
+    reset: 'Zurücksetzen',
+    showEmpty: 'Leere Werte zeigen',
+    collapseLabel: 'Filter-Panel einklappen',
+    collapseTitle: 'Filter einklappen: Kacheln über die ganze Breite (Taste F)',
+    openTitle: 'Filter-Panel öffnen (Taste F)',
+    active: (n: number) => `${n} aktiv`,
+    activeFilters: 'Aktive Filter',
+    removeChip: (label: string, values: string) => `Filter ${label}: ${values} entfernen`,
+    removeChipTitle: 'Filter entfernen (Alle)',
+    noFilter: 'Alle Daten, kein Filter gewählt',
+    fixedFilters: 'Feste Filter',
+    onlyTile: (tile: string) => `nur ${tile}`,
+    tileCount: (n: number) => `${n} Kacheln`,
+    fixedTitle: (column: string, tiles: string[] | null) =>
+      `Fester Filter aus der App-Spec (${column}), ${tiles ? `gilt für ${tiles.join(', ')}` : 'gilt für alle Kacheln der Seite'}`,
+    range: (from: number, to: number) => `${from} bis ${to}`,
+    searchLabel: 'Seite suchen',
+    searchPlaceholder: 'Seite suchen, z. B. C21 oder Brücke',
+    hits: (n: number) => `${n} Treffer`,
+    pageCount: (n: number) => `${n} Seiten`,
+    closeMenu: 'Seitenmenü schließen',
+    openMenu: 'Seitenmenü öffnen',
+    closeTitle: 'Schließen (Esc)',
+    pages: 'Seiten',
+    noMatch: 'Keine Seite passt zur Suche.',
+    prevPage: (name: string) => `Vorige Seite: ${name}`,
+    nextPage: (name: string) => `Nächste Seite: ${name}`,
+    allPages: 'Alle Seiten',
+    changePage: 'Seite wechseln',
+    resolution: 'Auflösung',
+    fullhd: 'Seite in Full HD (1920 px) aufbauen und als Ganzes skalieren',
+    hd: 'Seite in HD (1280 px) aufbauen und als Ganzes skalieren: größere Schrift',
+    fluid: 'Fließend',
+    fluidTitle: 'Nur die Kacheln skalieren, Schrift bleibt gleich',
+    headersTitle: 'Titelblöcke und Bedienleisten in den Grafiken zeigen',
+    headers: (on: boolean) => `Kopfzeilen ${on ? 'an' : 'aus'}`,
+    noPermission: 'Keine Berechtigung auf das Semantikmodell (Lesen und Erstellen nötig).',
+    capacity: 'Die Fabric-Kapazität ist gerade ausgelastet. Bitte gleich neu laden.',
+    dataMissing: 'Daten fehlen',
+    retry: 'Erneut versuchen',
+    clearFilter: 'Filter aufheben',
+    options: 'Optionen',
+    showOptions: 'Optionen zeigen',
+    hideOptions: 'Optionen ausblenden',
+    blank: '(leer)',
+    yes: 'Ja',
+    no: 'Nein',
+  },
+  en: {
+    all: 'All',
+    loading: 'Loading …',
+    valuesMissing: 'Values missing',
+    selected: (n: number) => `${n} selected`,
+    filters: 'Filters',
+    reset: 'Reset',
+    showEmpty: 'Show blank values',
+    collapseLabel: 'Collapse filter panel',
+    collapseTitle: 'Collapse filters: tiles use the full width (key F)',
+    openTitle: 'Open filter panel (key F)',
+    active: (n: number) => `${n} active`,
+    activeFilters: 'Active filters',
+    removeChip: (label: string, values: string) => `Remove filter ${label}: ${values}`,
+    removeChipTitle: 'Remove filter (All)',
+    noFilter: 'All data, no filter selected',
+    fixedFilters: 'Fixed filters',
+    onlyTile: (tile: string) => `only ${tile}`,
+    tileCount: (n: number) => `${n} tiles`,
+    fixedTitle: (column: string, tiles: string[] | null) =>
+      `Fixed filter from the app spec (${column}), ${tiles ? `applies to ${tiles.join(', ')}` : 'applies to all tiles on the page'}`,
+    range: (from: number, to: number) => `${from} to ${to}`,
+    searchLabel: 'Search pages',
+    searchPlaceholder: 'Search pages, e.g. C21 or bridge',
+    hits: (n: number) => (n === 1 ? '1 match' : `${n} matches`),
+    pageCount: (n: number) => (n === 1 ? '1 page' : `${n} pages`),
+    closeMenu: 'Close page menu',
+    openMenu: 'Open page menu',
+    closeTitle: 'Close (Esc)',
+    pages: 'Pages',
+    noMatch: 'No page matches the search.',
+    prevPage: (name: string) => `Previous page: ${name}`,
+    nextPage: (name: string) => `Next page: ${name}`,
+    allPages: 'All pages',
+    changePage: 'Change page',
+    resolution: 'Resolution',
+    fullhd: 'Build the page at Full HD (1920 px) and scale it as a whole',
+    hd: 'Build the page at HD (1280 px) and scale it as a whole: larger text',
+    fluid: 'Fluid',
+    fluidTitle: 'Scale the tiles only, text keeps its size',
+    headersTitle: 'Show title blocks and toolbars inside the visuals',
+    headers: (on: boolean) => `Headers ${on ? 'on' : 'off'}`,
+    noPermission: 'No permission on the semantic model (read and build needed).',
+    capacity: 'The Fabric capacity is busy right now. Please reload in a moment.',
+    dataMissing: 'data missing',
+    retry: 'Try again',
+    clearFilter: 'Clear filter',
+    options: 'Options',
+    showOptions: 'Show options',
+    hideOptions: 'Hide options',
+    blank: '(blank)',
+    yes: 'Yes',
+    no: 'No',
+  },
+};
+export type DwgUiText = (typeof UI)['de'];
+
+/** Texte der Bedienelemente je Sprache (Standard deutsch) */
+export function uiText(lang: DwgLang = 'de'): DwgUiText {
+  return UI[lang] ?? UI.de;
+}
+
+/** Gebietsschema der Visuals: ausdrücklich gesetzt, sonst aus der Sprache (de → de-DE, en → en-US) */
+export function visualLocale(lang: DwgLang = 'de', locale?: string): string {
+  return locale ?? (lang === 'en' ? 'en-US' : 'de-DE');
 }

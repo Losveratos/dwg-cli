@@ -7,6 +7,9 @@ import { DwgShell } from '@app/dwg/DwgShell';
 // @ts-expect-error Alias, den shell.mjs auf src/dwg/apps/<spec>.ts setzt
 import { app } from '@shell';
 
+// englische App (lang: en): Texte des Testrahmens ebenfalls englisch, Fußtext aus der Spec
+const en = app.lang === 'en';
+
 function Harness() {
   const [isDark, setDark] = useState(false);
   return (
@@ -14,7 +17,7 @@ function Harness() {
       app={app}
       connection="test"
       isDark={isDark}
-      subtitle="Test des App-Rahmens mit synthetischen Daten"
+      subtitle={en ? 'Browser test with the demo data set (Mini-DAX)' : 'Test des App-Rahmens mit synthetischen Daten'}
       actions={
         <button
           id="theme"
@@ -24,10 +27,10 @@ function Harness() {
             document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
           }}
         >
-          Hell / Dunkel
+          {en ? 'Light / Dark' : 'Hell / Dunkel'}
         </button>
       }
-      footer="Demodaten. IBCS® ist eine eingetragene Marke des IBCS Institute."
+      footer={en ? undefined : 'Demodaten. IBCS® ist eine eingetragene Marke des IBCS Institute.'}
     />
   );
 }

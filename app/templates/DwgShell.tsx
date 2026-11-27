@@ -13,6 +13,8 @@
 // MIN_STAGE_WIDTH scrollt sie waagerecht. Die Bühne passt sich der Fensterhöhe an (höchstens Seitenhöhe, mindestens
 // MIN_FIT davon): die Kacheln werden über das Pixelraster neu verteilt, damit die ganze Seite ohne Scrollen sichtbar ist.
 // „responsive“ skaliert nur die Kacheln. Unter 900 px wird gestapelt.
+// Sprache der Bedienelemente aus `app.lang` (Standard de, en möglich), Gebietsschema der Visuals aus `app.locale`
+// (Standard aus lang: de-DE bzw. en-US), an ChartKitchen und P&L durchgereicht.
 // Layout und Farben als Inline-Styles (ohne Tailwind lauffähig).
 // Von `dwg app page` geschrieben, wird bei jedem Lauf ersetzt.
 
@@ -42,13 +44,16 @@ import {
   slicerValues,
   stageScale,
   toggleSlicerValue,
+  uiText,
   valueText,
   type DwgAppSpec,
   type DwgBox,
+  type DwgLang,
   type DwgPageSpec,
   type DwgResolution,
   type DwgSlicerSpec,
   type DwgSlicerState,
+  type DwgUiText,
 } from './dwg-page';
 import { DwgPage, FixedFilterChips } from './DwgPage';
 
@@ -84,11 +89,18 @@ type Palette = ReturnType<typeof palette>;
 
 /** Viele Werte: Liste bzw. Auswahlfeld statt Knöpfen */
 const MAX_PILLS = 12;
-const RESOLUTIONS: { id: DwgResolution; label: string; title: string }[] = [
-  { id: 'fullhd', label: 'FHD', title: 'Seite in Full HD (1920 px) aufbauen und als Ganzes skalieren' },
-  { id: 'hd', label: 'HD', title: 'Seite in HD (1280 px) aufbauen und als Ganzes skalieren: größere Schrift' },
-  { id: 'responsive', label: 'Fließend', title: 'Nur die Kacheln skalieren, Schrift bleibt gleich' },
+const resolutions = (t: DwgUiText): { id: DwgResolution; label: string; title: string }[] => [
+  { id: 'fullhd', label: 'FHD', title: t.fullhd },
+  { id: 'hd', label: 'HD', title: t.hd },
+  { id: 'responsive', label: t.fluid, title: t.fluidTitle },
 ];
+
+/** Sprache und Gebietsschema für Texte und Werte im Rahmen */
+interface Loc {
+  t: DwgUiText;
+  lang: DwgLang;
+  locale?: string;
+}
 
 /** Einstellung je Browser merken (Auflösung, Kopfzeilen); ohne Speicher (privat, Tests) einfach nicht */
 function stored<T extends string>(key: string, allowed: readonly T[]): T | null {
@@ -155,9 +167,12 @@ interface SlicerProps {
   k: number;
   showEmpty: boolean;
   onChange: (next: DaxValue[]) => void;
+  loc: Loc;
 }
 
-function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange }: SlicerProps) {
+function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange, loc }: SlicerProps) {
+  const { t, lang, locale } = loc;
+  const fmt = (v: DaxValue) => formatSlicerValue(v, lang, locale);
   const query = useMemo(() => slicerQuery(slicer), [slicer]);
   const { data, isLoading, error } = useSemanticModelQuery({ connection, query });
   const all = useMemo(() => (data?.status === 'success' ? slicerValues(data.table, slicer, type) : []), [data, slicer, type]);
@@ -168,7 +183,7 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
   );
   const message = error?.message ?? (data?.status === 'error' ? data.error.message : null);
   const isOn = (v: DaxValue) => value.some((x) => formatSlicerValue(x) === formatSlicerValue(v) && typeof x === typeof v);
-  const summary = value.length === 0 ? 'Alle' : value.length === 1 ? formatSlicerValue(value[0]) : `${value.length} gewählt`;
+  const summary = value.length === 0 ? t.all : value.length === 1 ? fmt(value[0]) : t.selected(value.length);
   const small = `400 ${12 * k}px/${16 * k}px ${FONT}`;
 
   return (
@@ -188,16 +203,16 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
         <span>{slicer.label}</span>
         <span style={{ fontWeight: 400, color: c.muted }}>{summary}</span>
       </legend>
-      {isLoading && <p style={{ margin: 0, font: small, color: c.muted }}>lädt …</p>}
+      {isLoading && <p style={{ margin: 0, font: small, color: c.muted }}>{t.loading}</p>}
       {message && (
         <p role="alert" style={{ margin: 0, font: small, color: c.accent }}>
-          Werte fehlen: {message}
+          {t.valuesMissing}: {message}
         </p>
       )}
       {!isLoading && !message && values.length <= MAX_PILLS && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 * k }}>
           <button type="button" aria-pressed={value.length === 0} style={pill(c, value.length === 0, k)} onClick={() => onChange([])}>
-            Alle
+            {t.all}
           </button>
           {values.map((v) => (
             <button
@@ -208,7 +223,7 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
               style={pill(c, isOn(v), k)}
               onClick={() => onChange(toggleSlicerValue(slicer, value, v))}
             >
-              {formatSlicerValue(v)}
+              {fmt(v)}
             </button>
           ))}
         </div>
@@ -228,10 +243,10 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
             color: c.text,
           }}
         >
-          <option value="">Alle</option>
+          <option value="">{t.all}</option>
           {values.map((v, i) => (
             <option key={`${typeof v}:${String(v)}`} value={String(i)}>
-              {formatSlicerValue(v)}
+              {fmt(v)}
             </option>
           ))}
         </select>
@@ -259,7 +274,7 @@ function DwgSlicer({ slicer, type, value, connection, c, k, showEmpty, onChange 
                 onChange={() => onChange(toggleSlicerValue(slicer, value, v))}
                 style={{ accentColor: c.accent }}
               />
-              {formatSlicerValue(v)}
+              {fmt(v)}
             </label>
           ))}
         </div>
@@ -316,21 +331,24 @@ interface PanelProps {
   collapsed: boolean;
   onCollapse: () => void;
   collapseRef: Ref<HTMLButtonElement>;
+  loc: Loc;
 }
 
 /** Filter-Panel: Slicer, Zurücksetzen, leere Werte einblenden, Einklappen */
-function FilterPanel({ app, state, setState, defaults, connection, c, k, style, collapsed, onCollapse, collapseRef }: PanelProps) {
+function FilterPanel({ app, state, setState, defaults, connection, c, k, style, collapsed, onCollapse, collapseRef, loc }: PanelProps) {
+  const { t } = loc;
   const [showEmpty, setShowEmpty] = useState(false);
   const changed = app.slicers.some((s) => !sameValues(state[s.column] ?? [], defaults[s.column] ?? []));
   return (
     <aside
       id={PANEL_ID}
-      aria-label="Filter"
+      aria-label={t.filters}
+      data-dwg-filter-panel=""
       style={{ boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 16 * k, ...style, ...(collapsed ? { display: 'none' } : {}) }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 * k }}>
         <h2 style={{ margin: 0, marginRight: 'auto', font: `700 ${12 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.muted }}>
-          Filter
+          {t.filters}
         </h2>
         <button
           type="button"
@@ -338,7 +356,7 @@ function FilterPanel({ app, state, setState, defaults, connection, c, k, style, 
           onClick={() => setState(() => defaults)}
           style={smallButton(c, k, changed)}
         >
-          Zurücksetzen
+          {t.reset}
         </button>
         <button
           ref={collapseRef}
@@ -347,8 +365,8 @@ function FilterPanel({ app, state, setState, defaults, connection, c, k, style, 
           aria-expanded={true}
           aria-controls={PANEL_ID}
           aria-keyshortcuts="F"
-          aria-label="Filter-Panel einklappen"
-          title="Filter einklappen: Kacheln über die ganze Breite (Taste F)"
+          aria-label={t.collapseLabel}
+          title={t.collapseTitle}
           onClick={onCollapse}
           style={{ ...smallButton(c, k, true), color: c.text, padding: `${4 * k}px ${6 * k}px` }}
         >
@@ -366,6 +384,7 @@ function FilterPanel({ app, state, setState, defaults, connection, c, k, style, 
           k={k}
           showEmpty={showEmpty}
           onChange={(next) => setState((prev) => ({ ...prev, [s.column]: next }))}
+          loc={loc}
         />
       ))}
       <label style={{ display: 'flex', gap: 6 * k, alignItems: 'center', font: `400 ${12 * k}px/${16 * k}px ${FONT}`, color: c.muted }}>
@@ -376,7 +395,7 @@ function FilterPanel({ app, state, setState, defaults, connection, c, k, style, 
           onChange={(e) => setShowEmpty(e.target.checked)}
           style={{ accentColor: c.accent }}
         />
-        Leere Werte zeigen
+        {t.showEmpty}
       </label>
     </aside>
   );
@@ -395,14 +414,16 @@ interface BarProps {
   height?: number;
   onOpen: () => void;
   openRef: Ref<HTMLButtonElement>;
+  loc: Loc;
 }
 
 /**
  * Filterleiste bei eingeklapptem Panel: „Filter“ öffnet das Panel, aktive Slicer als Chips mit × (hebt den Filter auf,
  * Auswahl „Alle“), feste Filter der Spec ohne ×, Zurücksetzen auf die Vorgaben.
  */
-function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height, onOpen, openRef }: BarProps) {
-  const chips = slicerChips(app.slicers, state, defaults);
+function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height, onOpen, openRef, loc }: BarProps) {
+  const { t, lang, locale } = loc;
+  const chips = slicerChips(app.slicers, state, defaults, lang, locale);
   const changed = app.slicers.some((s) => !sameValues(state[s.column] ?? [], defaults[s.column] ?? []));
   const list = useRef<HTMLUListElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -434,7 +455,7 @@ function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height,
         aria-expanded={false}
         aria-controls={PANEL_ID}
         aria-keyshortcuts="F"
-        title="Filter-Panel öffnen (Taste F)"
+        title={t.openTitle}
         onClick={onOpen}
         style={{
           ...smallButton(c, k, true),
@@ -445,10 +466,10 @@ function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height,
         }}
       >
         <Icon d={ICON_FILTER} size={13 * k} />
-        Filter
-        {chips.length > 0 && <span aria-label={`${chips.length} aktiv`}>({chips.length})</span>}
+        {t.filters}
+        {chips.length > 0 && <span aria-label={t.active(chips.length)}>({chips.length})</span>}
       </button>
-      <ul ref={list} aria-label="Aktive Filter" style={{ display: 'flex', flexWrap: height ? 'nowrap' : 'wrap', gap: 6 * k, margin: 0, padding: 0, listStyle: 'none', minWidth: 0 }}>
+      <ul ref={list} aria-label={t.activeFilters} style={{ display: 'flex', flexWrap: height ? 'nowrap' : 'wrap', gap: 6 * k, margin: 0, padding: 0, listStyle: 'none', minWidth: 0 }}>
         {chips.map((chip, i) => (
           <li
             key={chip.column}
@@ -472,8 +493,8 @@ function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height,
             <button
               type="button"
               data-dwg-chip-remove={chip.column}
-              aria-label={`Filter ${chip.label}: ${chip.values} entfernen`}
-              title="Filter entfernen (Alle)"
+              aria-label={t.removeChip(chip.label, chip.values)}
+              title={t.removeChipTitle}
               onClick={() => remove(chip.column, i)}
               style={{
                 display: 'grid',
@@ -494,11 +515,19 @@ function FilterBar({ app, page, state, setState, defaults, c, k, isDark, height,
           </li>
         ))}
       </ul>
-      {chips.length === 0 && <span style={{ font: `400 ${11.5 * k}px/${15 * k}px ${FONT}`, color: c.muted, whiteSpace: 'nowrap' }}>Alle Daten, kein Filter gewählt</span>}
-      <FixedFilterChips page={page} isDark={isDark} k={k * 0.95} colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }} style={{ flexWrap: height ? 'nowrap' : 'wrap' }} />
+      {chips.length === 0 && <span style={{ font: `400 ${11.5 * k}px/${15 * k}px ${FONT}`, color: c.muted, whiteSpace: 'nowrap' }}>{t.noFilter}</span>}
+      <FixedFilterChips
+        page={page}
+        isDark={isDark}
+        k={k * 0.95}
+        colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }}
+        style={{ flexWrap: height ? 'nowrap' : 'wrap' }}
+        lang={lang}
+        locale={locale}
+      />
       {changed && (
         <button type="button" data-dwg-reset="" onClick={() => setState(() => defaults)} style={{ ...smallButton(c, k, true), marginLeft: 'auto' }}>
-          Zurücksetzen
+          {t.reset}
         </button>
       )}
     </div>
@@ -513,6 +542,7 @@ function PageHeader({
   isDark,
   style,
   bar,
+  loc,
 }: {
   page: DwgPageSpec;
   c: Palette;
@@ -521,6 +551,7 @@ function PageHeader({
   style?: CSSProperties;
   /** Filterleiste (eingeklapptes Panel); die festen Filter stehen dann dort statt rechts neben dem Titel */
   bar?: ReactNode;
+  loc: Loc;
 }) {
   return (
     <div style={{ boxSizing: 'border-box', overflow: 'hidden', display: 'flex', flexDirection: 'column', ...style }}>
@@ -536,6 +567,8 @@ function PageHeader({
             k={k * 0.9}
             colors={{ text: c.text, muted: c.muted, border: c.border, surface: c.surface }}
             style={{ marginLeft: 'auto', alignSelf: 'center' }}
+            lang={loc.lang}
+            locale={loc.locale}
           />
         )}
       </div>
@@ -566,13 +599,14 @@ interface MenuProps {
   /** Platz unter der Kopfleiste (das Menü scrollt darin, die Seite nicht) */
   maxHeight: number;
   onClose: (focusToggle: boolean) => void;
+  t: DwgUiText;
 }
 
 /**
  * Seitenmenü als Popup unter der Kopfleiste: alle Seiten nach Gruppen in Spalten, Suchfeld (Kennung, Name, Gruppe),
  * aktuelle Seite markiert. Auswahl, Esc und Klick daneben schließen es.
  */
-function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
+function PageMenu({ groups, page, c, narrow, maxHeight, onClose, t }: MenuProps) {
   const [q, setQ] = useState('');
   const search = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLElement>(null);
@@ -614,8 +648,8 @@ function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
           ref={search}
           type="search"
           value={q}
-          aria-label="Seite suchen"
-          placeholder="Seite suchen, z. B. C21 oder Brücke"
+          aria-label={t.searchLabel}
+          placeholder={t.searchPlaceholder}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -637,11 +671,11 @@ function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
             color: c.text,
           }}
         />
-        <span style={{ font: `400 12px/16px ${FONT}`, color: c.muted }}>{needle ? `${total} Treffer` : `${total} Seiten`}</span>
+        <span style={{ font: `400 12px/16px ${FONT}`, color: c.muted }}>{needle ? t.hits(total) : t.pageCount(total)}</span>
         <button
           type="button"
-          aria-label="Seitenmenü schließen"
-          title="Schließen (Esc)"
+          aria-label={t.closeMenu}
+          title={t.closeTitle}
           onClick={() => onClose(true)}
           style={{ ...smallButton(c, 1, true), marginLeft: 'auto', color: c.text, font: `500 16px/16px ${FONT}`, padding: '4px 8px' }}
         >
@@ -651,7 +685,7 @@ function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
       <nav
         ref={list}
         id={MENU_ID}
-        aria-label="Seiten"
+        aria-label={t.pages}
         style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '14px 20px' }}
       >
         {shown.map((g) => {
@@ -703,7 +737,7 @@ function PageMenu({ groups, page, c, narrow, maxHeight, onClose }: MenuProps) {
             </section>
           );
         })}
-        {shown.length === 0 && <p style={{ margin: 0, font: `400 13px/18px ${FONT}`, color: c.muted }}>Keine Seite passt zur Suche.</p>}
+        {shown.length === 0 && <p style={{ margin: 0, font: `400 13px/18px ${FONT}`, color: c.muted }}>{t.noMatch}</p>}
       </nav>
     </div>
   );
@@ -724,6 +758,9 @@ interface ShellProps {
 
 export function DwgShell({ app, connection, isDark, title, subtitle, actions, footer }: ShellProps) {
   const c = palette(isDark);
+  const lang: DwgLang = app.lang ?? 'de';
+  const t = uiText(lang);
+  const loc = useMemo<Loc>(() => ({ t: uiText(app.lang), lang: app.lang ?? 'de', locale: app.locale }), [app.lang, app.locale]);
   const { ref, width } = useWidth();
   const [page, setPage] = useState(() => findPage(app, typeof window === 'undefined' ? '' : window.location.hash));
   const [state, setState] = useState<DwgSlicerState>(() => slicerDefaults(app.slicers, app.columnTypes));
@@ -743,7 +780,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
 
   // eine Referenz je Auswahl: Theme, Fenstergröße, Auflösung und Kopfzeilen lösen keine neuen Abfragen aus
   const filters = useMemo(() => slicerFilters(app.slicers, state, app.columnTypes), [app.slicers, state, app.columnTypes]);
-  const groups = navGroups(app.pages);
+  const groups = navGroups(app.pages, lang);
   const current = groups.find((g) => g.pages.includes(page)) ?? groups[0];
   const hasPanel = app.slicers.length > 0;
   const foot = footer ?? app.footer;
@@ -912,7 +949,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
       <a
         href={`#${pageId(p)}`}
         data-dwg-step={dir}
-        aria-label={`${dir === 'prev' ? 'Vorige' : 'Nächste'} Seite: ${pageLabel(p)}`}
+        aria-label={dir === 'prev' ? t.prevPage(pageLabel(p)) : t.nextPage(pageLabel(p))}
         title={pageLabel(p)}
         style={{
           display: 'grid',
@@ -947,6 +984,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
     <div
       ref={ref}
       data-dwg-shell=""
+      lang={lang}
       data-dwg-mode={narrow ? 'narrow' : scaled ? resolution : 'responsive'}
       data-dwg-panel={hasPanel ? (collapsed ? 'closed' : 'open') : undefined}
       style={{ display: 'flex', flexDirection: 'column', minHeight: '100%', background: c.bg, color: c.text, font: `400 14px/20px ${FONT}` }}
@@ -964,8 +1002,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
             aria-expanded={menu}
             aria-controls={MENU_ID}
             aria-haspopup="true"
-            aria-label={menu ? 'Seitenmenü schließen' : 'Seitenmenü öffnen'}
-            title="Alle Seiten"
+            aria-label={menu ? t.closeMenu : t.openMenu}
+            title={t.allPages}
             onClick={() => setMenu((m) => !m)}
             style={{
               display: 'grid',
@@ -1005,7 +1043,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               data-dwg-current=""
               aria-expanded={menu}
               aria-controls={MENU_ID}
-              title="Seite wechseln"
+              title={t.changePage}
               onClick={() => setMenu((m) => !m)}
               style={{
                 display: 'flex',
@@ -1034,8 +1072,8 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
             {step(next, 'next')}
           </div>
           <div style={{ marginLeft: 'auto', flex: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div role="group" aria-label="Auflösung" style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 7, background: c.bg }}>
-              {RESOLUTIONS.map((r) => (
+            <div role="group" aria-label={t.resolution} style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 7, background: c.bg }}>
+              {resolutions(t).map((r) => (
                 <button
                   key={r.id}
                   type="button"
@@ -1053,15 +1091,15 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               type="button"
               data-dwg-toggle="headers"
               aria-pressed={headers}
-              title="Titelblöcke und Bedienleisten in den Grafiken zeigen"
+              title={t.headersTitle}
               onClick={toggleHeaders}
               style={{ ...ctl(headers), boxShadow: `0 0 0 1px ${c.border}` }}
             >
-              Kopfzeilen {headers ? 'an' : 'aus'}
+              {t.headers(headers)}
             </button>
             {actions}
           </div>
-          {menu && <PageMenu groups={groups} page={page} c={c} narrow={narrow} maxHeight={Math.max(240, room - 24)} onClose={closeMenu} />}
+          {menu && <PageMenu groups={groups} page={page} c={c} narrow={narrow} maxHeight={Math.max(240, room - 24)} onClose={closeMenu} t={t} />}
         </div>
       </header>
 
@@ -1098,6 +1136,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
               isDark={isDark}
               c={c}
               k={scaled ? k : 1.25}
+              loc={loc}
               bar={
                 collapsed ? (
                   <FilterBar
@@ -1112,6 +1151,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                     height={scaled ? Math.round(FILTER_BAR_H * k) : undefined}
                     onOpen={() => togglePanel(true)}
                     openRef={openRef}
+                    loc={loc}
                   />
                 ) : undefined
               }
@@ -1133,6 +1173,7 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                 collapsed={collapsed}
                 onCollapse={() => togglePanel(true)}
                 collapseRef={collapseRef}
+                loc={loc}
                 style={
                   scaled && z?.filter
                     ? { ...px(z.filter), padding: m, background: c.panel, borderRight: `1px solid ${c.border}`, overflowY: 'auto' }
@@ -1162,6 +1203,10 @@ export function DwgShell({ app, connection, isDark, title, subtitle, actions, fo
                 isDark={isDark}
                 filters={filters}
                 hideVisualHeaders={!headers}
+                lang={lang}
+                locale={app.locale}
+                colors={c}
+                uiScale={scaled ? k * 0.85 : 1}
                 fitVisuals
                 onTileNeed={scaled ? onTileNeed : undefined}
                 showFixedFilters={false}

@@ -1,0 +1,603 @@
+{
+  "name": "Budapest BI Forum demo",
+  "about": "Demo for the Budapest BI Forum 2026: the first three pages of the Power BI report \"Budapest BI Forum\" (Custom Viz, Group P&L, Plan gap) as a Fabric App, with the original visuals ChartKitchen byDatenWG and P&L Statement byDatenWG on the semantic model \"Budapest BI Forum\". Slicers of the report become the collapsible filter panel; the P&L tile has a collapsible panel with live format options.",
+  "lang": "en",
+  "resolution": "fullhd",
+  "visualHeaders": true,
+  "footer": "Synthetic demo data. Presentation inspired by IBCS; IBCS® is a registered trademark of the IBCS Institute.",
+  "slicers": [
+    {
+      "column": "'dim-datum'[Jahr]",
+      "label": "Year",
+      "default": [
+        2026
+      ],
+      "multi": false
+    },
+    {
+      "column": "'dim-region'[Region]",
+      "label": "Region",
+      "default": [],
+      "multi": true
+    },
+    {
+      "column": "'dim-gesellschaft'[Country]",
+      "label": "Country",
+      "default": [],
+      "multi": true
+    },
+    {
+      "column": "'dim-gesellschaft'[Währung]",
+      "label": "Currency",
+      "default": [],
+      "multi": true
+    },
+    {
+      "column": "'dim-gesellschaft'[Short name]",
+      "label": "Company",
+      "default": [],
+      "multi": true,
+      "sortBy": "'dim-gesellschaft'[Sortierung]"
+    },
+    {
+      "column": "'close-status'[Close status]",
+      "label": "Close status",
+      "default": [],
+      "multi": false,
+      "sortBy": "'close-status'[Close status Sort]"
+    }
+  ],
+  "pages": [
+    {
+      "id": "custom-viz",
+      "name": "Custom Viz",
+      "width": 1920,
+      "height": 1080,
+      "tiles": [
+        {
+          "id": "company",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            810,
+            894
+          ],
+          "title": "Revenue vs plan and previous year by company",
+          "bindings": {
+            "category": "'dim-gesellschaft'[Short name]",
+            "actual": "'_Measures'[Revenue AC]",
+            "plan": "'_Measures'[Revenue PL]",
+            "previousYear": "'_Measures'[Revenue PY]"
+          },
+          "sortBy": {
+            "'dim-gesellschaft'[Short name]": "'dim-gesellschaft'[Sortierung]"
+          },
+          "displayNames": {
+            "[actual]": "Revenue AC",
+            "[previousYear]": "Revenue PY",
+            "[plan]": "Revenue PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "off",
+              "templateApplied": "off",
+              "orientation": "catbridge",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": true,
+              "waterfallStyle": false,
+              "pyTriangle": true,
+              "chartButtons": true,
+              "chipMenu": false,
+              "smartStart": false
+            },
+            "ibcsTitle": {
+              "show": false,
+              "kpi": "Revenue vs plan and previous year by company",
+              "period": "January to October 2026"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "displayUnits": "m",
+              "decimals": 1
+            }
+          }
+        },
+        {
+          "id": "months",
+          "visual": "chartkitchen",
+          "rect": [
+            1155,
+            123,
+            738,
+            894
+          ],
+          "title": "Revenue vs plan and previous year by month",
+          "bindings": {
+            "category": "'dim-datum'[Month Short]",
+            "actual": "'_Measures'[Revenue AC]",
+            "plan": "'_Measures'[Revenue PL]",
+            "previousYear": "'_Measures'[Revenue PY]",
+            "multiples": "'dim-region'[Region]"
+          },
+          "sortBy": {
+            "'dim-datum'[Month Short]": "'dim-datum'[MonatNr]"
+          },
+          "displayNames": {
+            "[actual]": "Revenue AC",
+            "[previousYear]": "Revenue PY",
+            "[plan]": "Revenue PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "off",
+              "templateApplied": "off",
+              "orientation": "columns",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": false,
+              "dualVariance": true,
+              "waterfallStyle": false,
+              "pyTriangle": true,
+              "chartButtons": false,
+              "chipMenu": false,
+              "smartStart": false,
+              "multiplesTotal": true
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Revenue vs plan and previous year by month",
+              "period": "January to October 2026"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "displayUnits": "m",
+              "decimals": 1
+            }
+          }
+        }
+      ],
+      "group": "Budapest BI Forum",
+      "description": "The custom visual takes AC, PL and PY in its own data roles and draws both variances (ΔPL and ΔPY) with the IBCS notation built in. Free, not Microsoft-certified: no PDF or PowerPoint export and no subscriptions in the Service.",
+      "background": "#F4F4F1",
+      "filters": [
+        {
+          "column": "'dim-datum'[Period Status]",
+          "values": [
+            "Actual"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "group-p-l",
+      "name": "Group P&L",
+      "width": 1920,
+      "height": 1080,
+      "tiles": [
+        {
+          "id": "pnl",
+          "visual": "pnl",
+          "rect": [
+            327,
+            123,
+            1566,
+            894
+          ],
+          "title": "Group P&L",
+          "bindings": {
+            "levels": [
+              "'dim-konten'[L1 EN]",
+              "'dim-konten'[L2 EN]",
+              "'dim-konten'[L3 EN]",
+              "'dim-konten'[L4 EN]"
+            ],
+            "ac": "'_Measures'[AC]",
+            "py": "'_Measures'[PY]",
+            "pl": "'_Measures'[PL]",
+            "fc": "'_Measures'[FC]",
+            "account": "'dim-konten'[AccountID]",
+            "accountName": "'dim-konten'[Name EN]",
+            "sortOrder": "'dim-konten'[SortOrder]",
+            "rowType": "'dim-konten'[RowType]",
+            "formulaDef": "'dim-konten'[FormulaDef EN]",
+            "signConvention": "'dim-konten'[SignConvention]",
+            "displayInvert": "'dim-konten'[DisplayInvert]",
+            "varianceInvert": "'dim-konten'[VarianceInvert]",
+            "comment": "'dim-konten'[Comment EN]"
+          },
+          "showItemsWithNoData": true,
+          "objects": {
+            "columns": {
+              "template": "T03A",
+              "templateApplied": "T03A",
+              "minuend": "ac",
+              "showPY": true,
+              "showPL": true,
+              "showMinuend": true,
+              "valueCascade": false,
+              "dPyAbs": true,
+              "dPyBar": false,
+              "dPyWaterfall": false,
+              "dPyPct": true,
+              "dPyPin": false,
+              "dPlAbs": true,
+              "dPlBar": false,
+              "dPlWaterfall": false,
+              "dPlPct": true,
+              "dPlPin": false,
+              "secondBlock": false,
+              "structureSubtotals": true,
+              "showPctRows": true,
+              "thresholds": false,
+              "scenarioMarks": true,
+              "chartLabels": true,
+              "capBars": false,
+              "sort": "cat",
+              "sortBlock": "ytd",
+              "blockKind": "ytd",
+              "leftBlockKind": "month"
+            },
+            "numbers": {
+              "scaling": "m",
+              "decimals": 1
+            },
+            "titleBlock": {
+              "show": true,
+              "measureLine": "Income statement in million EUR",
+              "unitLine": "DWG Industries SE · nine companies · seven currencies",
+              "periodLine": "January to October 2026 · actual vs prior year and plan",
+              "message": "Revenue +12.8 % vs prior year, EBITDA 5.6 % below plan · Mobility Solutions −8 % against plan, Energy Systems and Poland compensate in part"
+            },
+            "style": {
+              "fontPreset": "fullhd",
+              "density": "compact"
+            },
+            "hierarchy": {
+              "defaultLevel": 2
+            },
+            "toolbar": {
+              "show": true,
+              "showLegend": true,
+              "foldable": true
+            }
+          },
+          "options": [
+            {
+              "id": "rows",
+              "label": "Rows",
+              "choices": [
+                {
+                  "label": "L1",
+                  "set": {
+                    "hierarchy": {
+                      "defaultLevel": 1
+                    }
+                  }
+                },
+                {
+                  "label": "L2",
+                  "set": {
+                    "hierarchy": {
+                      "defaultLevel": 2
+                    }
+                  }
+                },
+                {
+                  "label": "L3",
+                  "set": {
+                    "hierarchy": {
+                      "defaultLevel": 3
+                    }
+                  }
+                },
+                {
+                  "label": "All",
+                  "set": {
+                    "hierarchy": {
+                      "defaultLevel": 4
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "variance",
+              "label": "Variance shown as",
+              "choices": [
+                {
+                  "label": "Numbers",
+                  "set": {
+                    "columns": {
+                      "dPyAbs": true,
+                      "dPyPct": true,
+                      "dPyBar": false,
+                      "dPyPin": false,
+                      "dPlAbs": true,
+                      "dPlPct": true,
+                      "dPlBar": false,
+                      "dPlPin": false
+                    }
+                  }
+                },
+                {
+                  "label": "Absolute",
+                  "set": {
+                    "columns": {
+                      "dPyAbs": true,
+                      "dPyPct": false,
+                      "dPyBar": false,
+                      "dPyPin": false,
+                      "dPlAbs": true,
+                      "dPlPct": false,
+                      "dPlBar": false,
+                      "dPlPin": false
+                    }
+                  }
+                },
+                {
+                  "label": "Percent",
+                  "set": {
+                    "columns": {
+                      "dPyAbs": false,
+                      "dPyPct": true,
+                      "dPyBar": false,
+                      "dPyPin": false,
+                      "dPlAbs": false,
+                      "dPlPct": true,
+                      "dPlBar": false,
+                      "dPlPin": false
+                    }
+                  }
+                },
+                {
+                  "label": "Charts",
+                  "set": {
+                    "columns": {
+                      "dPyAbs": false,
+                      "dPyPct": false,
+                      "dPyBar": true,
+                      "dPyPin": true,
+                      "dPlAbs": false,
+                      "dPlPct": false,
+                      "dPlBar": true,
+                      "dPlPin": true
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "py",
+              "label": "Prior year (PY, ΔPY)",
+              "choices": [
+                {
+                  "label": "On",
+                  "set": {
+                    "columns": {
+                      "showPY": true
+                    }
+                  }
+                },
+                {
+                  "label": "Off",
+                  "set": {
+                    "columns": {
+                      "showPY": false,
+                      "dPyAbs": false,
+                      "dPyPct": false,
+                      "dPyBar": false,
+                      "dPyPin": false
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "pl",
+              "label": "Plan (PL, ΔPL)",
+              "choices": [
+                {
+                  "label": "On",
+                  "set": {
+                    "columns": {
+                      "showPL": true
+                    }
+                  }
+                },
+                {
+                  "label": "Off",
+                  "set": {
+                    "columns": {
+                      "showPL": false,
+                      "dPlAbs": false,
+                      "dPlPct": false,
+                      "dPlBar": false,
+                      "dPlPin": false
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "pct",
+              "label": "Percent of revenue rows",
+              "choices": [
+                {
+                  "label": "On",
+                  "set": {
+                    "columns": {
+                      "showPctRows": true
+                    }
+                  }
+                },
+                {
+                  "label": "Off",
+                  "set": {
+                    "columns": {
+                      "showPctRows": false
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "units",
+              "label": "Units",
+              "choices": [
+                {
+                  "label": "Million",
+                  "set": {
+                    "numbers": {
+                      "scaling": "m",
+                      "decimals": 1
+                    }
+                  }
+                },
+                {
+                  "label": "Thousand",
+                  "set": {
+                    "numbers": {
+                      "scaling": "k",
+                      "decimals": 0
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "group": "Budapest BI Forum",
+      "description": "The group statement, actual against prior year and plan over the same ten months. Revenue grew 12.8 percent, but EBITDA came in 5.6 percent below plan. The row comments mark the one-off effects: semiconductor spot buys, ocean freight, runaway cloud cost.",
+      "background": "#F4F4F1",
+      "filters": [
+        {
+          "column": "'dim-konten'[Statement]",
+          "values": [
+            "Income statement"
+          ]
+        },
+        {
+          "column": "'dim-datum'[Period Status]",
+          "values": [
+            "Actual"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plan-gap",
+      "name": "Plan gap",
+      "width": 1920,
+      "height": 1080,
+      "tiles": [
+        {
+          "id": "company",
+          "visual": "chartkitchen",
+          "rect": [
+            327,
+            123,
+            774,
+            894
+          ],
+          "title": "Revenue vs plan by company",
+          "bindings": {
+            "category": "'dim-gesellschaft'[Short name]",
+            "actual": "'_Measures'[Revenue AC]",
+            "plan": "'_Measures'[Revenue PL]"
+          },
+          "sortBy": {
+            "'dim-gesellschaft'[Short name]": "'dim-gesellschaft'[Sortierung]"
+          },
+          "displayNames": {
+            "[actual]": "Revenue AC",
+            "[plan]": "Revenue PL"
+          },
+          "objects": {
+            "chart": {
+              "template": "C04",
+              "templateApplied": "C04",
+              "orientation": "bars",
+              "comparisonMode": "plan",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "waterfallStyle": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Revenue vs plan by company",
+              "period": "January to October 2026"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "displayUnits": "m",
+              "decimals": 0
+            }
+          }
+        },
+        {
+          "id": "months",
+          "visual": "chartkitchen",
+          "rect": [
+            1119,
+            123,
+            774,
+            894
+          ],
+          "title": "Revenue vs prior year by month",
+          "bindings": {
+            "category": "'dim-datum'[Month Short]",
+            "actual": "'_Measures'[Revenue AC]",
+            "previousYear": "'_Measures'[Revenue PY]",
+            "forecast": "'_Measures'[Revenue FC]"
+          },
+          "sortBy": {
+            "'dim-datum'[Month Short]": "'dim-datum'[MonatNr]"
+          },
+          "displayNames": {
+            "[actual]": "Revenue AC",
+            "[previousYear]": "Revenue PY",
+            "[forecast]": "Revenue FC"
+          },
+          "objects": {
+            "chart": {
+              "template": "C03",
+              "templateApplied": "C03",
+              "orientation": "columns",
+              "comparisonMode": "py",
+              "showAbsoluteVariance": true,
+              "showRelativeVariance": true,
+              "dualVariance": false,
+              "waterfallStyle": false
+            },
+            "ibcsTitle": {
+              "show": true,
+              "kpi": "Revenue vs prior year by month",
+              "period": "January to October 2026"
+            },
+            "labels": {
+              "fontPreset": "fullhd",
+              "displayUnits": "m",
+              "decimals": 0
+            }
+          }
+        }
+      ],
+      "group": "Budapest BI Forum",
+      "description": "Where the plan gap sits. Left: revenue against plan per company, so the two companies below plan stand out. Right: the same revenue month by month against prior year. Both tiles use sign-aware measures, because the sign convention lives in the account dimension and only the statement visual applies it on its own.",
+      "background": "#F4F4F1",
+      "filters": [
+        {
+          "column": "'dim-datum'[Period Status]",
+          "values": [
+            "Actual"
+          ]
+        }
+      ]
+    }
+  ]
+}
