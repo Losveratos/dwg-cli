@@ -331,6 +331,11 @@ Template beim Anwenden setzt (ChartKitchen `CHART_TEMPLATES`, P&L `templateSwitc
 und EN aus den Sprachressourcen, dazu die Datenrollen als Pflicht, empfohlen oder optional. Die Rollen leitet dwg aus den
 Schaltern ab (Vergleich mit dem Vorjahr → PY Pflicht, zweiter Block → Periode empfohlen, GuV-Statement → Kontologik
 empfohlen); geprüft gegen die abgenommenen Showcase-Kacheln. Derselbe Katalog ist für MockupKitchen gedacht.
+AC ist überall Pflicht, außer bei den Forecast-Strukturtabellen T01D, T02E und T02F (Minuend FC): dort ist AC empfohlen.
+Sie zeigen den Forecast im Monats- und YTD-Block; ist später der Berichtsmonat wählbar, zeigt das Visual FC auch ohne
+AC. `tile add` bindet AC weiter, wenn das Modell eine Ist-Kennzahl im Stamm hat, und meldet das Fehlen nicht als Fehler.
+P&L 1.8.4 zeichnet ohne AC noch keine Tabelle (Hinweis „AC (Ist)“ im Visual). Die FC-Statements T03B, T04D und T04E
+behalten AC als Pflicht.
 
 **Bestände (P&L 1.7, Gruppe „Bilanz & Cashflow“).** T05A und T05B schreiben zusätzlich `statement.stockMode`
 (T05A `allStock`, T05B `auto`). Das Visual liest Bestand oder Fluss aus Token im Zeilentyp: `stock` (Stand am
@@ -369,8 +374,8 @@ Kachel bekommt die Schalter des Templates, Sortierspalte und Anzeigenamen (Chart
 einer leeren Seite den ganzen Inhaltsbereich; daneben braucht sie `--rect`. Danach gelten `checkSpec`, `dwg lint`,
 `app page` und `pbip pages` wie für jede Spec.
 
-Tests: `templates/test/unit.mjs` (27: Katalog, Schalter und Pflichtrollen gegen die 47 Showcase-Kacheln, Vorschläge
-treffen deren Felder, Kurzangaben, Kommandozeile). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
+Tests: `templates/test/unit.mjs` (29: Katalog, Schalter und Pflichtrollen gegen die 47 Showcase-Kacheln, Vorschläge
+treffen deren Felder, Kurzangaben, Kommandozeile, T02E ohne AC bis zur Power-BI-Seite). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
 schemagültiger Bericht (`pbip pages`, `validate`) und im Browser-Testrahmen gerendert, Zahlen wie die Showcase-Seiten;
 Gegenprobe auf dem Modell „ChartKitchen byDatenWG Demo“ (L1..L6, Measures ohne Stamm).
 

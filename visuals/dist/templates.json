@@ -4038,7 +4038,7 @@
         },
         {
           "role": "ac",
-          "need": "required",
+          "need": "recommended",
           "kind": "Measure",
           "label": {
             "de": "AC (Ist)",
@@ -4256,7 +4256,7 @@
         },
         {
           "role": "ac",
-          "need": "required",
+          "need": "recommended",
           "kind": "Measure",
           "label": {
             "de": "AC (Ist)",
@@ -4474,7 +4474,7 @@
         },
         {
           "role": "ac",
-          "need": "required",
+          "need": "recommended",
           "kind": "Measure",
           "label": {
             "de": "AC (Ist)",
