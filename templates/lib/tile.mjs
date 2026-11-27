@@ -7,6 +7,7 @@ import path from "node:path";
 import { checkSpec, isShellSpec, layoutOf, slug } from "../../app/lib/app.mjs";
 import { parseRef, readModel } from "../../pbip/lib/tmdl.mjs";
 import { suggestBindings } from "./suggest.mjs";
+import { pnlNoAcWarning } from "./catalog.mjs";
 import { readSpec } from "./readspec.mjs";
 
 /** Rollen, die mehrere Felder tragen (Liste in der Spec) */
@@ -54,8 +55,8 @@ function withoutModel(template, given) {
 }
 
 /**
- * Kachel bauen (ohne zu schreiben).
- * @returns {{ tile, rows, problems, stem }}
+ * Kachel bauen (ohne zu schreiben). warnings halten nicht an (P&L ohne AC: Template erlaubt es, P&L 1.8.4 zeichnet nichts).
+ * @returns {{ tile, rows, problems, warnings, stem }}
  */
 export function buildTile({ spec, page, template, model, given = {}, measure, id, rect, title }) {
     const sug = model ? suggestBindings(model, template, given, measure) : withoutModel(template, given);
@@ -95,13 +96,20 @@ export function buildTile({ spec, page, template, model, given = {}, measure, id
         if (Object.keys(names).length) { tile.displayNames = names; }
     }
     if (template.visual === "pnl" && (bindings.rowType || bindings.formulaDef)) { tile.showItemsWithNoData = true; }
+    // Pflichtrolle ac fehlt schon in problems; die Warnung gilt den Templates, bei denen AC nur empfohlen ist
+    const noAc = problems.some(p => p.startsWith("Pflichtrolle ac ")) ? null : pnlNoAcWarning(tile);
+    const warnings = noAc ? [noAc] : [];
+    if (template.visual === "chartkitchen" && bindings.series && bindings.series === bindings.category) {
+        warnings.push(`series ist dasselbe Feld wie category (${bindings.category}): das Visual zeigt jeden Namen doppelt und gekürzt. ` +
+            "series weglassen oder ein anderes Feld angeben.");
+    }
     tile.objects = clone(template.objects);
     // Titel im Visual selbst (ibcsTitle bzw. titleBlock), nicht als Containertitel: so sieht er in der App und in
     // Power BI gleich aus. Standard ist der Template-Titel; die Periode trägt der Autor nach (oder --title).
     const line = title ? String(title) : template.title.de;
     if (template.visual === "chartkitchen") { tile.objects.ibcsTitle = { ...(tile.objects.ibcsTitle ?? {}), show: true, kpi: line }; }
     else { tile.objects.titleBlock = { ...(tile.objects.titleBlock ?? {}), show: true, measureLine: line }; }
-    return { tile, rows: sug.rows, problems, stem: sug.stem };
+    return { tile, rows: sug.rows, problems, warnings, stem: sug.stem };
 }
 
 /**
@@ -151,6 +159,7 @@ export function formatResult(res, template, specPath) {
     }
     const opt = res.rows.filter(r => !r.value && r.need === "optional").map(r => r.role);
     if (opt.length) { lines.push(`  optional, nicht gesetzt: ${opt.join(", ")}`); }
+    if (res.warnings?.length) { lines.push("", `Warnungen (${res.warnings.length}):`, ...res.warnings.map(w => `  ${w}`)); }
     if (res.problems.length) { lines.push("", `Nicht geschrieben (${res.problems.length}):`, ...res.problems.map(p => `  ${p}`)); }
     else if (res.written) { lines.push("", `${specPath}: Kachel geschrieben. Weiter: dwg app page … bzw. dwg pbip pages …`); }
     else { lines.push("", "Probelauf (--dry-run): nichts geschrieben."); }

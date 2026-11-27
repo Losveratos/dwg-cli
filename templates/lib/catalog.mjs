@@ -20,6 +20,20 @@ export function findTemplate(catalog, id) {
     return t;
 }
 
+/**
+ * P&L-Kachel ohne AC: P&L 1.8.4 zeichnet dann nichts (das Visual verlangt AC, Hinweis „AC (Ist)“). Die Forecast-Templates
+ * T01D, T02E und T02F führen AC nur als Empfehlung, weil der Berichtsmonat später wählbar wird; bis dahin warnen tile add
+ * und dwg lint. Gibt den Text der Warnung zurück oder null.
+ */
+export function pnlNoAcWarning(tile, catalog = null) {
+    if (tile?.visual !== "pnl" || !tile.bindings || typeof tile.bindings !== "object") { return null; }
+    if (typeof tile.bindings.ac === "string" && tile.bindings.ac) { return null; }
+    let v = catalog?.versions?.pnl;
+    if (!v) { try { v = loadCatalog().versions?.pnl; } catch { v = null; } }
+    const version = v ? String(v).replace(/\.0$/, "") : "";
+    return `P&L${version ? ` ${version}` : ""} zeichnet ohne AC nichts; AC binden, bis der Berichtsmonat wählbar ist.`;
+}
+
 const pad = (s, n) => String(s) + " ".repeat(Math.max(1, n - [...String(s)].length));
 
 /** Übersicht aller Templates, nach Visual und Gruppe */
@@ -51,7 +65,8 @@ export function formatTemplate(t, lang = "de") {
     for (const need of ["required", "recommended", "optional"]) {
         for (const r of t.roles.filter(x => x.need === need)) {
             const alt = r.alt ? (de ? `  (oder ${r.alt.join(" + ")})` : `  (or ${r.alt.join(" + ")})`) : "";
-            lines.push(`    ${pad(r.role, 16)}${pad(NEED[need][lang], 12)}${pad(r.kind === "Measure" ? (de ? "Kennzahl" : "measure") : (de ? "Spalte" : "column"), 10)}${r.label[lang]}${alt}`);
+            const hint = r.hint ? `  · ${r.hint[lang]}` : "";
+            lines.push(`    ${pad(r.role, 16)}${pad(NEED[need][lang], 12)}${pad(r.kind === "Measure" ? (de ? "Kennzahl" : "measure") : (de ? "Spalte" : "column"), 10)}${r.label[lang]}${alt}${hint}`);
         }
     }
     lines.push("", de ? "  Stellt im Visual ein" : "  Sets in the visual");

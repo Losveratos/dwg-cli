@@ -68,10 +68,11 @@ const CK = {
         stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true, panelTypeTitles: false },
 };
 // Bewusst nach dem Anwenden geändert (wie templates/test/unit.mjs SHOWCASE_OWN): C24 mit Kacheln je Land (Blatt 10G)
-// braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100); C14 bis C16 zeigen die acht größten
-// Kategorien und eine Rest-Zeile (topN 8); C10 als Portfolio nach den Blättern 10A/10B: Farbe je Sorte (Serie,
+// braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100); C16 zeigt die acht stärksten
+// Kunden und eine Rest-Zeile (topN 8; Top N wählt nach AC wie die Sortierung von C16, C14 und C15 sortieren nach ΔPL und
+// bleiben ohne Top N, sonst landen große Abweichungen im Rest); C10 als Portfolio nach den Blättern 10A/10B: Farbe je Sorte (Serie,
 // scatterColorBy group), Werte in den Blasen statt Größenlegende
-const CK_OWN = { C24: ["scatterMaxRadius"], C14: ["topN"], C15: ["topN"], C16: ["topN"], C10: ["scatterColorBy", "scatterSizeLegend"] };
+const CK_OWN = { C24: ["scatterMaxRadius"], C16: ["topN"], C10: ["scatterColorBy", "scatterSizeLegend"] };
 // Preset-Schlüssel der Form „scale.refLine“ gehören ins Objekt scale, nicht in chart
 const CK_SCALE = { C18: { refLine: "0", xRefLine: "0" }, C24: { xRefLine: "1" } };
 // zusätzliche Rollen je ChartKitchen-Vorlage (TEMPLATE_NEEDS bzw. Doku „Dazu binden“)
@@ -252,7 +253,7 @@ test("roundedZero = plain in jeder Kachel beider Visuals, Scatter ohne Szenario-
 });
 
 // Welle 2, Paket 1 (27.11.2026): Ellipsen, Margenzeilen, Rest-Zeilen, Plan in der Brücke, Portfolio, C24 ohne doppelte Sorte
-test("Welle 2: Ellipse 12A/12G/12H, marginRel T03A, Plan C17, Top N plus Rest C14 bis C16, Portfolio C10, C24 Sorte nur als Kategorie", () => {
+test("Welle 2: Ellipse 12A/12G/12H, marginRel T03A, Plan C17, Top N plus Rest nur C16, Portfolio C10, C24 Sorte nur als Kategorie", () => {
     const o = id => main(spec.pages.find(p => p.template === id));
     for (const [id, row] of [["12A", "Logistik"], ["12G", "EBIT"], ["12H", "EBIT"]]) {
         assert.equal(o(id).objects.columns.highlight, row, `${id}: highlight`);
@@ -261,7 +262,7 @@ test("Welle 2: Ellipse 12A/12G/12H, marginRel T03A, Plan C17, Top N plus Rest C1
     }
     assert.equal(o("T03A").objects.numbers.marginRel, true);
     assert.equal(o("C17").bindings.plan, "'Fakten'[Umsatz PL]");
-    assert.deepEqual(["C14", "C15", "C16"].map(id => o(id).objects.chart.topN), [8, 10, 8]);
+    assert.deepEqual(["C14", "C15", "C16"].map(id => o(id).objects.chart.topN), [0, 0, 8]);
     const c10 = o("C10");
     assert.equal(c10.bindings.series, "'Produkt'[Sorte]");
     assert.equal(c10.objects.chart.scatterQuadrant, "mean", "C10: Quadranten an den Mittelwerten");
@@ -292,8 +293,9 @@ test("Rollen und Formatbereich-Objekte gibt es im jeweiligen Visual", () => {
     }
 });
 
-// Objekte gegen die capabilities.json der Visuals, wenn das Kitchen-Repo da ist (DWG_KITCHEN, sonst neben diesem Repo)
-const KITCHEN = [process.env.DWG_KITCHEN, path.join(ROOT, "../PowerBI-Kitchen-")]
+// Objekte gegen die capabilities.json der Visuals, wenn das Kitchen-Repo da ist (DWG_KITCHEN, sonst der Klon .kitchen im
+// Repo bzw. Worktree, sonst neben diesem Repo)
+const KITCHEN = [process.env.DWG_KITCHEN, path.join(ROOT, ".kitchen"), path.join(ROOT, "../PowerBI-Kitchen-")]
     .filter(Boolean).find(d => fs.existsSync(path.join(d, "ibcsInspiredChartDeck", "capabilities.json")));
 if (KITCHEN) {
     const caps = {
@@ -505,6 +507,25 @@ test("P&L GuV: alle 21 Konten inkl. Summen, Formeln und KPIs; AC-Templates mit P
     const { table } = run(P["12G"], main(P["12G"]));
     near(sum(table, "[fcFy]"), C26["GuV FC FY"], "12G FC FY");
     near(sum(table, "[plFy]"), C26["GuV PL FY"], "12G PL FY");
+});
+
+test("Hervorhebung trifft Konten des Modells, Top N lässt mindestens zwei Kategorien für die Rest-Zeile", () => {
+    const k = data.tables.Konto, i = c => k.columns.indexOf(c);
+    const names = new Set(k.rows.flatMap(r => [r[i("Konto")], r[i("KontoID")]].map(v => String(v).trim().toLowerCase())));
+    for (const { page, tile } of tiles()) {
+        const hl = tile.objects?.columns?.highlight;
+        if (!hl) { continue; }
+        for (const row of hl.split(",").map(x => x.trim()).filter(Boolean)) {
+            assert.ok(names.has(row.toLowerCase()), `${page.template}: highlight "${row}" ist kein Konto in 'Konto'`);
+        }
+    }
+    for (const { page, tile } of tiles()) {
+        const n = tile.objects?.chart?.topN ?? 0;
+        if (n <= 0) { continue; }
+        const { table } = run(page, tile);
+        const cats = new Set(table.rows.map(r => r[colIdx(table, tile.bindings.category.replace(/'/g, ""))])).size;
+        assert.ok(n + 1 < cats, `${page.template}: topN ${n} bei ${cats} Kategorien ergibt keine Rest-Zeile`);
+    }
 });
 
 test("Vorzeichen-Trio der Konten: kein -1 zusammen mit VarianceInvert true (doppelte Umkehr färbt Kostenüberschreitung günstig)", () => {

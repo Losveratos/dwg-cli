@@ -991,8 +991,8 @@
           "need": "required",
           "kind": "Grouping",
           "label": {
-            "de": "Stack-Serie (Gestapelt)",
-            "en": "Stack series (Stacked)"
+            "de": "Serie",
+            "en": "Series"
           }
         },
         {
@@ -1976,8 +1976,8 @@
           "need": "optional",
           "kind": "Grouping",
           "label": {
-            "de": "Stack-Serie (Gestapelt)",
-            "en": "Stack series (Stacked)"
+            "de": "Serie",
+            "en": "Series"
           }
         },
         {
@@ -2102,11 +2102,15 @@
         },
         {
           "role": "series",
-          "need": "recommended",
+          "need": "optional",
           "kind": "Grouping",
           "label": {
-            "de": "Stack-Serie (Gestapelt)",
-            "en": "Stack series (Stacked)"
+            "de": "Serie",
+            "en": "Series"
+          },
+          "hint": {
+            "de": "nicht dasselbe Feld wie category (sonst doppelte, gekürzte Namen)",
+            "en": "not the same field as category (names would show twice, truncated)"
           }
         },
         {
@@ -2221,8 +2225,8 @@
           "need": "recommended",
           "kind": "Grouping",
           "label": {
-            "de": "Stack-Serie (Gestapelt)",
-            "en": "Stack series (Stacked)"
+            "de": "Serie",
+            "en": "Series"
           }
         },
         {

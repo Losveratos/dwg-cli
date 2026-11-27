@@ -1594,7 +1594,7 @@
       "name": "Biere nach Planabweichung in Euro",
       "template": "C14",
       "group": "ChartKitchen · Rangfolgen",
-      "description": "Welche Biere liegen in Euro am weitesten über oder unter Plan? Die Balkentabelle zeigt die acht umsatzstärksten Biere sortiert nach der absoluten Abweichung über dieselben Ist-Monate, die drei kleinsten stehen zusammen in der Rest-Zeile, unten die Summe. Große Biere stehen hier vorn, auch wenn ihre Abweichung in Prozent klein ist.",
+      "description": "Welche Biere liegen in Euro am weitesten über oder unter Plan? Die Balkentabelle sortiert nach der absoluten Abweichung über dieselben Ist-Monate, unten steht die Summe. Große Biere stehen hier vorn, auch wenn ihre Abweichung in Prozent klein ist.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -1687,13 +1687,13 @@
               "tableSort": "dabs_desc",
               "gridLines": "none",
               "cumulative": false,
-              "topN": 8,
+              "topN": 0,
               "pinStyle": "round",
               "chipMenu": true
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Nettoumsatz in EUR je Bier (Top 8 und Rest), sortiert nach ΔPL",
+              "kpi": "Nettoumsatz in EUR je Bier, sortiert nach ΔPL",
               "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
             },
             "labels": {
@@ -1711,7 +1711,7 @@
       "name": "Kunden nach Planabweichung in Prozent",
       "template": "C15",
       "group": "ChartKitchen · Rangfolgen",
-      "description": "Welche Kunden verfehlen ihren Plan relativ am stärksten? Die Balkentabelle zeigt die zehn umsatzstärksten Kunden nach der prozentualen Abweichung über die Ist-Monate, die zwei kleinsten stehen zusammen in der Rest-Zeile. Die Kanalkarten oben zeigen, aus welchem Kanal die Ausreißer kommen.",
+      "description": "Welche Kunden verfehlen ihren Plan relativ am stärksten? Die Balkentabelle sortiert nach der prozentualen Abweichung über die Ist-Monate, so stehen große und kleine Kunden fair nebeneinander. Die Kanalkarten oben zeigen, aus welchem Kanal die Ausreißer kommen.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -1801,13 +1801,13 @@
               "tableSort": "drel_desc",
               "gridLines": "none",
               "cumulative": false,
-              "topN": 10,
+              "topN": 0,
               "pinStyle": "round",
               "chipMenu": true
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Nettoumsatz in EUR je Kunde (Top 10 und Rest), sortiert nach ΔPL %",
+              "kpi": "Nettoumsatz in EUR je Kunde, sortiert nach ΔPL %",
               "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
             },
             "labels": {
@@ -2177,10 +2177,7 @@
               "roundedZero": "plain"
             },
             "scale": {
-              "xMin": "0",
-              "xMax": "100k",
-              "yMin": "0.4",
-              "yMax": "0.8"
+              "xMin": "0"
             }
           }
         }
