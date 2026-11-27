@@ -4,7 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { daxQuery } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
   absorbHeight,
+  applyOptions,
   combineFilters,
+  defaultChoices,
   FILTER_BAR_H,
   findPage,
   fitHeight,
@@ -20,6 +22,7 @@ import {
   pageId,
   pageLabel,
   pageRegion,
+  persistedChoices,
   RESOLUTION_WIDTH,
   sameValues,
   selectionFilters,
@@ -36,6 +39,8 @@ import {
   tileBox,
   tileFilters,
   toggleSlicerValue,
+  uiText,
+  visualLocale,
   withoutHeaders,
   type DwgAppSpec,
   type DwgPageSpec,
@@ -368,5 +373,39 @@ describe('dwg-page · Navigation', () => {
     expect(chips.map((c) => fixedChipText(c).text)).toEqual(['Year: 2026', 'Month: 1 bis 4', 'Scenario: Actual']);
     expect(fixedChipText(chips[2]).scope).toBe('nur Umsatz');
     expect(fixedChipText(chips[0]).scope).toBeNull();
+  });
+});
+
+describe('dwg-page · Sprache und Live-Optionen', () => {
+  it('liefert Bedientexte deutsch (Standard) und englisch, Werte im Gebietsschema der Visuals', () => {
+    expect(uiText().all).toBe('Alle');
+    expect(uiText('en').all).toBe('All');
+    expect(uiText('en').selected(2)).toBe('2 selected');
+    expect(visualLocale()).toBe('de-DE');
+    expect(visualLocale('en')).toBe('en-US');
+    expect(visualLocale('en', 'en-GB')).toBe('en-GB');
+    expect(formatSlicerValue(1234.5)).toBe('1.234,5');
+    expect(formatSlicerValue(1234.5, 'en')).toBe('1,234.5');
+    expect(formatSlicerValue(null)).toBe('(leer)');
+    expect(formatSlicerValue(null, 'en')).toBe('(blank)');
+    expect(formatSlicerValue('2026-03-01T00:00:00', 'en')).toBe('03/01/2026');
+    expect(navGroups([{ name: 'A', width: 1920, height: 1080, tiles: [] }], 'en')[0].group).toBe('Pages');
+  });
+
+  it('erkennt die Startwahl aus den Objekten, mischt Optionen in ihrer Reihenfolge und folgt dem Visual', () => {
+    const options = [
+      { id: 'v', label: 'V', choices: [{ label: 'Zahlen', set: { columns: { dPyAbs: true } } }, { label: 'Grafik', set: { columns: { dPyAbs: false, dPyBar: true } } }] },
+      { id: 'py', label: 'PY', choices: [{ label: 'An', set: { columns: { showPY: true } } }, { label: 'Aus', set: { columns: { showPY: false, dPyAbs: false, dPyBar: false } } }] },
+    ];
+    const objects = { columns: { dPyAbs: true, showPY: true, minuend: 'ac' } };
+    expect(defaultChoices(options, objects)).toEqual([0, 0]);
+    expect(defaultChoices(options, {})).toEqual([-1, -1]);
+    expect(applyOptions(objects, options, [1, 0]).columns).toEqual({ dPyAbs: false, dPyBar: true, showPY: true, minuend: 'ac' });
+    expect(applyOptions(objects, options, [1, 1]).columns).toEqual({ dPyAbs: false, dPyBar: false, showPY: false, minuend: 'ac' });
+    expect(applyOptions(objects, options, [-1, -1])).toEqual(objects);
+    const after = { columns: { ...objects.columns, showPY: false, dPyAbs: false, dPyBar: false } };
+    // V berührt, aber keine Wahl passt (-1, kein Knopf gedrückt); PY passt zu „Aus“
+    expect(persistedChoices(options, [0, 0], objects, after)).toEqual([-1, 1]);
+    expect(defaultChoices([{ id: 'e', label: 'E', choices: [{ label: 'leer', set: { columns: {} } }] }], objects)).toEqual([-1]);
   });
 });

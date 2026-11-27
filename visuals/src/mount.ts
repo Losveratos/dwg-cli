@@ -2,7 +2,7 @@
 // und DataView, rendert bei Daten- und Größenänderung neu.
 
 import { buildDataView } from "./dataview";
-import { createHost, rebaseObjects, type HostState, type SelectionId } from "./host";
+import { createHost, dropOverridden, rebaseObjects, type HostState, type SelectionId } from "./host";
 import type { MountOptions, VisualHandle, VisualKind, VisualObjects } from "./types";
 
 // Power-BI-Updatetypen: Data | Resize | ViewMode | Style | ResizeEnd
@@ -143,13 +143,24 @@ export async function mountVisual(el: HTMLElement, options: MountOptions): Promi
             if (next.darkBackground) { state.darkBackground = next.darkBackground; }
             if (next.interactive != null) { state.interactive = next.interactive; }
             if (next.objects && JSON.stringify(next.objects) !== JSON.stringify(base)) {
-                base = JSON.parse(JSON.stringify(next.objects));
+                const nextBase: VisualObjects = JSON.parse(JSON.stringify(next.objects));
+                // was die App neu setzt, gewinnt über früher Gespeichertes derselben Eigenschaft (Optionen-Panel)
+                persistLog.splice(0, persistLog.length, ...dropOverridden(persistLog, base, nextBase));
+                base = nextBase;
                 state.objects = rebaseObjects(base, persistLog);
             }
             schedule(UPDATE_ALL);
         },
         clearSelection() {
             selection.reset();
+            schedule(UPDATE_ALL);
+        },
+        forget(objects) {
+            // jede genannte Eigenschaft gilt als von der App neu gesetzt: aus dem Log nehmen, Objekte neu aufbauen
+            const kept = dropOverridden(persistLog, {}, objects ?? {});
+            if (kept === persistLog) { return; }
+            persistLog.splice(0, persistLog.length, ...kept);
+            state.objects = rebaseObjects(base, persistLog);
             schedule(UPDATE_ALL);
         },
         get objects() { return JSON.parse(JSON.stringify(state.objects)); },

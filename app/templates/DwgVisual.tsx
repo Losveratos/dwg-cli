@@ -7,16 +7,22 @@ import {
   mountVisual,
   type MountOptions,
   type VisualHandle,
+  type VisualObjects,
 } from '../vendor/dwg-visuals/dwg-visuals.js';
 
 type Props = Omit<MountOptions, 'theme'> & {
   isDark: boolean;
   /** Erhöhen, um die Auswahl im Visual aufzuheben (z. B. über den Filter-Chip). */
   clearToken?: number;
+  /**
+   * Neues Objekt je Klick im Optionen-Panel: was das Visual für diese Eigenschaften selbst gespeichert hat, verwirft der
+   * Adapter, die Wahl der App gilt wieder (auch wenn sich `objects` dabei nicht ändert).
+   */
+  forget?: { set: VisualObjects } | null;
   className?: string;
 };
 
-export function DwgVisual({ isDark, clearToken = 0, className, ...opts }: Props) {
+export function DwgVisual({ isDark, clearToken = 0, forget = null, className, ...opts }: Props) {
   const el = useRef<HTMLDivElement>(null);
   const handle = useRef<VisualHandle | null>(null);
   const latest = useRef({ ...opts, isDark });
@@ -84,6 +90,11 @@ export function DwgVisual({ isDark, clearToken = 0, className, ...opts }: Props)
   useEffect(() => {
     if (clearToken > 0) handle.current?.clearSelection();
   }, [clearToken]);
+
+  // nach dem Objekt-Update oben (gleicher Durchlauf): gespeicherten Zustand für die gewählten Eigenschaften verwerfen
+  useEffect(() => {
+    if (forget) handle.current?.forget(forget.set);
+  }, [forget]);
 
   return <div ref={el} className={className} style={{ width: '100%', height: '100%' }} />;
 }

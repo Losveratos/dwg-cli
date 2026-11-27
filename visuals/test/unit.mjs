@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist, rebaseObjects, filterValue, valueKey, isoDate } =
+const { daxQuery, daxLiteral, col, buildDataView, columnIndex, normalizeRef, applyPersist, rebaseObjects, dropOverridden, filterValue, valueKey, isoDate } =
     await import(pathToFileURL(path.join(HERE, "../dist/dwg-visuals.js")).href);
 
 let n = 0;
@@ -175,6 +175,34 @@ test("rebaseObjects: gespeicherter Zustand überlebt neue Spec-Objekte (Abfrage,
     assert.equal(next.toolbar.show, false);
     assert.equal(next.hierarchy.collapsed, "[\"N-WE\"]");
     assert.equal(rebaseObjects(spec, []).hierarchy.defaultLevel, 2, "ohne Log unverändert");
+});
+
+test("dropOverridden: neue Wahl der App gewinnt über früher Gespeichertes derselben Eigenschaft", () => {
+    const spec = { hierarchy: { defaultLevel: 2 }, toolbar: { show: true } };
+    const log = [
+        { merge: [{ objectName: "hierarchy", selector: null, properties: { collapsed: "[\"N-WE\"]", defaultLevel: 1 } }] },
+        { replace: [{ objectName: "toolbar", properties: { show: true, folded: true } }] },
+    ];
+    // Optionen-Panel: Zeilen „Alle“ (defaultLevel 4); das Visual hatte vorher Ebene 1 gespeichert
+    const next = { ...spec, hierarchy: { defaultLevel: 4 } };
+    const kept = dropOverridden(log, spec, next);
+    const o = rebaseObjects(next, kept);
+    assert.equal(o.hierarchy.defaultLevel, 4, "Wahl der App gewinnt");
+    assert.equal(o.hierarchy.collapsed, "[\"N-WE\"]", "anderer gespeicherter Zustand bleibt");
+    assert.equal(o.toolbar.folded, true);
+    // Kopfzeilen aus (toolbar.show false): der replace-Eintrag bekommt den neuen Wert
+    const off = { ...next, toolbar: { show: false } };
+    const o2 = rebaseObjects(off, dropOverridden(kept, next, off));
+    assert.equal(o2.toolbar.show, false);
+    assert.equal(o2.toolbar.folded, true);
+    assert.equal(dropOverridden(log, spec, spec), log, "ohne Änderung unverändert");
+    // forget (Klick auf die geltende Wahl): prev leer, jede genannte Eigenschaft fliegt aus dem Log
+    const forgotten = rebaseObjects(next, dropOverridden(log, {}, { hierarchy: { defaultLevel: 4 } }));
+    assert.equal(forgotten.hierarchy.defaultLevel, 4);
+    assert.equal(forgotten.hierarchy.collapsed, "[\"N-WE\"]");
+    // replace bekommt auch neue Eigenschaften der App (sonst löschte der replace sie beim Neuaufbau)
+    const added = { ...next, toolbar: { show: true, compact: true } };
+    assert.equal(rebaseObjects(added, dropOverridden(log, next, added)).toolbar.compact, true);
 });
 
 console.log(`unit: ${n} Tests grün`);

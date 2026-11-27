@@ -3,30 +3,56 @@
 // hebt die Auswahl auf. Feste Filter der Spec (Seite und Kacheln) stehen als nicht klickbare Chips davor
 // (FixedFilterChips; DwgShell zeigt sie im Seitenkopf). Filter von außen (Slicer im Filter-Panel von DwgShell) gelten für
 // alle Kacheln. Mit `fixedWidth` liegt die Seite in Bühnenpixeln (DwgShell skaliert sie als Ganzes),
-// sonst skaliert sie auf die gemessene Breite. Von `dwg app page` geschrieben, wird bei jedem Lauf ersetzt.
+// sonst skaliert sie auf die gemessene Breite. Kacheln mit `options` bekommen rechts ein einklappbares Panel mit
+// Live-Optionen (Formatbereich, ohne neue Abfrage). Sprache der Bedienelemente `lang` (Standard de), Gebietsschema der
+// Visuals `locale` (Standard aus lang). Von `dwg app page` geschrieben, wird bei jedem Lauf ersetzt.
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { useSemanticModelQuery } from '@/hooks/use-semantic-model-query';
 
-import { daxQuery, type DaxFilter, type SelectionKey } from '../vendor/dwg-visuals/dwg-visuals.js';
+import { daxQuery, type DaxFilter, type SelectionKey, type VisualObjects } from '../vendor/dwg-visuals/dwg-visuals.js';
 import {
+  applyOptions,
+  defaultChoices,
   fixedChipText,
   fixedFilterChips,
   fitToTile,
   pageHeight,
   pageRegion,
+  persistedChoices,
   selectionLabel,
   tileBox,
   tileFilters,
+  uiText,
+  visualLocale,
   withoutHeaders,
   type DwgBox,
   type DwgFixedChip,
+  type DwgLang,
   type DwgPageSpec,
   type DwgSelection,
   type DwgTileSpec,
+  type DwgUiText,
 } from './dwg-page';
 import { DwgVisual } from './DwgVisual';
+
+const FONT = "'Geist', 'Segoe UI', system-ui, sans-serif";
+
+/** Farben der Bedienelemente in den Kacheln (Optionen-Panel); DwgShell reicht ihre Palette durch */
+export interface DwgTileColors {
+  surface: string;
+  panel: string;
+  border: string;
+  text: string;
+  muted: string;
+  accent: string;
+  accentSoft: string;
+}
+const TILE_COLORS: Record<'light' | 'dark', DwgTileColors> = {
+  light: { surface: '#ffffff', panel: '#fbfaf7', border: '#e1dfd6', text: '#1f2328', muted: '#5f6368', accent: '#c25a2d', accentSoft: 'rgba(194, 90, 45, 0.10)' },
+  dark: { surface: '#16191d', panel: '#14171a', border: '#2c3138', text: '#e8eaed', muted: '#9aa0a6', accent: '#d9774b', accentSoft: 'rgba(217, 119, 75, 0.16)' },
+};
 
 /** Überlauf eines Visuals bis zu dieser Höhe gilt als Rundung (P&L füllt die Kachel mit layout.maximize) */
 const NEED_TOLERANCE = 4;
@@ -45,12 +71,135 @@ function contentOverflow(root: HTMLElement): number {
   return Math.round(bottom - root.clientHeight);
 }
 
-function friendly(message: string): string {
-  if (/401|403|forbidden|permission|unauthori/i.test(message))
-    return 'Keine Berechtigung auf das Semantikmodell (Lesen und Erstellen nötig).';
-  if (/capacity|429|throttl/i.test(message))
-    return 'Die Fabric-Kapazität ist gerade ausgelastet. Bitte gleich neu laden.';
+function friendly(message: string, t: DwgUiText): string {
+  if (/401|403|forbidden|permission|unauthori/i.test(message)) return t.noPermission;
+  if (/capacity|429|throttl/i.test(message)) return t.capacity;
   return message;
+}
+
+/** Optionen einer Kachel: angewandte und gedrückte Wahl, dazu der letzte Klick (Adapter verwirft dafür Gespeichertes) */
+interface OptionState {
+  applied: number[];
+  shown: number[];
+  forget: { set: VisualObjects; n: number } | null;
+}
+
+interface OptionsPanelProps {
+  tile: DwgTileSpec;
+  /** gedrückte Wahl je Option (-1: keine passt zu dem, was das Visual gerade zeigt) */
+  shown: number[];
+  choose: (option: number, choice: number) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  c: DwgTileColors;
+  k: number;
+  t: DwgUiText;
+}
+
+/** Live-Optionen rechts neben dem Visual; eingeklappt bleibt eine schmale Leiste „Optionen“ */
+function OptionsPanel({ tile, shown, choose, open, setOpen, c, k, t }: OptionsPanelProps) {
+  const options = tile.options ?? [];
+  if (!open) {
+    return (
+      <button
+        type="button"
+        data-dwg-options-toggle={tile.id}
+        aria-expanded={false}
+        aria-label={t.showOptions}
+        title={t.showOptions}
+        onClick={() => setOpen(true)}
+        style={{
+          flex: `0 0 ${Math.round(30 * k)}px`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+          border: 0,
+          borderLeft: `1px solid ${c.border}`,
+          background: c.panel,
+          color: c.accent,
+          cursor: 'pointer',
+          font: `600 ${12 * k}px/${16 * k}px ${FONT}`,
+          letterSpacing: '0.06em',
+        }}
+      >
+        <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', whiteSpace: 'nowrap' }}>‹ {t.options}</span>
+      </button>
+    );
+  }
+  return (
+    <aside
+      aria-label={t.options}
+      data-dwg-options={tile.id}
+      style={{
+        flex: `0 0 ${Math.round(220 * k)}px`,
+        boxSizing: 'border-box',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 14 * k,
+        padding: `${10 * k}px ${12 * k}px`,
+        borderLeft: `1px solid ${c.border}`,
+        background: c.panel,
+        color: c.text,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 * k }}>
+        <h3 style={{ margin: 0, font: `700 ${12 * k}px/${16 * k}px ${FONT}`, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.muted }}>
+          {t.options}
+        </h3>
+        <button
+          type="button"
+          data-dwg-options-toggle={tile.id}
+          aria-expanded
+          aria-label={t.hideOptions}
+          title={t.hideOptions}
+          onClick={() => setOpen(false)}
+          style={{
+            font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
+            padding: `${3 * k}px ${8 * k}px`,
+            borderRadius: 6 * k,
+            border: `1px solid ${c.border}`,
+            background: 'transparent',
+            color: c.accent,
+            cursor: 'pointer',
+          }}
+        >
+          ›
+        </button>
+      </div>
+      {options.map((o, i) => (
+        <div key={o.id} role="group" aria-label={o.label} data-dwg-option={o.id}>
+          <p style={{ margin: `0 0 ${5 * k}px`, font: `600 ${12 * k}px/${16 * k}px ${FONT}`, color: c.text }}>{o.label}</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 * k }}>
+            {o.choices.map((ch, j) => {
+              const on = shown[i] === j;
+              return (
+                <button
+                  key={ch.label}
+                  type="button"
+                  data-choice={ch.label}
+                  aria-pressed={on}
+                  onClick={() => choose(i, j)}
+                  style={{
+                    font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
+                    padding: `${4 * k}px ${9 * k}px`,
+                    borderRadius: 999,
+                    border: `${Math.max(1, Math.round(k))}px solid ${on ? c.accent : c.border}`,
+                    background: on ? c.accentSoft : c.surface,
+                    color: on ? c.accent : c.text,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {ch.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </aside>
+  );
 }
 
 interface TileProps {
@@ -65,9 +214,13 @@ interface TileProps {
   fit: boolean;
   onSelect: (tile: string, keys: SelectionKey[]) => void;
   onNeed?: (tile: string, height: number) => void;
+  c: DwgTileColors;
+  k: number;
+  t: DwgUiText;
+  locale: string;
 }
 
-function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, isDark, hideHeaders, fit, onSelect, onNeed }: TileProps) {
+function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, isDark, hideHeaders, fit, onSelect, onNeed, c, k, t, locale }: TileProps) {
   const wrap = useRef<HTMLDivElement>(null);
   // Höhe, die das Visual meldet: Läuft die P&L-Tabelle über ihre Kachel (Bildlauf im Visual), braucht die Kachel
   // ihre Höhe plus den Überlauf (Layoutpixel, also Seitenpixel auch auf der skalierten Bühne)
@@ -98,60 +251,103 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
   // Fehler beim Rendern (z. B. Ergebnis passt nicht zu den Rollen), je Abfrage
   const [renderError, setRenderError] = useState<{ query: string; message: string } | null>(null);
   const message = error
-    ? friendly(error.message)
+    ? friendly(error.message, t)
     : data?.status === 'error'
-      ? friendly(data.error.message)
+      ? friendly(data.error.message, t)
       : renderError?.query === q.query
         ? renderError.message
         : null;
   const displayNames = useMemo(() => ({ ...q.displayNames, ...tile.displayNames }), [q.displayNames, tile.displayNames]);
-  // Kopfzeilen aus, Kachel füllen: nur Formatbereich-Overrides, keine neue Abfrage
+  // Live-Optionen, Kopfzeilen aus, Kachel füllen: nur Formatbereich-Overrides, keine neue Abfrage. Was das Visual
+  // selbst speichert (Bedienleiste, auf- und zugeklappte Zeilen), führt der Adapter darüber (persistProperties);
+  // eine Wahl im Optionen-Panel gewinnt für ihre Eigenschaften, auch ein erneuter Klick auf die geltende Wahl (forget).
+  // applied: angewandte Wahl je Option (geht in objects); shown: gedrückter Knopf (-1, wenn das Visual selbst einen Wert
+  // gespeichert hat, zu dem keine Wahl passt; applied bleibt dann, damit der gespeicherte Wert nicht verloren geht).
+  const [choices, setChoices] = useState<OptionState>(() => {
+    const start = defaultChoices(tile.options ?? [], tile.objects);
+    return { applied: start, shown: start, forget: null };
+  });
+  const [optionsOpen, setOptionsOpen] = useState(true);
   const objects = useMemo(() => {
-    const o = hideHeaders ? withoutHeaders(tile.visual, tile.objects) : tile.objects;
+    const withOptions = tile.options?.length ? applyOptions(tile.objects, tile.options, choices.applied) : tile.objects;
+    const o = hideHeaders ? withoutHeaders(tile.visual, withOptions) : withOptions;
     return fit ? fitToTile(tile.visual, o) : o;
-  }, [hideHeaders, fit, tile.visual, tile.objects]);
+  }, [hideHeaders, fit, tile.visual, tile.objects, tile.options, choices.applied]);
+  const choose = (option: number, choice: number) =>
+    setChoices((prev) => ({
+      applied: prev.applied.map((x, n) => (n === option ? choice : x)),
+      shown: prev.shown.map((x, n) => (n === option ? choice : x)),
+      forget: { set: tile.options?.[option]?.choices[choice]?.set ?? {}, n: (prev.forget?.n ?? 0) + 1 },
+    }));
+  // Speichert das Visual selbst eine Eigenschaft, die eine Option steuert, zeigt das Panel die passende Wahl
+  const seen = useRef<VisualObjects>(objects ?? {});
+  useEffect(() => {
+    seen.current = objects ?? {};
+  }, [objects]);
+  const onPersist = tile.options?.length
+    ? (next: VisualObjects) => {
+        const before = seen.current;
+        seen.current = next;
+        setChoices((prev) => {
+          const shown = persistedChoices(tile.options ?? [], prev.shown, before, next);
+          const applied = shown.map((x, n) => (x >= 0 ? x : prev.applied[n]));
+          const same = (a: number[], b: number[]) => a.length === b.length && a.every((x, n) => x === b[n]);
+          return same(shown, prev.shown) && same(applied, prev.applied) ? prev : { ...prev, applied, shown };
+        });
+      }
+    : undefined;
 
   return (
-    <div ref={wrap} style={{ position: 'relative', width: '100%', height: '100%' }} data-dwg-tile={tile.id}>
-      {table && (
-        <DwgVisual
-          visual={tile.visual}
-          table={table}
-          bindings={q.bindings}
-          displayNames={displayNames}
-          formats={tile.formats}
-          columnTypes={page.columnTypes}
-          objects={objects}
-          isDark={isDark}
-          clearToken={clearToken}
-          onSelect={(keys) => onSelect(tile.id, keys)}
-          onRendered={onNeed && tile.visual === 'pnl' ? measure : undefined}
-          onError={(err) => setRenderError({ query: q.query, message: err instanceof Error ? err.message : String(err) })}
-        />
-      )}
-      {isLoading && (
-        <div
-          className="rounded-full bg-accent px-300 py-100 text-100 text-accent-foreground"
-          style={{ position: 'absolute', top: 8, right: 8 }}
-        >
-          lädt …
-        </div>
-      )}
-      {message && (
-        <div
-          role="alert"
-          className="p-400 text-center text-200"
-          style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}
-        >
-          <div>
-            <p className="mb-200 font-semibold">{tile.title ?? tile.id}: Daten fehlen</p>
-            <p className="mb-300 text-foreground/70">{message}</p>
-            <button type="button" className="rounded-md border border-border px-300 py-100" onClick={() => void refetch()}>
-              Erneut versuchen
-            </button>
+    <div ref={wrap} style={{ position: 'relative', display: 'flex', width: '100%', height: '100%' }} data-dwg-tile={tile.id}>
+      <div style={{ position: 'relative', flex: '1 1 auto', minWidth: 0, height: '100%' }}>
+        {table && (
+          <DwgVisual
+            visual={tile.visual}
+            table={table}
+            bindings={q.bindings}
+            displayNames={displayNames}
+            formats={tile.formats}
+            columnTypes={page.columnTypes}
+            objects={objects}
+            isDark={isDark}
+            locale={locale}
+            clearToken={clearToken}
+            onSelect={(keys) => onSelect(tile.id, keys)}
+            onPersist={onPersist}
+            forget={choices.forget}
+            onRendered={onNeed && tile.visual === 'pnl' ? measure : undefined}
+            onError={(err) => setRenderError({ query: q.query, message: err instanceof Error ? err.message : String(err) })}
+          />
+        )}
+        {isLoading && (
+          <div
+            className="rounded-full bg-accent px-300 py-100 text-100 text-accent-foreground"
+            style={{ position: 'absolute', top: 8, right: 8 }}
+          >
+            {t.loading}
           </div>
-        </div>
-      )}
+        )}
+        {message && (
+          <div
+            role="alert"
+            className="p-400 text-center text-200"
+            style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}
+          >
+            <div>
+              <p className="mb-200 font-semibold">
+                {tile.title ?? tile.id}: {t.dataMissing}
+              </p>
+              <p className="mb-300 text-foreground/70">{message}</p>
+              <button type="button" className="rounded-md border border-border px-300 py-100" onClick={() => void refetch()}>
+                {t.retry}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      {tile.options?.length ? (
+        <OptionsPanel tile={tile} shown={choices.shown} choose={choose} open={optionsOpen} setOpen={setOptionsOpen} c={c} k={k} t={t} />
+      ) : null}
     </div>
   );
 }
@@ -166,26 +362,29 @@ interface ChipProps {
   /** Farben, Standard nach isDark */
   colors?: { text: string; muted: string; border: string; surface: string };
   style?: CSSProperties;
+  /** Sprache und Gebietsschema der Texte (Standard de, de-DE) */
+  lang?: DwgLang;
+  locale?: string;
 }
 
 /**
  * Feste Filter aus der App-Spec (page.filters, tile.filters) als Chips, nicht klickbar: Sie gelten immer und
  * stehen nur in der Spec. Wer sie ändern können soll, braucht einen Slicer mit Vorgabe (spec.slicers, default).
  */
-export function FixedFilterChips({ page, isDark, k = 1, colors, style }: ChipProps) {
-  const chips = useMemo(() => fixedFilterChips(page), [page]);
+export function FixedFilterChips({ page, isDark, k = 1, colors, style, lang = 'de', locale }: ChipProps) {
+  const chips = useMemo(() => fixedFilterChips(page, lang, locale), [page, lang, locale]);
   if (!chips.length) return null;
   const c = colors ?? (isDark
     ? { text: '#e8eaed', muted: '#9aa0a6', border: '#2c3138', surface: '#16191d' }
     : { text: '#1f2328', muted: '#5f6670', border: '#d0d4d9', surface: '#ffffff' });
   return (
     <ul
-      aria-label="Feste Filter"
+      aria-label={uiText(lang).fixedFilters}
       data-dwg-fixed-filters=""
       style={{ display: 'flex', flexWrap: 'wrap', gap: 6 * k, margin: 0, padding: 0, listStyle: 'none', ...style }}
     >
       {chips.map((chip: DwgFixedChip) => {
-        const { text, scope, title } = fixedChipText(chip);
+        const { text, scope, title } = fixedChipText(chip, lang);
         return (
           <li
             key={`${chip.column}|${chip.values}|${scope ?? ''}`}
@@ -239,6 +438,13 @@ interface PageProps {
    * Kachel-id und nötige Höhe in Seitenpixeln. DwgShell vergrößert damit die Bühne.
    */
   onTileNeed?: (tile: string, height: number) => void;
+  /** Sprache der Bedienelemente (Standard: de) */
+  lang?: DwgLang;
+  /** Gebietsschema der Visuals (Standard aus lang: de-DE bzw. en-US) */
+  locale?: string;
+  /** Farben und Maßstab der Bedienelemente in den Kacheln (Optionen-Panel), z. B. aus DwgShell */
+  colors?: DwgTileColors;
+  uiScale?: number;
 }
 
 export function DwgPage({
@@ -254,11 +460,18 @@ export function DwgPage({
   showFixedFilters = true,
   fitVisuals = false,
   onTileNeed,
+  lang = 'de',
+  locale,
+  colors,
+  uiScale = 1,
 }: PageProps) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [selection, setSelection] = useState<DwgSelection | null>(null);
   const [clearToken, setClearToken] = useState(0);
+  const t = uiText(lang);
+  const loc = visualLocale(lang, locale);
+  const c = colors ?? TILE_COLORS[isDark ? 'dark' : 'light'];
 
   useEffect(() => {
     const node = box.current;
@@ -286,12 +499,12 @@ export function DwgPage({
   const onSelect = (tile: string, keys: SelectionKey[]) => setSelection(keys.length ? { tile, keys } : null);
   const clear = () => {
     setSelection(null);
-    setClearToken((t) => t + 1);
+    setClearToken((n) => n + 1);
   };
   const w = fixedWidth ?? width;
   const narrow = !fixedWidth && w > 0 && w < 900;
   const area = region ?? pageRegion(page);
-  const label = selectionLabel(selection);
+  const label = selectionLabel(selection, lang, locale);
   const box0 = (tile: DwgTileSpec) => {
     const b = tileBox(tile, page, w, 900, area);
     return fixedWidth
@@ -302,12 +515,12 @@ export function DwgPage({
   return (
     <div className="flex flex-col gap-300">
       <div className="flex min-h-[32px] flex-wrap items-center gap-200" aria-live="polite" style={chipStyle}>
-        {showFixedFilters && <FixedFilterChips page={page} isDark={isDark} />}
+        {showFixedFilters && <FixedFilterChips page={page} isDark={isDark} lang={lang} locale={locale} />}
         {label && (
           <button
             type="button"
             className="rounded-full border border-primary px-300 py-100 text-200 text-primary"
-            title="Filter aufheben"
+            title={t.clearFilter}
             onClick={clear}
           >
             {label} ×
@@ -342,6 +555,10 @@ export function DwgPage({
                 fit={fitVisuals}
                 onSelect={onSelect}
                 onNeed={onTileNeed}
+                c={c}
+                k={uiScale}
+                t={t}
+                locale={loc}
               />
             </section>
           ))}

@@ -63,6 +63,11 @@ export interface VisualHandle {
     /** Teile der Optionen ersetzen und neu rendern (neue Daten, Theme, Objekte …). */
     update(next: Partial<Omit<MountOptions, "visual">>): void;
     clearSelection(): void;
+    /**
+     * Was das Visual für diese Eigenschaften gespeichert hat, verwerfen; danach gelten wieder die Objekte der App
+     * (z. B. Klick im Optionen-Panel auf die Wahl, die schon gilt, nachdem die Bedienleiste des Visuals sie geändert hat).
+     */
+    forget(objects: VisualObjects): void;
     /** Aktuelle Objekte inkl. aller Änderungen, die das Visual selbst gespeichert hat. */
     readonly objects: VisualObjects;
     readonly lastRenderMs: number;

@@ -76,6 +76,13 @@ export declare function applyPersist(objects: VisualObjects, changes: unknown): 
  * eine neue Abfrage oder einen Theme-Wechsel, wie in Power BI, wo persistierte Eigenschaften im Bericht bleiben.
  */
 export declare function rebaseObjects(base: VisualObjects, log: unknown[]): VisualObjects;
+/**
+ * Log ohne die Eigenschaften, die die App seit `prev` neu gesetzt hat (`next`): Eine Wahl der App (z. B. im
+ * Optionen-Panel die Zeilenebene) gewinnt dann über das, was das Visual vorher für dieselbe Eigenschaft gespeichert
+ * hat, wie in Power BI, wo eine spätere Änderung im Formatbereich den gespeicherten Wert ersetzt. Alles andere im Log
+ * bleibt. Ein replace-Eintrag bekommt für diese Eigenschaften den neuen Wert der App.
+ */
+export declare function dropOverridden(log: unknown[], prev: VisualObjects, next: VisualObjects): unknown[];
 export declare function createHost(state: HostState, events: HostEvents): {
     host: {
         readonly locale: string;

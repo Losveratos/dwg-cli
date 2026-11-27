@@ -86,6 +86,38 @@ export function filterProblems(filters, where) {
     return problems;
 }
 
+/** Sprachen der Bedienelemente in der App (Standard de) */
+export const LANGS = ["de", "en"];
+const LOCALE_RX = /^[a-z]{2,3}(-[A-Z][a-z]{3})?-[A-Z]{2}$/;
+
+/** Live-Optionen einer Kachel: [{ id, label, choices: [{ label, set: { objekt: { eigenschaft: wert } } }] }] */
+export function optionProblems(options, where) {
+    if (options == null) { return []; }
+    if (!Array.isArray(options)) { return [`${where}: options muss eine Liste sein ([{ "id", "label", "choices": [{ "label", "set" }] }]).`]; }
+    const problems = [];
+    const ids = new Set();
+    options.forEach((o, i) => {
+        const at = `${where}, Option ${o?.id ?? i + 1}`;
+        if (!isObject(o) || typeof o.id !== "string" || !o.id || typeof o.label !== "string" || !o.label) {
+            problems.push(`${at}: braucht id und label (Text) und choices [{ label, set }].`);
+            return;
+        }
+        if (ids.has(o.id)) { problems.push(`${at}: id kommt mehrfach vor.`); }
+        ids.add(o.id);
+        if (!Array.isArray(o.choices) || !o.choices.length) { problems.push(`${at}: choices fehlt oder ist leer.`); return; }
+        const labels = new Set();
+        o.choices.forEach((c, j) => {
+            const ok = isObject(c) && typeof c.label === "string" && c.label && isObject(c.set) && Object.values(c.set).every(isObject);
+            if (!ok) { problems.push(`${at}, Wahl ${j + 1}: braucht label und set { "objekt": { "eigenschaft": wert } }.`); return; }
+            // ein leeres set passte zu allem und setzte nichts
+            if (!Object.values(c.set).some(p => Object.keys(p).length)) { problems.push(`${at}, Wahl „${c.label}“: set setzt keine Eigenschaft.`); }
+            if (labels.has(c.label)) { problems.push(`${at}: Wahl „${c.label}“ kommt mehrfach vor.`); }
+            labels.add(c.label);
+        });
+    });
+    return problems;
+}
+
 /** Prüft die Spec-Felder für App-Rahmen, Seiten, Kacheln und Layout (gemeinsam mit dwg pbip). Liefert alle Probleme als Liste. */
 export function specProblems(spec) {
     const problems = [];
@@ -105,6 +137,10 @@ export function specProblems(spec) {
     }
     if (spec.resolution != null && !RESOLUTIONS.includes(spec.resolution)) {
         problems.push(`resolution „${spec.resolution}“ gibt es nicht (${RESOLUTIONS.join(", ")}).`);
+    }
+    if (spec.lang != null && !LANGS.includes(spec.lang)) { problems.push(`lang „${spec.lang}“ gibt es nicht (${LANGS.join(", ")}).`); }
+    if (spec.locale != null && (typeof spec.locale !== "string" || !LOCALE_RX.test(spec.locale))) {
+        problems.push(`locale „${spec.locale}“ ist kein Gebietsschema wie de-DE oder en-US.`);
     }
     if (!Array.isArray(spec.pages)) { problems.push("pages fehlt oder ist keine Liste."); return problems; }
     const shell = isShellSpec(spec);
@@ -136,6 +172,7 @@ export function specProblems(spec) {
             }
             if (!isObject(t.bindings)) { problems.push(`${tat}: bindings fehlt oder ist kein Objekt ({ "rolle": "'Tabelle'[Feld]" }).`); }
             problems.push(...filterProblems(t.filters, tat));
+            problems.push(...optionProblems(t.options, tat));
             const [x, y, tw, th] = t.rect ?? [];
             if (![x, y, tw, th].every(Number.isFinite)) { problems.push(`${tat}: rect braucht [x, y, Breite, Höhe].`); continue; }
             if (layout && !inside(layout, t.rect)) {
@@ -318,10 +355,10 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
             filters: page.filters ?? [],
             ...(Object.keys(columnTypes).length ? { columnTypes } : {}),
             tiles: page.tiles.map(t => {
-                const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames } = t;
+                const { id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, options } = t;
                 // Kachel-formats, ergänzt um die Formatstrings der Measures aus dem Modell (mit --model)
                 const formats = tileFormats(t, model, ROLES[t.visual], notes);
-                return Object.fromEntries(Object.entries({ id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats })
+                return Object.fromEntries(Object.entries({ id, visual, rect, title, subtitle, bindings, filters, objects, sortBy, showItemsWithNoData, displayNames, formats, options })
                     .filter(([, v]) => v !== undefined));
             }),
         };
@@ -351,7 +388,8 @@ export async function generateAppPages({ appDir, spec, connector, model: modelDi
     fs.mkdirSync(appsDir, { recursive: true });
     const imports = pageModules.map((m, i) => `import { page as p${i} } from '../pages/${m}';`).join("\n");
     const appSpec = {
-        name: spec.name ?? appName, ...(spec.about ? { about: spec.about } : {}), ...(spec.footer ? { footer: spec.footer } : {}),
+        name: spec.name ?? appName, ...(spec.about ? { about: spec.about } : {}),
+        ...(spec.lang ? { lang: spec.lang } : {}), ...(spec.locale ? { locale: spec.locale } : {}), ...(spec.footer ? { footer: spec.footer } : {}),
         resolution: spec.resolution ?? "fullhd", visualHeaders: spec.visualHeaders ?? false, chrome: chromeOf(spec), slicers,
     };
     const slicerTypes = model ? columnTypesOf(model, slicers.map(s => s.column)) : {};

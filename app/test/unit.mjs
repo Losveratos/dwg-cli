@@ -481,6 +481,78 @@ await test("feste Filter als Chips (fixedFilterChips, fixedChipText)", async () 
     assert.deepEqual(fixedFilterChips({ ...page, filters: [], tiles: [tile("a")] }), []);
 });
 
+await test("Sprache, Gebietsschema und Live-Optionen (lang, locale, options): Prüfung, App-Datei, Texte", async () => {
+    const spec = structuredClone(RAHMEN);
+    spec.lang = "en";
+    const opt = { id: "rows", label: "Rows", choices: [{ label: "L1", set: { hierarchy: { defaultLevel: 1 } } }, { label: "All", set: { hierarchy: { defaultLevel: 4 } } }] };
+    spec.pages[0].tiles[0].options = [opt];
+    const app = fakeApp();
+    await generateAppPages({ appDir: app, spec, connector: "guv" });
+    const src = path.join(app, "packages/frontend/src/dwg");
+    assert.match(fs.readFileSync(path.join(src, "apps/dwg-rahmen-test.ts"), "utf8"), /"lang": "en"/);
+    assert.doesNotMatch(fs.readFileSync(path.join(src, "apps/dwg-rahmen-test.ts"), "utf8"), /"locale"/);
+    assert.match(fs.readFileSync(path.join(src, "pages/saulen-im-zeitverlauf.ts"), "utf8"), /"options": \[\s*\{\s*"id": "rows"/);
+    // ohne lang: kein Eintrag, Deutsch bleibt Standard
+    const de = fakeApp();
+    await generateAppPages({ appDir: de, spec: RAHMEN, connector: "guv" });
+    assert.doesNotMatch(fs.readFileSync(path.join(de, "packages/frontend/src/dwg/apps/dwg-rahmen-test.ts"), "utf8"), /"lang"/);
+    // Prüfung
+    const bad = structuredClone(spec);
+    bad.lang = "fr";
+    bad.locale = "english";
+    bad.pages[0].tiles[0].options = [{ id: "rows", label: "Rows", choices: [] }, { id: "x", label: "X", choices: [{ label: "A", set: { hierarchy: 1 } }] }, { label: "ohne id" },
+        { id: "y", label: "Y", choices: [{ label: "B", set: { columns: {} } }, { label: "C", set: { columns: { a: 1 } } }, { label: "C", set: { columns: { a: 2 } } }] }];
+    assert.throws(() => checkSpec(bad), e => ["lang „fr“ gibt es nicht (de, en)", "locale „english“", "Option rows: choices fehlt oder ist leer",
+        "Option x, Wahl 1: braucht label und set", "Option 3: braucht id und label", "Option y, Wahl „B“: set setzt keine Eigenschaft",
+        "Option y: Wahl „C“ kommt mehrfach vor"].every(m => e.message.includes(m)), "Meldungen");
+    checkSpec({ ...spec, locale: "en-GB" });
+    // Texte und Werte der Vorlage dwg-page.ts je Sprache
+    const out = path.join(app, "lang.mjs");
+    const { default: esbuild } = await import("esbuild");
+    await esbuild.build({ entryPoints: [path.join(src, "dwg-page.ts")], bundle: true, format: "esm", platform: "node", outfile: out, logLevel: "error" });
+    const m = await import(pathToFileURL(out).href);
+    assert.equal(m.visualLocale(), "de-DE");
+    assert.equal(m.visualLocale("en"), "en-US");
+    assert.equal(m.visualLocale("en", "en-GB"), "en-GB");
+    assert.equal(m.formatSlicerValue(1234.5), "1.234,5");
+    assert.equal(m.formatSlicerValue(1234.5, "en"), "1,234.5");
+    assert.equal(m.formatSlicerValue(null, "en"), "(blank)");
+    assert.equal(m.formatSlicerValue(true, "en"), "Yes");
+    assert.equal(m.formatSlicerValue("2026-03-01T00:00:00"), "01.03.2026");
+    assert.equal(m.formatSlicerValue("2026-03-01T00:00:00", "en"), "03/01/2026");
+    assert.equal(m.uiText().all, "Alle");
+    assert.equal(m.uiText("en").all, "All");
+    assert.equal(m.navGroups([{ name: "A", tiles: [] }], "en")[0].group, "Pages");
+    const page = { name: "P", width: 1920, height: 1080, filters: [{ column: "'Calender'[Month]", values: [1, 2, 3] }], tiles: [] };
+    const [chip] = m.fixedFilterChips(page, "en");
+    assert.equal(chip.values, "1 to 3");
+    assert.match(m.fixedChipText(chip, "en").title, /^Fixed filter from the app spec .*applies to all tiles/);
+    assert.equal(m.selectionLabel({ tile: "a", keys: [{ "Calender[Month Name Short]": null }] }, "en"), "Month Name Short: (blank)");
+    // Optionen: Startwahl aus den Objekten, Mischen in Reihenfolge, Übernahme nach persistProperties
+    const options = [
+        { id: "v", label: "V", choices: [{ label: "Zahlen", set: { columns: { dPyAbs: true } } }, { label: "Grafik", set: { columns: { dPyAbs: false, dPyBar: true } } }] },
+        { id: "rows", label: "Rows", choices: [{ label: "L1", set: { hierarchy: { defaultLevel: 1 } } }, { label: "L2", set: { hierarchy: { defaultLevel: 2 } } }] },
+    ];
+    const objects = { columns: { dPyAbs: true, minuend: "ac" }, hierarchy: { defaultLevel: 2 } };
+    assert.deepEqual(m.defaultChoices(options, objects), [0, 1]);
+    assert.deepEqual(m.defaultChoices(options, {}), [-1, -1]);
+    assert.deepEqual(m.applyOptions(objects, options, [1, 0]), { columns: { dPyAbs: false, dPyBar: true, minuend: "ac" }, hierarchy: { defaultLevel: 1 } });
+    assert.deepEqual(m.applyOptions(objects, options, [-1, -1]), objects);
+    // das Visual speichert Ebene 1 (eigene Bedienleiste): nur die Zeilen-Option folgt; Ebene 3 passt zu keiner Wahl: -1
+    const after = { ...objects, hierarchy: { defaultLevel: 1 } };
+    assert.deepEqual(m.persistedChoices(options, [0, 1], objects, after), [0, 0]);
+    assert.deepEqual(m.persistedChoices(options, [0, 1], objects, { ...objects, hierarchy: { defaultLevel: 3 } }), [0, -1]);
+    // genaueste Wahl gewinnt, Objektwerte per JSON, leeres set passt nie
+    const nested = [{ id: "c", label: "C", choices: [
+        { label: "leer", set: { columns: {} } }, { label: "A", set: { columns: { a: true } } }, { label: "AB", set: { columns: { a: true, b: true } } },
+        { label: "Farbe", set: { colors: { ac: { solid: { color: "#333" } } } } }] }];
+    assert.deepEqual(m.defaultChoices(nested, { columns: { a: true, b: true } }), [2]);
+    assert.deepEqual(m.defaultChoices(nested, { columns: { a: true } }), [1]);
+    assert.deepEqual(m.defaultChoices(nested, { colors: { ac: { solid: { color: "#333" } } } }), [3]);
+    assert.deepEqual(m.defaultChoices(nested, {}), [-1]);
+    assert.deepEqual(m.persistedChoices(options, [1, 1], objects, { ...objects, toolbar: { folded: true } }), [1, 1]);
+});
+
 await test("Zahlenformate aus dem Modell: Formatstring je Measure-Rolle, formats der Kachel geht vor", async () => {
     const { ROLES } = await import(pathToFileURL(path.join(ROOT, "visuals", "dist", "dwg-visuals.js")).href);
     const SHOWCASE = path.join(ROOT, "examples", "showcase", "ZlatyLev Showcase.SemanticModel");
