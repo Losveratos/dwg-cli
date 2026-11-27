@@ -45,7 +45,13 @@ export function scalingCommaWarning(fmt, visual = "chartkitchen", source = "form
     let v = catalog?.versions?.[visual];
     if (!v) { try { v = loadCatalog().versions?.[visual]; } catch { v = null; } }
     const name = `${VISUAL[visual] ?? visual}${v ? ` ${String(v).replace(/(\.0)+$/, "")}` : ""}`;
+    const tail = source === "formats" ? " formats gilt nur in der App, Power BI nimmt das Format des Measures." : "";
+    if (visual === "pnl") {
+        // P&L liest Formatstrings nicht, die Einheit kommt aus numbers.scaling
+        return `Formatstring „${fmt}“ hat skalierende Kommas. ${name} wertet Formatstrings nicht aus; Einheit über ` +
+            `numbers.scaling setzen.${tail}`;
+    }
     const example = visual === "chartkitchen" ? " (81 statt 81,5)" : "";
     return `Formatstring „${fmt}“ hat skalierende Kommas. ${name} zeigt sie falsch${example}; Werte im Modell skalieren ` +
-        `oder labels.displayUnits nutzen.${source === "formats" ? " formats gilt nur in der App, Power BI nimmt das Format des Measures." : ""}`;
+        `oder labels.displayUnits nutzen.${tail}`;
 }

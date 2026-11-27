@@ -27,7 +27,7 @@ export function findTemplate(catalog, id) {
  */
 export function pnlNoAcWarning(tile, catalog = null) {
     if (tile?.visual !== "pnl" || !tile.bindings || typeof tile.bindings !== "object") { return null; }
-    if (typeof tile.bindings.ac === "string" && tile.bindings.ac) { return null; }
+    if ([].concat(tile.bindings.ac ?? []).some(r => typeof r === "string" && r)) { return null; }
     let v = catalog?.versions?.pnl;
     if (!v) { try { v = loadCatalog().versions?.pnl; } catch { v = null; } }
     const version = v ? String(v).replace(/\.0$/, "") : "";
