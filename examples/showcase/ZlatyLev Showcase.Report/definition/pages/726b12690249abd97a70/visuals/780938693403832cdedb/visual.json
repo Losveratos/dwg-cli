@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "780938693403832cdedb",
+  "position": {
+    "x": 27,
+    "y": 0,
+    "z": 3000,
+    "width": 1866,
+    "height": 96,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "C10 Portfolio der Biere nach Menge, Marge und Umsatz",
+                    "textStyle": {
+                      "fontSize": "14pt",
+                      "color": "#1F2328",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "   ChartKitchen · Korrelation",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#C25A2D",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Welche Biere verbinden hohe Menge mit guter Marge, und welche verdienen trotz großem Umsatz wenig? Das Portfolio teilt die Biere an den Mittelwerten von Absatz und Marge in vier Quadranten, die Blasengröße ist der Umsatz (Wert in der Blase), die Farbe die Sorte. Ein Klick auf einen Kanal zeigt, ob sich das Sortiment dort anders verhält.",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#5F6368"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
