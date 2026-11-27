@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "31dd5d141b6ee4db2d05",
+  "position": {
+    "x": 27,
+    "y": 0,
+    "z": 3000,
+    "width": 1866,
+    "height": 96,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "T01C Kunden je Kanal nach Vorjahresabweichung",
+                    "textStyle": {
+                      "fontSize": "14pt",
+                      "color": "#1F2328",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "   P&L · Struktur-Vergleich",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#C25A2D",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Welche Kunden treiben im laufenden Jahr die Veränderung gegenüber dem Vorjahr innerhalb ihres Kanals? Je Kanal stehen die Kunden nach der Vorjahresabweichung seit Jahresbeginn sortiert, die Kanäle bleiben in ihrer Reihenfolge und tragen Zwischensummen. Plan und Vorjahr stehen als Zahlen daneben, Abweichungen über der Schwelle werden rot.",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#5F6368"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
