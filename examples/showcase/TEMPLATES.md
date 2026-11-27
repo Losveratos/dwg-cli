@@ -1,6 +1,6 @@
 # Showcase · Notizen zu den Templates
 
-Stand 25.11.2026 (Visuals auf ChartKitchen 1.58 und P&L 1.8.4; 17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 am
+Stand 27.11.2026 (Welle 2, Paket 1: zehn Seiten nachgeschärft, siehe Prüfung); 25.11.2026 (Visuals auf ChartKitchen 1.58 und P&L 1.8.4; 17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 am
 23.11.2026 ergänzt; Bilanz und Cashflow 29.10.2026, sonst
 19.10.2026). Spec: `specs/showcase.json` (47 Seiten, je Template eine), Test: `node app/test/showcase-spec.mjs`.
 Visuals: ChartKitchen 1.58.0.0, P&L Statement 1.8.4.0 (Adapter `visuals/dist`).
@@ -88,7 +88,7 @@ Seitenbeschreibungen sagen es; Mini-DAX und DAX lassen Filter ohne Pfad zur Fakt
 | C06 Kategorie-Brücke vertikal | Region × Umsatz AC/PY, Ist-Filter | `bridgeOrientation: columns` kommt aus dem Preset |
 | C08 Linie | Monat × Absatz hl AC/PY/PL/FC | Mit Jahr-Einfachauswahl nur 12 Punkte; das Modell hat keine Woche. 24 Monate gingen nur ohne Jahr-Slicer auf dieser Seite (Rahmen kennt keine Ausnahme je Seite), die Einfachauswahl braucht der Rest (FY, YTD) |
 | C09 Scatter | Kunde: y DB-Marge % AC (+PY), x Absatz hl AC (+PY), Ist-Filter | Rollen `xValue`, `xPrevious` (Bewegungspfeile). Nur 12 Kunden. DB-Marge ist ein Anteil: Kachelfeld `formats` `0.0 %` für die App (Rahmen reicht es durch), Power BI nimmt den Formatstring des Modells |
-| C10 Bubble | Bier: y DB-Marge %, x Absatz hl, Größe Umsatz, Ist-Filter | Rolle `bubbleSize`; `scatterSizeLegend` aus dem Preset; `formats` wie C09 |
+| C10 Portfolio | Bier: y DB-Marge %, x Absatz hl, Größe Umsatz, Serie Sorte, Ist-Filter | Rolle `bubbleSize`; `formats` wie C09. Seit 27.11.2026 Portfolio nach den Blättern 10A/10B: Serie `'Produkt'[Sorte]` mit `scatterColorBy: group` und `scatterSizeLegend: false` (beide Test-Ausnahme), `scatterValueLabels` (Umsatz in der Blase), `scatterMaxRadius: 45`, `scatterBubbleOpacity: 75`, `scale.xMin: 0` (x sonst automatisch: nach einem Kanal-Klick liegt Gastronomie bei 281 bis 8.156 hl, eine feste Achse bis 100k drängte alle Blasen nach links), y ebenfalls automatisch (Margen je Kanal per Mini-DAX: Handel 42 bis 57 %, Großhandel 43 bis 56 %, Gastronomie 67 bis 75 %, Export 50 bis 62 %; eine feste Achse 0,4 bis 0,8 hielte alle, quetschte Gastronomie aber in das obere Fünftel); Quadranten bleiben an den Mittelwerten (`scatterQuadrant: mean` aus dem Preset, keine feste Mittellinie wie auf 10A, die Achsen sind nicht normiert) |
 | C12 Waterfall / Brücke | GuV-Block (`'Konto'[L1]`) × GuV ± AC/PY, Ist-Filter: EBIT PY → Beitrag je Block → EBIT AC | Bewusst **ohne** Rolle `rowType` (`'Konto'[Brückentyp]`): im rowType-Modus zeichnet das Visual nur Anker für `sum`-Zeilen mit Wert (`buildWaterfall`), Formelzeilen (EBIT) haben keine Faktenzeilen, die Brücke endete ohne EBIT-Säule (eine Endsumme rechnet das Visual in diesem Modus nicht, anders als CONTRACT.md annimmt). Mit gebundenem PY baut es die Brücke Basis → AC mit Anker vorn und hinten |
 | C13 Small Multiples | Monat × Umsatz AC/PY/FC, je Kanal eine Kachel | C13 setzt nur `multiplesTotal` und `multiplesSameScale` und behält den Chart-Typ, deshalb `orientation: columns`, `comparisonMode: py` und Varianz-Schalter explizit |
 | T01A | Region (flach) × Umsatz AC/PY/PL, Periode | Schwellen aus dem Preset mit Standardwerten (−20 / −10 %, YTD −220) in Tsd. EUR |
@@ -98,29 +98,29 @@ Seitenbeschreibungen sagen es; Mini-DAX und DAX lassen Filter ohne Pfad zur Fakt
 | T02C | Bier (flach) × Absatz hl AC/PL, Periode | `numbers.unitText: hl`, `scaling: none`; Sortierung nach ΔPL im Monatsblock |
 | T02E | Land → Region × Umsatz FC/PY (+AC), ohne Periode | Gesamtjahr, siehe Vergleichszeitraum |
 | T02F | Kanal → Kunde × Umsatz FC/PL (+AC), ohne Periode | Gesamtjahr |
-| T03A | GuV, AC, PY und PL bis Ist | GuV-Rollen wie `specs/guv.json` (Ebenen L1, L2 + Konto-Rollen), `showItemsWithNoData` für Summen, Formeln, KPIs |
+| T03A | GuV, AC, PY und PL bis Ist | GuV-Rollen wie `specs/guv.json` (Ebenen L1, L2 + Konto-Rollen), `showItemsWithNoData` für Summen, Formeln, KPIs. Seit 27.11.2026 `numbers.marginRel: true`: Margenzeilen zeigen in den Δ%-Spalten ihre relative Veränderung (kein Template-Schalter) |
 | T03B | GuV, FC/PY/PL (+AC), ohne Periode | Gesamtjahr |
 | T04A | GuV, AC, PL bis Ist | |
 | T04B | GuV, AC, PL bis Ist | Preset hat 2 Dezimalen: Skalierung Mio. EUR |
 | T04C | GuV, AC, PY bis Ist | Mio. EUR |
 | T04D | GuV, FC/PL (+AC), ohne Periode | Mio. EUR, Gesamtjahr |
 | T04E | GuV, FC/PY (+AC), ohne Periode | Mio. EUR, Gesamtjahr |
-| 12A | GuV, AC, PY bis Ist | 0 Dezimalen, Tsd. EUR |
-| 12G | GuV, AC/PY/PL/FC + FC FY, PL FY, ohne Periode | Block FY braucht `fcFy`; Headline an |
-| 12H | GuV, PL/PY (+AC), ohne Periode | Minuend PL, Planrechnung Gesamtjahr; Headline an |
+| 12A | GuV, AC, PY bis Ist | 0 Dezimalen, Tsd. EUR. Seit 27.11.2026 Ellipse um die ΔPY-Zahl der Logistik (`columns.highlight: "Logistik"`, `highlightStyle: "ellipse"`; das Visual setzt sie in die erste Δ-Balkenspalte des letzten Blocks) |
+| 12G | GuV, AC/PY/PL/FC + FC FY, PL FY, ohne Periode | Block FY braucht `fcFy`; Headline an. Seit 27.11.2026 Margenzeilen an (`showPctRows: true` wie das Preset, keine Ausnahme mehr; die Tabelle wird dafür etwas kleiner gezeichnet; bei 1440 × 900 passt die EBIT-Zeile samt EBIT-Marge in die Kachel, Zahlen etwa 7 px hoch, die kursiven Margenzeilen an der Lesegrenze; ohne Margenzeilen wäre die Tabelle dort rund 15 % breiter) und Ellipse um die ΔPY-Zahl des EBIT (`highlight: "EBIT"`, `highlightStyle: "ellipse"`) |
+| 12H | GuV, PL/PY (+AC), ohne Periode | Minuend PL, Planrechnung Gesamtjahr; Headline an. Seit 27.11.2026 Ellipse um die ΔPY-Zahl des EBIT (`highlight: "EBIT"`, `highlightStyle: "ellipse"`) |
 | T05A | Bilanz ('Bilanzkonto', 'Bilanz'), AC und PY, Periode | `statement.stockMode: allStock` wie das Template (die Daten tragen trotzdem die Token, „Auto“ ergäbe dasselbe); `columns.pctRevenue: false`; `showPctRows` bleibt an, es betrifft nur die KPI-Zeile Eigenkapitalquote (Δ in Prozentpunkten). Mio. EUR mit 2 Dezimalen. Karten: drei Positionen am Stichtag (`Bilanz Stichtag AC/PY`, Kachelfilter auf KontoID: Sachanlagen, Kasse und Bank, Eigenkapital). Verbindlichkeiten bewusst nicht: die Karten kennen keine umgekehrte Polarität und färbten einen Anstieg günstig |
 | C07 Gestapelte Fläche | Monat × Absatz hl AC/FC, Serie Sorte | Rolle `series`; Sorten als Fläche mit Summenlinie und Namen am Ende, ab September schraffiert |
-| C14 Balkentabelle nach ΔPL | Bier × Umsatz AC/PL, Ist-Filter | Gruppe „ChartKitchen · Rangfolgen“ (neu, wie im Katalog); `labels.displayUnits: "k"`, `decimals: 0` (Tsd. EUR, sonst stünden in Mio. fast nur „-0,00“) |
-| C15 Balkentabelle nach ΔPL % | Kunde × Umsatz AC/PL, Ist-Filter | |
-| C16 Balkentabelle nach AC | Kunde × DB AC/PL, Ist-Filter | Karten: Deckungsbeitrag je Sorte |
-| C17 Kategorie-Brücke waagerecht | Kunde × Umsatz AC/PY, Ist-Filter | In die Gruppe Brücken neben C06 gestellt (Katalog: Struktur). Trennlinie alle vier Kunden aus dem Preset |
+| C14 Balkentabelle nach ΔPL | Bier × Umsatz AC/PL, Ist-Filter | Gruppe „ChartKitchen · Rangfolgen“ (neu, wie im Katalog); `labels.displayUnits: "k"`, `decimals: 0` (Tsd. EUR, sonst stünden in Mio. fast nur „-0,00“). Ohne Top N wie das Preset: ChartKitchen wählt die Top N nach AC (`applyTopN`), die Seite sortiert nach ΔPL; mit `topN: 8` lag Vyšehrad Tmavý 13° (−21 Tsd. EUR, Rang 4 der Abweichung) im Rest. Rest-Zeile erst, wenn ChartKitchen Top N nach dem Sortierkriterium wählt (Wunsch Welle 3) |
+| C15 Balkentabelle nach ΔPL % | Kunde × Umsatz AC/PL, Ist-Filter | Ohne Top N wie das Preset: Top N wählt nach AC, die Seite sortiert nach ΔPL %; selbst mit `topN: 10` lag Hospoda U Lva (+7,0 %) im Rest. Rest-Zeile erst, wenn ChartKitchen Top N nach dem Sortierkriterium wählt (Wunsch Welle 3) |
+| C16 Balkentabelle nach AC | Kunde × DB AC/PL, Ist-Filter | Karten: Deckungsbeitrag je Sorte. Seit 27.11.2026 `topN: 8`, „Rest (4)“ (Test-Ausnahme); Auswahl und Sortierung folgen hier beide dem Ist |
+| C17 Kategorie-Brücke waagerecht | Kunde × Umsatz AC/PY, Ist-Filter | In die Gruppe Brücken neben C06 gestellt (Katalog: Struktur). Trennlinie alle vier Kunden aus dem Preset. Seit 27.11.2026 Rolle `plan` = `'Fakten'[Umsatz PL]` (Ist-Filter, also PL bis Ist): PL als umrandeter Balken über PY, unten ΔPL neben ΔPY |
 | C18 Abweichungs-Scatter | Kunde: y `Umsatz ΔPL %`, x `Umsatz ΔPY %`, Farbe Kanal, Größe Umsatz AC, Ist-Filter | `scale.refLine`/`xRefLine` = 0 (Achsenkreuz); `formats` `0.0 %` für die App; Anzeigenamen „ΔPL“ und „ΔPY“ (kein doppeltes Prozent am Achsentitel). Plan 2026 je Kunde neu verteilt (CONTRACT.md), damit die Kunden streuen. `tile add` schlägt aus dem Stamm „Umsatz“ `Umsatz AC` vor; die Δ-Measures nennt man mit `--actual`/`--xValue` |
 | C19 Säulen gegen Plan + Jahressäule | Monat × Umsatz AC/PL/FC | `yearColumnLabel: "2026"`; Jahressäule auf eigener Skala (Faktor 0,1), Jahres-Δ mit dem Faktor der Säule. Keine Serie, kein `rowType` |
 | C20 Bestand und Fluss | Monat × 'Liquiditaet' AC/FC, Serie Art, Zeilentyp `'Liquiditaetsart'[Fluss]` | Measures semi-additiv (Kasse = letzter Monat mit Wert, auch bei „Alle“ Jahre). Token `stock`/`inflow`/`outflow`, Operativer Cashflow ohne Token (Vorzeichen entscheidet, erscheint deshalb in der Legende oben und unten); `highlight: "Jun"` mit Ellipse. Karten: vier Zahlungsarten Jan bis Aug gegen PY (Kachelfilter ArtID und Ist). `tile add` rät den Zeilentyp nicht (`--rowType` nötig) |
 | C21 Kumulierte Linie mit R12 | Monat × Umsatz AC/PL/FC/PY | PY liefert die gleitende Jahressumme (12 Perioden mit PY); Abstandsmarker im August und am Jahresende |
 | C22 Serienlinien mit Index | Monat × Absatz hl AC/FC, Serie Sorte | Nur 12 Monate (Jahr-Slicer), die Saison prägt die Linien; `labels.displayUnits: "none"`, sonst hängt der Titel „in Tsd.“ an den Index |
 | C23 Scatter-Zeitpfad | Monat × Umsatz AC (y) / Absatz hl AC (x), Serie und `multiples` Kanal, Ist-Filter | Frei gesetzt `scale.ratioRays: "80;100;120"`, `ratioRayUnit: "EUR/hl"`; vier Kacheln (`multiplesColumns: 4`), `xLogScale`/`yLogScale` mit `xMax: "30k"`, `yMax: "4M"` (die Strahlen laufen parallel und enden rechts, beschriftet in der letzten Kachel) |
-| C24 Blasen mit Anteil | `multiples` Land, Kategorie und Serie Sorte ('Marktsegment'): y Marktwachstum %, x Relativer Marktanteil, Größe Marktvolumen, Anteil Eigenabsatz, Ist-Filter | Kacheln je Land (Blatt 10G, `multiples` seit 23.11.2026 im Katalog), `multiplesColumns: 4`, `scatterMaxRadius: 28` (bewusst kleiner als das Template, Test-Ausnahme), Größe und Anteil per `formats` `#,##0.0,` in Tsd. hl, `scale.yMin/yMax` −8 % bis 15 %, `labels.labelDensity: "all"` (kleine Kacheln dünnen sonst auf die Extrempunkte aus). `scale.xRefLine` = 1. Karten: Eigenabsatz je Land, ein Klick zeigt ein Land |
+| C24 Blasen mit Anteil | `multiples` Land, Kategorie Sorte ('Marktsegment', seit 27.11.2026 nicht mehr zusätzlich als Serie): y Marktwachstum %, x Relativer Marktanteil, Größe Marktvolumen, Anteil Eigenabsatz, Ist-Filter | Kacheln je Land (Blatt 10G, `multiples` seit 23.11.2026 im Katalog), `multiplesColumns: 4`, `scatterMaxRadius: 28` (bewusst kleiner als das Template, Test-Ausnahme), Größe und Anteil im Modellformat `#,##0.0` (seit 27.11.2026 ohne `formats`: `#,##0.0,` galt nur in der App und zeigt ChartKitchen 1.58 falsch), Einheit Tsd. hl über die Auto-Einheit K mit `unitSuffix: false` (trägt bis 1 Mio. hl, größte Blase rund 758 Tsd.), `scale.yMin/yMax` −8 % bis 15 %, `labels.labelDensity: "all"` (kleine Kacheln dünnen sonst auf die Extrempunkte aus). `scale.xRefLine` = 1. Karten: Eigenabsatz je Land, ein Klick zeigt ein Land. Dasselbe Feld in Kategorie und Serie ergab doppelte, gekürzte Namen; ohne Serie trägt jede Blase den Sortennamen einmal. Folge: keine Farbe je Sorte, denn in Kacheln färbt das Visual nur nach der Serie (`prepareScatterDeck`: Gruppe = Serie, sonst nur ohne Kacheln die Kachelgruppe) |
 | C25 Marimekko | Kanal × Umsatz AC, Serie Sorte, Ist-Filter | Dicke = Umsatz, Summen- und Anteilsspalte, Σ-Zeile |
 | T01C | Kanal → Kunde × Umsatz AC/PY/PL, Periode | Kanal statt Land, weil nur Kanäle mehrzeilige Blöcke haben (`keepBlockOrder` wirkt erst dann) |
 | T01D | Sorte → Produkt × Umsatz FC/PY/PL (+AC), ohne Periode | Gesamtjahr (siehe Vergleichszeitraum); vier Blöcke mit zwei bis vier Bieren, Sorten nach 'Produkt'[Sorte Sort]. Vorher Land → Kunde: drei von vier Ländern hatten nur einen Kunden und fielen zu Einzelzeilen zusammen |
@@ -160,6 +160,11 @@ Ein Klick auf eine Karte filtert die Hauptkachel (Test: Querfilter je Kanal, Sum
   C14 Doppellinie an der ΔPL-Achse und Tausenderpunkt (8.978), C03 Pinköpfe in Szenario-Notation (FC schraffiert),
   C18 ohne „(AC)“ und ohne Typtitel, 12G Kopf „FY“ über PY, YTD und AC&FC, T01A gerundete Null als „0,00“ ohne
   Vorzeichen, Kontextkarten 11A mit „n.a.“. Nicht im Dienst und nicht in Power BI Desktop geprüft.
+
+- 27.11.2026 (Welle 2, Paket 1): 12A, 12G, 12H mit Ellipse, 12G mit Margenzeilen, T03A `marginRel`, C17 mit Plan,
+  C16 mit Rest-Zeile, C10 als Portfolio, C24 ohne doppelte Sorte. `showcase-spec.mjs` 21/21 (mit `DWG_KITCHEN` auf
+  `.kitchen`), `dwg lint` und `dwg check` ohne neue Befunde, `showcase-e2e.mjs` für die zehn Seiten ohne Befund und im
+  Bild geprüft. Bericht noch nicht neu erzeugt, nicht in Power BI Desktop geprüft.
 
 ## Befunde
 

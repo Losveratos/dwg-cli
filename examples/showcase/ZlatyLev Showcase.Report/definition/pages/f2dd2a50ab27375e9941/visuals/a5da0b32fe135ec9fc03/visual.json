@@ -1,0 +1,98 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "a5da0b32fe135ec9fc03",
+  "position": {
+    "x": 27,
+    "y": 0,
+    "z": 3000,
+    "width": 1866,
+    "height": 96,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "T01D Forecast je Sorte und Bier nach Vorjahresabweichung",
+                    "textStyle": {
+                      "fontSize": "14pt",
+                      "color": "#1F2328",
+                      "fontWeight": "bold"
+                    }
+                  },
+                  {
+                    "value": "   P&L · Struktur-Vergleich",
+                    "textStyle": {
+                      "fontSize": "9pt",
+                      "color": "#C25A2D",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Wo landen Sorten und Biere im Gesamtjahr gegenüber dem Vorjahr, relativ betrachtet? Der Forecast steht gegen das ganze Vorjahr und den Plan, je Sorte sind die Biere nach der prozentualen Vorjahresabweichung sortiert, die Sorten bleiben in ihrer Reihenfolge. Die Seite zeigt bewusst das Gesamtjahr ohne Periode, weil der Monatsblock des Templates sonst den August zeigte, in dem Forecast und Ist gleich sind.",
+                    "textStyle": {
+                      "fontSize": "10pt",
+                      "color": "#5F6368"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

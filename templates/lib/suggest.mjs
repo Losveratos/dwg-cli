@@ -259,14 +259,17 @@ export function suggestBindings(model, template, given = {}, measure = null) {
     const stems = measureStems(fields);
     let anchor = null;
     const acRole = template.visual === "pnl" ? "ac" : "actual";
+    // ohne Ist-Kennzahl trägt die Minuend-Rolle den Stamm (T01D, T02E, T02F: --fc 'Fakten'[Umsatz FC] → Stamm „umsatz“, AC kommt dazu)
+    const minRole = template.visual === "pnl" ? template.objects?.columns?.minuend : null;
+    const stemRole = bindings[acRole]?.length ? acRole : minRole && bindings[minRole]?.length ? minRole : null;
     if (measure) {
         const m = parseMeasureName(String(measure)).stem;
         const hit = stems.find(s => s.stem === m) ?? stems.find(s => s.names.some(n => n.toLowerCase() === String(measure).toLowerCase().trim()))
             ?? (stems.filter(s => s.stem.includes(m)).length === 1 ? stems.find(s => s.stem.includes(m)) : null);
         if (hit) { anchor = { stem: hit.stem, table: hit.table }; }
         else { problems.push(`--measure „${measure}“: kein Kennzahlen-Stamm mit Ist-Wert passt (vorhanden: ${stems.map(s => s.stem || s.names[0]).join(", ")}).`); }
-    } else if (bindings[acRole]?.length) {
-        const f = fields.find(x => x.node === "Measure" && refOf(x) === bindings[acRole][0]);
+    } else if (stemRole) {
+        const f = fields.find(x => x.node === "Measure" && refOf(x) === bindings[stemRole][0]);
         if (f) { anchor = { stem: f.stem, table: f.table }; }
     } else if (stems.length === 1) {
         anchor = { stem: stems[0].stem, table: stems[0].table };
@@ -316,6 +319,10 @@ export function suggestBindings(model, template, given = {}, measure = null) {
             cands = ROLE_SCEN[r.role] ? measureCandidates(fields, r.role, anchor, toActual) : plainMeasureCandidates(fields, anchor);
         } else {
             cands = columnCandidates(fields, r.role, { time, levelTable });
+            // Serie nie dasselbe Feld wie die Kategorie (C24: doppelte, gekürzte Namen), auch nicht als Alternative
+            if (template.visual === "chartkitchen" && r.role === "series" && bindings.category?.length) {
+                cands = cands.filter(c => refOf(c.field) !== bindings.category[0]);
+            }
         }
         alts[r.role] = cands.slice(0, r.kind === "Measure" ? 4 : 6).map(c => refOf(c.field));
         if (!cands.length || r.need === "optional") { continue; }

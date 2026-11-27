@@ -150,7 +150,7 @@ try {
         const given = Object.fromEntries(Object.entries(a).filter(([k, v]) => !TILE_OPTS.has(k) && v !== true));
         const r = addTile({ specPath: a.spec, pageRef: val("page"), newPage: val("new-page"), group: val("group"), description: val("description"), template,
             modelDir: val("model"), given, measure: val("measure"), id: val("id"), rect: val("rect"), title: val("title"), dryRun: !!a["dry-run"] });
-        console.log(a.json ? JSON.stringify({ written: r.written, tile: r.tile, rows: r.rows, problems: r.problems, stem: r.stem }, null, 2)
+        console.log(a.json ? JSON.stringify({ written: r.written, tile: r.tile, rows: r.rows, problems: r.problems, warnings: r.warnings, stem: r.stem }, null, 2)
             : formatResult(r, template, a.spec));
         if (r.problems.length) { process.exit(1); }
     } else if (cmd === "validate") {

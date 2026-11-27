@@ -140,6 +140,13 @@ Schlüssel `[rolle]`), wie Power BI sie dem Visual mitgibt: `#,##0` zeigt unter 
 8978. Ein Eintrag in `formats` der Kachel geht vor, unter `[rolle]` oder unter dem Measure in jeder Schreibweise
 (`'T'[M]`, `T[M]`, `[M]`). Ohne `--model` gilt nur `formats` der Spec.
 
+**Skalierende Kommas** (`#,##0.0,` in Tausend, `#,##0,,` in Millionen) zeigt ChartKitchen 1.58 falsch: 81 statt 81,5.
+`dwg lint` warnt bei solchen Einträgen in `formats` (`FORMAT_SCALING_COMMA`), `dwg check --model` bei Formatstrings
+gebundener Measures. Ausweg: Formatstring ohne Kommas am Ende und die Einheit dem Visual überlassen (automatisch K/M,
+mit `labels.unitSuffix: false` ohne Kürzel, die Einheit dann in Titel oder Beschreibung) oder die Kennzahl im Modell
+skalieren. `formats` gilt ohnehin nur in der App, Power BI nimmt den Formatstring des Measures. `labels.displayUnits`
+hilft nur, wenn alle Kennzahlen der Kachel dieselbe Einheit haben: es gilt auch für Achsen und Prozentwerte.
+
 **Grenze:** Dynamische Formatstrings (`formatStringDefinition`, DAX je Zelle) wertet die App nicht aus, die Werte
 erscheinen dort ohne Format. `app page --model` meldet solche Measures als Hinweis. Ausweg: ein festes Format im
 Kachelfeld `formats`, z. B. `"[actual]": "#,##0"`.
@@ -331,6 +338,15 @@ Template beim Anwenden setzt (ChartKitchen `CHART_TEMPLATES`, P&L `templateSwitc
 und EN aus den Sprachressourcen, dazu die Datenrollen als Pflicht, empfohlen oder optional. Die Rollen leitet dwg aus den
 Schaltern ab (Vergleich mit dem Vorjahr → PY Pflicht, zweiter Block → Periode empfohlen, GuV-Statement → Kontologik
 empfohlen); geprüft gegen die abgenommenen Showcase-Kacheln. Derselbe Katalog ist für MockupKitchen gedacht.
+AC ist überall Pflicht, außer bei den Forecast-Strukturtabellen T01D, T02E und T02F (Minuend FC): dort ist AC empfohlen.
+Sie zeigen den Forecast im Monats- und YTD-Block; ist später der Berichtsmonat wählbar, zeigt das Visual FC auch ohne
+AC. `tile add` bindet AC weiter, wenn das Modell eine Ist-Kennzahl im Stamm hat; den Stamm nimmt es aus `--measure`, aus
+AC oder ersatzweise aus der Minuend-Rolle (`--fc 'Fakten'[Umsatz FC]` → „umsatz“). P&L 1.8.4 zeichnet ohne AC noch keine
+Tabelle (Hinweis „AC (Ist)“ im Visual): fehlt AC trotzdem, warnen `tile add` und `dwg lint` (Code `PNL_NO_AC`, Warnung,
+kein Fehler; mit `--strict` Exit 1). Die FC-Statements T03B, T04D und T04E behalten AC als Pflicht.
+Bei den Scatter-Templates (C10, C18, C23, C24) heißt die Rolle `series` „Serie“: sie färbt oder gruppiert die Punkte und
+stapelt nichts. C24 führt sie optional und nie mit demselben Feld wie `category` (sonst doppelte, gekürzte Namen); `tile add`
+schlägt dieses Feld für `series` nicht vor und warnt, wenn beide Rollen dasselbe Feld bekommen.
 
 **Bestände (P&L 1.7, Gruppe „Bilanz & Cashflow“).** T05A und T05B schreiben zusätzlich `statement.stockMode`
 (T05A `allStock`, T05B `auto`). Das Visual liest Bestand oder Fluss aus Token im Zeilentyp: `stock` (Stand am
@@ -369,8 +385,8 @@ Kachel bekommt die Schalter des Templates, Sortierspalte und Anzeigenamen (Chart
 einer leeren Seite den ganzen Inhaltsbereich; daneben braucht sie `--rect`. Danach gelten `checkSpec`, `dwg lint`,
 `app page` und `pbip pages` wie für jede Spec.
 
-Tests: `templates/test/unit.mjs` (27: Katalog, Schalter und Pflichtrollen gegen die 47 Showcase-Kacheln, Vorschläge
-treffen deren Felder, Kurzangaben, Kommandozeile). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
+Tests: `templates/test/unit.mjs` (31: Katalog, Schalter und Pflichtrollen gegen die 47 Showcase-Kacheln, Vorschläge
+treffen deren Felder, Kurzangaben, Kommandozeile, T02E ohne AC bis zur Power-BI-Seite, Serie bei Scatter und C24). Von Hand geprüft: drei Seiten aus `tile add` (C03, T04B, T01A) als
 schemagültiger Bericht (`pbip pages`, `validate`) und im Browser-Testrahmen gerendert, Zahlen wie die Showcase-Seiten;
 Gegenprobe auf dem Modell „ChartKitchen byDatenWG Demo“ (L1..L6, Measures ohne Stamm).
 

@@ -1823,7 +1823,7 @@
       "name": "Kunden nach Deckungsbeitrag",
       "template": "C16",
       "group": "ChartKitchen · Rangfolgen",
-      "description": "Welche Kunden bringen den größten Deckungsbeitrag, und erreichen sie ihren Plan? Die Balkentabelle sortiert nach dem Ist absteigend, Plan und Abweichungen stehen daneben. Die Sortenkarten oben zeigen den Deckungsbeitrag je Sorte.",
+      "description": "Welche Kunden bringen den größten Deckungsbeitrag, und erreichen sie ihren Plan? Die Balkentabelle zeigt die acht stärksten Kunden nach dem Ist absteigend und die übrigen vier in einer Rest-Zeile, Plan und Abweichungen stehen daneben. Die Sortenkarten oben zeigen den Deckungsbeitrag je Sorte.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -1913,13 +1913,13 @@
               "tableSort": "ac_desc",
               "gridLines": "none",
               "cumulative": false,
-              "topN": 0,
+              "topN": 8,
               "pinStyle": "round",
               "chipMenu": true
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "Deckungsbeitrag in EUR je Kunde, sortiert nach Ist",
+              "kpi": "Deckungsbeitrag in EUR je Kunde (Top 8 und Rest), sortiert nach Ist",
               "period": "Jan..Aug 2026 (YTD) AC und PL, ΔPL"
             },
             "labels": {
@@ -2054,10 +2054,10 @@
       ]
     },
     {
-      "name": "Bubble Biere nach Menge, Marge und Umsatz",
+      "name": "Portfolio der Biere nach Menge, Marge und Umsatz",
       "template": "C10",
       "group": "ChartKitchen · Korrelation",
-      "description": "Welche Biere verbinden hohe Menge mit guter Marge, und welche verdienen trotz großem Umsatz wenig? Die Blasengröße zeigt den Umsatz, die Lage Menge und Marge; ein Klick auf einen Kanal zeigt, ob sich das Sortiment dort anders verhält.",
+      "description": "Welche Biere verbinden hohe Menge mit guter Marge, und welche verdienen trotz großem Umsatz wenig? Das Portfolio teilt die Biere an den Mittelwerten von Absatz und Marge in vier Quadranten, die Blasengröße ist der Umsatz (Wert in der Blase), die Farbe die Sorte. Ein Klick auf einen Kanal zeigt, ob sich das Sortiment dort anders verhält.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -2125,12 +2125,14 @@
           ],
           "bindings": {
             "category": "'Produkt'[Produkt]",
+            "series": "'Produkt'[Sorte]",
             "actual": "'Fakten'[DB-Marge % AC]",
             "xValue": "'Fakten'[Absatz hl AC]",
             "bubbleSize": "'Fakten'[Umsatz AC]"
           },
           "sortBy": {
-            "'Produkt'[Produkt]": "'Produkt'[Produkt Sort]"
+            "'Produkt'[Produkt]": "'Produkt'[Produkt Sort]",
+            "'Produkt'[Sorte]": "'Produkt'[Sorte Sort]"
           },
           "filters": [
             {
@@ -2155,21 +2157,27 @@
               "orientation": "scatter",
               "comparisonMode": "auto",
               "scatterQuadrant": "mean",
-              "scatterColorBy": "single",
-              "scatterSizeLegend": true,
+              "scatterColorBy": "group",
+              "scatterSizeLegend": false,
               "pinStyle": "round",
               "chipMenu": true,
               "scatterTypeTitle": false,
-              "scatterScenarioTag": false
+              "scatterScenarioTag": false,
+              "scatterValueLabels": true,
+              "scatterMaxRadius": 45,
+              "scatterBubbleOpacity": 75
             },
             "ibcsTitle": {
               "show": true,
-              "kpi": "DB-Marge (y), Absatz in hl (x), Umsatz (Größe) je Bier",
+              "kpi": "DB-Marge (y), Absatz in hl (x), Umsatz (Größe) je Bier, Farbe je Sorte",
               "period": "Jan..Aug 2026 (YTD) AC"
             },
             "labels": {
               "fontPreset": "fullhd",
               "roundedZero": "plain"
+            },
+            "scale": {
+              "xMin": "0"
             }
           }
         }
@@ -2370,7 +2378,6 @@
           "bindings": {
             "multiples": "'Marktsegment'[Land]",
             "category": "'Marktsegment'[Sorte]",
-            "series": "'Marktsegment'[Sorte]",
             "actual": "'Markt'[Marktwachstum %]",
             "xValue": "'Markt'[Relativer Marktanteil]",
             "bubbleSize": "'Markt'[Marktvolumen hl AC]",
@@ -2391,14 +2398,12 @@
           "displayNames": {
             "[actual]": "Marktwachstum",
             "[xValue]": "Relativer Marktanteil",
-            "[bubbleSize]": "Marktvolumen Tsd. hl",
-            "[bubbleShare]": "Eigenabsatz Tsd. hl"
+            "[bubbleSize]": "Marktvolumen hl",
+            "[bubbleShare]": "Eigenabsatz hl"
           },
           "formats": {
             "[actual]": "0.0 %",
-            "[xValue]": "0.00",
-            "[bubbleSize]": "#,##0.0,",
-            "[bubbleShare]": "#,##0.0,"
+            "[xValue]": "0.00"
           },
           "objects": {
             "chart": {
@@ -2563,7 +2568,7 @@
       "name": "Kunden-Brücke vom Vorjahr zum Ist",
       "template": "C17",
       "group": "ChartKitchen · Brücken",
-      "description": "Welche Kunden erklären die Veränderung des Umsatzes gegenüber dem Vorjahr? Die waagerechte Brücke führt vom Vorjahr über den Beitrag jedes Kunden zum Ist, nach jeweils vier Kunden folgt eine Trennlinie. Verglichen werden dieselben Ist-Monate.",
+      "description": "Welche Kunden erklären die Veränderung des Umsatzes gegenüber dem Vorjahr? Die waagerechte Brücke führt vom Vorjahr über den Beitrag jedes Kunden zum Ist, nach jeweils vier Kunden folgt eine Trennlinie; der Plan steht als umrandeter Balken darüber, unten die Abweichung zum Vorjahr und zum Plan. Verglichen werden dieselben Ist-Monate.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -2624,7 +2629,8 @@
           "bindings": {
             "category": "'Kunde'[Kunde]",
             "actual": "'Fakten'[Umsatz AC]",
-            "previousYear": "'Fakten'[Umsatz PY]"
+            "previousYear": "'Fakten'[Umsatz PY]",
+            "plan": "'Fakten'[Umsatz PL]"
           },
           "filters": [
             {
@@ -2636,7 +2642,8 @@
           ],
           "displayNames": {
             "[actual]": "Umsatz AC",
-            "[previousYear]": "Umsatz PY"
+            "[previousYear]": "Umsatz PY",
+            "[plan]": "Umsatz PL"
           },
           "objects": {
             "chart": {
@@ -2657,7 +2664,7 @@
             "ibcsTitle": {
               "show": true,
               "kpi": "Nettoumsatz in EUR, Beitrag je Kunde",
-              "period": "Jan..Aug 2026 (YTD) PY → AC"
+              "period": "Jan..Aug 2026 (YTD) PY → AC, PL"
             },
             "labels": {
               "fontPreset": "fullhd",
@@ -4138,7 +4145,7 @@
       "name": "GuV mit Abweichung zu Vorjahr und Plan",
       "template": "T03A",
       "group": "P&L · GuV-Statement",
-      "description": "Wie steht die GuV im laufenden Jahr gegenüber Vorjahr und Plan, Zeile für Zeile bis zum EBIT? Das Statement zeigt PY, PL und Ist mit Abweichungen als Zahlen, die Margenzeilen in Prozentpunkten; die Kanalkarten filtern die ganze GuV.",
+      "description": "Wie steht die GuV im laufenden Jahr gegenüber Vorjahr und Plan, Zeile für Zeile bis zum EBIT? Das Statement zeigt PY, PL und Ist mit Abweichungen als Zahlen; die Margenzeilen weichen in Prozentpunkten ab, daneben steht ihre relative Veränderung in Prozent. Die Kanalkarten filtern die ganze GuV.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -4257,7 +4264,8 @@
               "scaling": "m",
               "decimals": 2,
               "pctDecimals": 1,
-              "roundedZero": "plain"
+              "roundedZero": "plain",
+              "marginRel": true
             },
             "hierarchy": {
               "defaultLevel": 2
@@ -5446,7 +5454,7 @@
       "name": "Wert-Kaskaden Vorjahr und Ist",
       "template": "12A",
       "group": "P&L · Report-Ansichten",
-      "description": "Wie entsteht das EBIT aus Umsatz und Kosten, im Vorjahr und heute nebeneinander? Zwei Wert-Kaskaden zeigen den Weg vom Nettoumsatz zum EBIT, die Abweichungsbalken daneben, wo sich die Struktur verschoben hat.",
+      "description": "Wie entsteht das EBIT aus Umsatz und Kosten, im Vorjahr und heute nebeneinander? Zwei Wert-Kaskaden zeigen den Weg vom Nettoumsatz zum EBIT, die Abweichungsbalken daneben, wo sich die Struktur verschoben hat. Die Ellipse markiert die Logistik, den größten Kostenanstieg.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -5559,7 +5567,9 @@
               "sortBlock": "ytd",
               "keepBlockOrder": false,
               "blockKind": "ytd",
-              "leftBlockKind": "month"
+              "leftBlockKind": "month",
+              "highlight": "Logistik",
+              "highlightStyle": "ellipse"
             },
             "numbers": {
               "scaling": "m",
@@ -5590,7 +5600,7 @@
       "name": "Jahresausblick",
       "template": "12G",
       "group": "P&L · Report-Ansichten",
-      "description": "Wo landet das Gesamtjahr gegenüber dem ganzen Vorjahr? Je Zeile steht im selben Balken das Ist bis August voll und das Restjahr schraffiert, die Abweichung bezieht sich auf das Jahr; eine Headline fasst die Botschaft zusammen.",
+      "description": "Wo landet das Gesamtjahr gegenüber dem ganzen Vorjahr? Je Zeile steht im selben Balken das Ist bis August voll und das Restjahr schraffiert, die Abweichung bezieht sich auf das Jahr, die Margenzeilen in Prozentpunkten. Eine Headline fasst die Botschaft zusammen, die Ellipse markiert die Abweichung beim EBIT.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -5698,7 +5708,7 @@
               "secondBlock": false,
               "structureSubtotals": true,
               "structureTotal": false,
-              "showPctRows": false,
+              "showPctRows": true,
               "thresholds": false,
               "scenarioMarks": true,
               "chartLabels": true,
@@ -5707,7 +5717,9 @@
               "sortBlock": "ytd",
               "keepBlockOrder": false,
               "blockKind": "fy",
-              "leftBlockKind": "month"
+              "leftBlockKind": "month",
+              "highlight": "EBIT",
+              "highlightStyle": "ellipse"
             },
             "numbers": {
               "scaling": "m",
@@ -5738,7 +5750,7 @@
       "name": "Planrechnung gegen Vorjahr",
       "template": "12H",
       "group": "P&L · Report-Ansichten",
-      "description": "Wie ehrgeizig ist der Plan fürs Gesamtjahr gegenüber dem Vorjahr? Plan-Kaskade und Abweichungen zum Vorjahr sind umrandet, damit klar bleibt: das ist Planung, kein Ist. Kaskade und Abweichung stehen in derselben Skala.",
+      "description": "Wie ehrgeizig ist der Plan fürs Gesamtjahr gegenüber dem Vorjahr? Plan-Kaskade und Abweichungen zum Vorjahr sind umrandet, damit klar bleibt: das ist Planung, kein Ist. Kaskade und Abweichung stehen in derselben Skala, die Ellipse markiert den Planzuwachs beim EBIT.",
       "width": 1920,
       "height": 1080,
       "background": "#F4F4F1",
@@ -5850,7 +5862,9 @@
               "sortBlock": "ytd",
               "keepBlockOrder": false,
               "blockKind": "ytd",
-              "leftBlockKind": "month"
+              "leftBlockKind": "month",
+              "highlight": "EBIT",
+              "highlightStyle": "ellipse"
             },
             "numbers": {
               "scaling": "m",

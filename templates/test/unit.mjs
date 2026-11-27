@@ -2,12 +2,13 @@
 // Kachel; T05A/T05B ab P&L 1.7 und die 17 Seiten für ChartKitchen 1.57 und P&L 1.8.3 noch nicht im Dienst abgenommen)
 // und das Showcase-Modell:
 //   1. Katalog: 24 ChartKitchen- und 23 P&L-Templates (ChartKitchen 1.57, P&L 1.8.3), Titel DE/EN, jede Rolle gibt es im Visual; Bestands-Templates
-//      (T05A Bilanz, T05B Cashflow) mit statement.stockMode und Zeilentyp-Regel
+//      (T05A Bilanz, T05B Cashflow) mit statement.stockMode und Zeilentyp-Regel; AC Pflicht außer bei T01D, T02E, T02F (empfohlen)
 //   2. Was das Template im Visual einstellt, steht genauso in der Showcase-Kachel (Extraktion stimmt)
 //   3. Jede Pflichtrolle ist in der Showcase-Kachel gebunden (Rollen-Regeln nicht zu streng)
 //   4. Vorschläge mit dem Kennzahlen-Stamm der Showcase-Kachel treffen deren Felder (Varianten wie „bis Ist“ als Alternative)
 //   5. Kennzahl-Namen zerlegen, Kurzangaben auflösen
-//   6. dwg tile add über die Kommandozeile: neue Spec, Seite, Kachel, Probelauf, Fehler bei fehlender Pflichtrolle
+//   6. dwg tile add über die Kommandozeile: neue Spec, Seite, Kachel, Probelauf, Fehler bei fehlender Pflichtrolle;
+//      T02E ohne AC durch tile add, lint (Warnung PNL_NO_AC), check und pbip pages; Serie nie wie die Kategorie
 //
 //   node templates/test/unit.mjs
 import assert from "node:assert/strict";
@@ -56,6 +57,30 @@ ok("Bestands-Templates (P&L 1.7): Gruppe balance, statement.stockMode, Zeilentyp
     // die GuV-Templates bleiben ohne statement
     assert.ok(cat.templates.filter(t => t.visual === "pnl" && t.group.id !== "balance").every(t => !t.objects.statement));
 });
+// Forecast-Strukturtabellen: Monatsblock und YTD-Block zeigen FC, der Berichtsmonat wird später wählbar (FC ohne AC)
+const FC_STRUCTURE = ["T01D", "T02E", "T02F"];
+ok("AC: bei T01D, T02E, T02F empfohlen, bei allen anderen Templates Pflicht", () => {
+    const ac = t => t.roles.find(x => x.role === "ac")?.need;
+    for (const id of FC_STRUCTURE) {
+        const t = findTemplate(cat, id);
+        assert.equal(t.objects.columns.minuend, "fc", `${id}: Minuend`);
+        assert.equal(ac(t), "recommended", `${id}: AC`);
+        assert.equal(t.roles.find(x => x.role === "fc").need, "required", `${id}: FC bleibt Pflicht`);
+    }
+    // die FC-Statements (T03B, T04D, T04E) und alle übrigen P&L-Templates behalten AC als Pflicht
+    const rest = cat.templates.filter(t => t.visual === "pnl" && !FC_STRUCTURE.includes(t.id));
+    assert.deepEqual(rest.filter(t => ac(t) !== "required").map(t => t.id), []);
+    assert.equal(ac(findTemplate(cat, "T01A")), "required");
+    assert.equal(ac(findTemplate(cat, "T03B")), "required");
+});
+ok("Serie: bei Scatter (C10, C18, C23, C24) „Serie“ statt „Stack-Serie“, bei C24 optional mit Hinweis", () => {
+    const series = id => findTemplate(cat, id).roles.find(x => x.role === "series");
+    for (const id of ["C10", "C18", "C23", "C24"]) { assert.deepEqual(series(id).label, { de: "Serie", en: "Series" }, id); }
+    assert.equal(series("C01").label.de, "Stack-Serie (Gestapelt)");
+    assert.equal(series("C24").need, "optional");
+    assert.match(series("C24").hint.de, /nicht dasselbe Feld wie category/);
+    assert.match(spawnSync(process.execPath, [path.join(ROOT, "dwg.mjs"), "templates", "C24"], { encoding: "utf8", cwd: ROOT }).stdout, /series\s+optional\s+Spalte\s+Serie\s+· nicht dasselbe Feld wie category/);
+});
 ok("jedes Template mit Titel DE/EN, Gruppe und Rollen, die es im Visual gibt", () => {
     for (const t of cat.templates) {
         assert.ok(t.title.de && t.title.en && t.group?.title?.de, `${t.id}: Titel oder Gruppe fehlt`);
@@ -91,8 +116,12 @@ ok(`Showcase hat für jedes Template eine Kachel (${tiles.length})`, () => {
 
 // 2 · Einstellungen
 // Bewusste Abweichungen der Showcase-Kacheln vom Template (nach dem Anwenden geändert, wie es ein Autor tut):
-// Nachkommastellen passend zu Mio. EUR, 12G ohne Prozentzeilen, C24 mit Kacheln je Land (Blatt 10G) und kleineren Blasen.
-const SHOWCASE_OWN = { "12G": ["columns.showPctRows"], C24: ["chart.scatterMaxRadius"] };
+// Nachkommastellen passend zu Mio. EUR, C24 mit Kacheln je Land (Blatt 10G) und kleineren Blasen; seit Welle 2 (27.11.2026)
+// C16 mit Rest-Zeile (topN; C14 und C15 nicht, Top N wählt nach AC, die Seiten sortieren nach ΔPL) und C10 als Portfolio (Farbe je Sorte, Werte in den Blasen statt Größenlegende).
+const SHOWCASE_OWN = {
+    C24: ["chart.scatterMaxRadius"], C16: ["chart.topN"],
+    C10: ["chart.scatterColorBy", "chart.scatterSizeLegend"],
+};
 ok("Schalter des Templates (chart bzw. columns) stehen so in der Showcase-Kachel", () => {
     const diffs = [];
     for (const { tile, id } of tiles) {
@@ -296,6 +325,79 @@ ok("tile add ohne --model: Pflichtrollen müssen angegeben sein, Ersatzrollen z�
     const t = JSON.parse(fs.readFileSync(specFile, "utf8")).pages.find(p => p.name === "Konten").tiles[0];
     assert.equal(t.bindings.levels, undefined);
     assert.equal(t.bindings.account, "'Konto'[KontoID]");
+});
+const NO_AC = /P&L 1\.8\.4 zeichnet ohne AC nichts; AC binden, bis der Berichtsmonat wählbar ist/;
+ok("ohne AC: T02E besteht tile add und lint mit Warnung, check und pbip pages (schemagültig), T01A bricht ab", () => {
+    const f = path.join(tmp, "ohne-ac.json");
+    // ohne Modell: nur Ebenen, PY und FC
+    let r = run("tile", "add", "--spec", f, "--new-page", "Forecast", "--template", "T02E", "--levels", "'Kunde'[Land]",
+        "--levels", "'Kunde'[Region]", "--py", "'Fakten'[Umsatz PY]", "--fc", "'Fakten'[Umsatz FC]");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /ac\s+empfohlen/);
+    assert.match(r.stdout, /Warnungen \(1\):/);
+    assert.match(r.stdout, NO_AC);
+    const spec = JSON.parse(fs.readFileSync(f, "utf8"));
+    assert.equal(spec.pages[0].tiles[0].bindings.ac, undefined);
+    checkSpec(spec);
+    r = run("lint", "--spec", f, "--json");
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const noAc = JSON.parse(r.stdout).findings.filter(x => x.code === "PNL_NO_AC");
+    assert.equal(noAc.length, 1);
+    assert.equal(noAc[0].level, "warn");
+    assert.equal(noAc[0].tile, "t02e");
+    assert.match(noAc[0].text, NO_AC);
+    r = run("check", "--spec", f, "--model", MODEL_DIR);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.match(r.stdout, /0 Probleme/);
+    // Power-BI-Seite in einer Kopie von „DWG GuV.Report“ (Visuals eingetragen) ohne deren Seiten, am Showcase-Modell
+    const rep = path.join(tmp, "OhneAc.Report");
+    fs.cpSync(path.join(ROOT, "examples", "DWG GuV.Report"), rep, { recursive: true });
+    const pagesDir = path.join(rep, "definition", "pages");
+    for (const d of fs.readdirSync(pagesDir)) { if (d !== "pages.json") { fs.rmSync(path.join(pagesDir, d), { recursive: true }); } }
+    const meta = JSON.parse(fs.readFileSync(path.join(pagesDir, "pages.json"), "utf8"));
+    fs.writeFileSync(path.join(pagesDir, "pages.json"), JSON.stringify({ $schema: meta.$schema, pageOrder: [] }, null, 2));
+    const pbir = JSON.parse(fs.readFileSync(path.join(rep, "definition.pbir"), "utf8"));
+    pbir.datasetReference.byPath.path = path.relative(rep, MODEL_DIR).split(path.sep).join("/");
+    fs.writeFileSync(path.join(rep, "definition.pbir"), JSON.stringify(pbir, null, 2));
+    r = run("pbip", "pages", "--report", rep, "--spec", f);
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    r = spawnSync(process.execPath, [path.join(ROOT, "pbip", "test", "validate.mjs"), rep], { encoding: "utf8" });
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    // T01A (Minuend AC) ohne AC: Pflichtrolle fehlt, nichts geschrieben
+    const before = fs.readFileSync(f, "utf8");
+    r = run("tile", "add", "--spec", f, "--new-page", "Ist", "--template", "T01A", "--levels", "'Kunde'[Region]",
+        "--py", "'Fakten'[Umsatz PY]", "--pl", "'Fakten'[Umsatz PL]");
+    assert.equal(r.status, 1, r.stdout);
+    assert.match(r.stdout, /Pflichtrolle ac/);
+    assert.equal(fs.readFileSync(f, "utf8"), before);
+    // mit Modell bindet tile add AC bei T02F weiter (P&L 1.8.4 zeichnet ohne AC noch nichts)
+    const page = () => ({ name: "x", tiles: [] });
+    let t = buildTile({ spec: { resolution: "fullhd", pages: [page()] }, page: page(),
+        template: findTemplate(cat, "T02F"), model, measure: "Umsatz", given: { levels: ["'Kunde'[Kanal]", "'Kunde'[Kunde]"] } });
+    assert.deepEqual(t.problems, []);
+    assert.deepEqual(t.warnings, []);
+    assert.equal(t.tile.bindings.ac, "'Fakten'[Umsatz AC]");
+    // ohne --measure trägt die Minuend-Rolle (FC) den Kennzahlen-Stamm: AC kommt dazu, keine Warnung
+    t = buildTile({ spec: { resolution: "fullhd", pages: [page()] }, page: page(), template: findTemplate(cat, "T02E"), model,
+        given: { levels: ["'Kunde'[Land]", "'Kunde'[Region]"], fc: ["'Fakten'[Umsatz FC]"], py: ["'Fakten'[Umsatz PY]"] } });
+    assert.deepEqual(t.problems, []);
+    assert.equal(t.stem, "umsatz");
+    assert.equal(t.tile.bindings.ac, "'Fakten'[Umsatz AC]");
+    assert.deepEqual(t.warnings, []);
+});
+ok("Serie nie dasselbe Feld wie die Kategorie: nicht als Vorschlag oder Alternative, angegeben eine Warnung", () => {
+    const tpl = findTemplate(cat, "C24");
+    const given = { category: ["'Marktsegment'[Sorte]"] };
+    const r = suggestBindings(model, tpl, given, "Marktvolumen hl");
+    const s = r.rows.find(x => x.role === "series");
+    assert.equal(s.value, null, "Serie bei C24 optional: kein Vorschlag");
+    assert.ok(!s.alternatives.includes("'Marktsegment'[Sorte]"), s.alternatives.join(", "));
+    const page = () => ({ name: "x", tiles: [] });
+    const t = buildTile({ spec: { resolution: "fullhd", pages: [page()] }, page: page(), template: tpl, model,
+        given: { category: ["'Produkt'[Sorte]"], series: ["'Produkt'[Sorte]"], actual: ["'Fakten'[Umsatz AC]"], xValue: ["'Fakten'[Absatz hl AC]"],
+            bubbleSize: ["'Fakten'[Umsatz AC]"], bubbleShare: ["'Fakten'[Umsatz AC]"] } });
+    assert.deepEqual(t.problems, []);
+    assert.match(t.warnings.join(" "), /series ist dasselbe Feld wie category/);
 });
 ok("tile add: Titel im Visual statt im Container, --description als Erklärtext, Kopfzeilen an", () => {
     const f = path.join(tmp, "titel.json");

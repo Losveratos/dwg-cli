@@ -13,6 +13,8 @@ import { verifyVendor, FILES } from "../build.mjs";
 import { lintSpec, shellPalette, formatFindings } from "../lib/lint.mjs";
 import { importMockup, daxRef } from "../lib/import.mjs";
 import { PG } from "../lib/shared.mjs";
+import { hasScalingComma, scalingCommas } from "../../templates/lib/formats.mjs";
+import { modelFormatWarnings } from "../../app/lib/check.mjs";
 import { addPages } from "../../pbip/lib/report.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -72,6 +74,36 @@ test("lint: 2 px daneben, überlappend, zu klein, ohne Titel, außerhalb, Kontra
     assert.ok(r.findings.some(f => f.code === "OUTSIDE_CONTENT" && f.tile === "draussen"));
     assert.ok(r.findings.some(f => f.code === "A11Y_CONTRAST_SHELL" && /Grauschrift/.test(f.text)));
     assert.match(formatFindings(r), /\d+ Fehler, \d+ Warnungen, \d+ Hinweise\./);
+});
+
+test("lint: skalierende Kommas in formats (FORMAT_SCALING_COMMA), Showcase ohne Befund", () => {
+    for (const f of ["#,##0.0,", "#,##0,,", "0.0,", "#,##0,.0", "#,##0.0,;(#,##0.0,)", '#,##0.0," Tsd."', "#,##0;-#,##0,"]) { assert.ok(hasScalingComma(f), f); }
+    for (const f of ["#,##0.0", '"a,b"#,##0', "#,##0", "0.0 %", "+0.0 %;-0.0 %;0.0 %", "+#,##0;-#,##0;0", "#,##0 \\,", "[$€-407] #,##0", "General Date", "dd.MM.yyyy", "", undefined]) {
+        assert.ok(!hasScalingComma(f), String(f));
+    }
+    assert.deepEqual(scalingCommas("#,##0,;(#,##0.0,,)"), [1, 2]);
+    assert.ok(!codes(lintSpec(SHOWCASE, { palette })).includes("FORMAT_SCALING_COMMA"));
+    const spec = clone(SHOWCASE);
+    const page = spec.pages.find(p => p.template === "C24");
+    spec.pages = [page];
+    const tile = page.tiles.find(t => t.id === "vorlage");
+    tile.formats = { ...tile.formats, "[bubbleSize]": "#,##0.0,", "[bubbleShare]": "#,##0.0" };
+    const hits = lintSpec(spec, { palette }).findings.filter(f => f.code === "FORMAT_SCALING_COMMA");
+    assert.equal(hits.length, 1);
+    assert.equal(hits[0].level, "warn");
+    assert.equal(hits[0].tile, "vorlage");
+    assert.match(hits[0].text, /\[bubbleSize\].*ChartKitchen 1\.58 zeigt sie falsch \(81 statt 81,5\).*displayUnits.*formats gilt nur in der App/);
+});
+
+test("check --model: skalierende Kommas im Formatstring gebundener Measures als Hinweis", () => {
+    const model = { tables: new Map([["Markt", { columns: new Map(), measures: new Set(["Volumen", "Anteil"]),
+        formats: new Map([["Volumen", "#,##0.0,"], ["Anteil", "0.0 %"]]), dynamicFormats: new Set() }]]), measureHome: new Map(), relationships: [] };
+    const roles = { kind: { category: "Grouping", actual: "Measure", bubbleSize: "Measure" } };
+    const tile = { id: "k", visual: "chartkitchen", bindings: { category: "'Markt'[Land]", actual: "'Markt'[Anteil]", bubbleSize: "'Markt'[Volumen]" } };
+    const w = modelFormatWarnings(tile, model, roles);
+    assert.equal(w.length, 1, w.join("\n"));
+    assert.match(w[0], /^Rolle bubbleSize, 'Markt'\[Volumen\]: Formatstring „#,##0\.0,“ hat skalierende Kommas\./);
+    assert.doesNotMatch(w[0], /formats gilt nur in der App/);
 });
 
 test("lint: Spec ohne App-Rahmen (GuV) ohne Rasterfehler", () => {

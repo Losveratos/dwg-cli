@@ -86,7 +86,7 @@ const role = (info, name, need, extra = {}) => {
  *   X-Achse. Was das Visual selbst als Zusatzbedarf nennt (TEMPLATE_NEEDS: Serie, Small Multiples, Blasengröße), wird
  *   Pflicht, „(optional)“ im Text wird Empfehlung.
  */
-function ckRoles(id, props, group, needs, info) {
+function ckRoles(id, props, group, needs, info, loc) {
     const out = [role(info, "category", "required"), role(info, "actual", "required")];
     const variance = props.showAbsoluteVariance || props.showRelativeVariance;
     const cmp = props.comparisonMode;
@@ -115,20 +115,36 @@ function ckRoles(id, props, group, needs, info) {
         if (i >= 0) { out[i] = role(info, r, n); } else { out.push(role(info, r, n)); }
     }
     out.push(role(info, "comments", "optional"));
+    // Scatter (C10, C18, C23, C24): das Feld „Serie“ färbt bzw. gruppiert die Punkte, es stapelt nichts. Das Visual nennt
+    // es dort „Serie“ (Tooltip_Series, so auch in den Beschreibungen der Scatter-Schalter) statt „Stack-Serie (Gestapelt)“
+    for (const r of out) {
+        if (r.role === "series" && props.orientation === "scatter") { r.label = text(loc, "Tooltip_Series", "Series"); }
+        if (CK_HINTS[id]?.[r.role]) { r.hint = CK_HINTS[id][r.role]; }
+    }
     return out.filter((r, i) => out.findIndex(x => x.role === r.role) === i);
 }
 
 /**
+ * Hinweise von dwg zu einzelnen Rollen (stehen in dwg templates <ID>): C24 mit demselben Feld in Kategorie und Serie
+ * zeigt jeden Namen doppelt und gekürzt (Blasen-Beschriftung plus Gruppen-Legende)
+ */
+const CK_HINTS = {
+    C24: { series: { de: "nicht dasselbe Feld wie category (sonst doppelte, gekürzte Namen)", en: "not the same field as category (names would show twice, truncated)" } },
+};
+
+/**
  * Zusatzrollen neuer ChartKitchen-Templates (1.57) über TEMPLATE_NEEDS hinaus: C23 Zeitpfad je Einheit (series),
- * C24 Blasen mit Anteil (bubbleSize und bubbleShare, sonst keine Kreissegmente; Small Multiples wie Blatt 10G),
+ * C24 Blasen mit Anteil (bubbleSize und bubbleShare, sonst keine Kreissegmente; Small Multiples wie Blatt 10G; Serie optional,
+ * nie dasselbe Feld wie die Kategorie),
  * C18 Abweichungs-Scatter (Serie, Blasengröße, Small Multiples), C20 Bestand und Fluss (Flussarten und Bestand als Mitglieder der Serie, Forecast-Flag,
- * Bestand alternativ über lineMeasure).
+ * Bestand alternativ über lineMeasure), C10 Portfolio (Serie optional: Farbe je Gruppe wie Blatt 10A/10B).
  */
 const CK_EXTRA = {
+    C10: { series: "optional" },
     C18: { series: "recommended", bubbleSize: "optional", multiples: "optional" },
     C20: { series: "required", fcFlag: "optional", lineMeasure: "optional" },
     C23: { series: "required", multiples: "optional", bubbleSize: "optional" },
-    C24: { bubbleSize: "required", bubbleShare: "required", series: "recommended", multiples: "optional" },
+    C24: { bubbleSize: "required", bubbleShare: "required", series: "optional", multiples: "optional" },
 };
 
 /**
@@ -163,7 +179,7 @@ async function chartKitchen(dir) {
             title: text(loc, `Hub_TplT_${id}`, tEn),
             use: text(loc, `Hub_TplU_${id}`, uEn),
             objects: ckObjects(id, props),
-            roles: ckRoles(id, props, g?.id, c.TEMPLATE_NEEDS, info),
+            roles: ckRoles(id, props, g?.id, c.TEMPLATE_NEEDS, info, loc),
         });
     }
     return out;
@@ -173,7 +189,10 @@ async function chartKitchen(dir) {
 
 /**
  * Rollen eines P&L-Templates (Regeln von dwg, aus den Schaltern des Templates):
- *   Ebenen (oder Konto-ID mit Eltern-ID) und AC sind Pflicht. Der Minuend FC/PL macht FC bzw. PL zur Pflicht; jede
+ *   Ebenen (oder Konto-ID mit Eltern-ID) und AC sind Pflicht. Ausnahme: Strukturtabellen mit Minuend FC (T01D, T02E,
+ *   T02F) zeigen den Forecast im Monats- und YTD-Block, dort wird AC nur empfohlen (später wird der Berichtsmonat wählbar,
+ *   dann zeigt das Visual FC ohne AC; P&L 1.8.4 zeichnet ohne AC noch nichts, deshalb bleibt AC als Vorschlag gebunden).
+ *   Die FC-Statements (T03B, T04D, T04E) behalten AC als Pflicht. Der Minuend FC/PL macht FC bzw. PL zur Pflicht; jede
  *   PY- bzw. PL-Spalte oder -Abweichung macht PY bzw. PL zur Pflicht. Mit zweitem Block (Monat | YTD) wird die Periode
  *   empfohlen (ohne sie zeigt das Visual nur den Hauptblock); der FY-Ausblick (12G) braucht FC Gesamtjahr, PL Gesamtjahr wird empfohlen.
  *   T01/T02 sind Strukturtabellen (Regionen, Produkte); T03, T04 und die 12er sind GuV-Statements, dort werden die
@@ -188,7 +207,8 @@ function pnlRoles(id, sw, preset, info) {
     const c = sw.cols;
     const stockMode = sw.stmt?.stockMode;
     const rowTypeNeed = stockMode === "auto" ? "required" : null;
-    const out = [role(info, "levels", "required", { alt: ["account", "parent"] }), role(info, "ac", "required")];
+    const fcStructure = /^T0[12]/.test(id) && c.minuend === "fc";
+    const out = [role(info, "levels", "required", { alt: ["account", "parent"] }), role(info, "ac", fcStructure ? "recommended" : "required")];
     const usesPy = c.showPY || c.dPyAbs || c.dPyBar || c.dPyWaterfall || c.dPyPct || c.dPyPin || c.minuend === "py";
     const usesPl = c.showPL || c.dPlAbs || c.dPlBar || c.dPlWaterfall || c.dPlPct || c.dPlPin || c.minuend === "pl";
     const usesFc = c.minuend === "fc";
