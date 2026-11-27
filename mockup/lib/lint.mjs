@@ -14,6 +14,7 @@ import { fileURLToPath } from "node:url";
 import { PG, GC, A11Y } from "./shared.mjs";
 import { isShellSpec, layoutOf } from "../../app/lib/app.mjs";
 import { pnlNoAcWarning } from "../../templates/lib/catalog.mjs";
+import { scalingCommaWarning } from "../../templates/lib/formats.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SHELL_TSX = path.resolve(HERE, "../../app/templates/DwgShell.tsx");
@@ -141,6 +142,18 @@ export function lintSpec(spec, { palette = shellPalette() } = {}) {
         for (const t of page.tiles ?? []) {
             const w = pnlNoAcWarning(t);
             if (w) { add("warn", "PNL_NO_AC", page.name, t.id, `Kachel ${t.id}: ${w}`, "bindings.ac auf die Ist-Kennzahl setzen (bei tile add: --ac oder --model mit Kennzahlen-Stamm)."); }
+        }
+
+        // ---- skalierende Kommas in formats (`#,##0.0,`): ChartKitchen 1.58 zeigt sie falsch, Power BI bekommt formats nicht
+        for (const t of page.tiles ?? []) {
+            if (!t?.formats || typeof t.formats !== "object") { continue; }
+            for (const [key, fmt] of Object.entries(t.formats)) {
+                const w = scalingCommaWarning(fmt, t.visual, "formats");
+                if (w) {
+                    add("warn", "FORMAT_SCALING_COMMA", page.name, t.id, `Kachel ${t.id}, formats ${key}: ${w}`,
+                        "Eintrag streichen, das Visual wählt die Einheit selbst (K, M), oder die Kennzahl im Modell skalieren; labels.displayUnits nur, wenn alle Kennzahlen der Kachel dieselbe Einheit haben (gilt auch für Achsen und Prozent).");
+                }
+            }
         }
 
         // ---- Barrierefreiheit je Seite (Kachelgrößen, Titel, Dichte, Schriftgröße)

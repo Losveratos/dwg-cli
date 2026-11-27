@@ -2398,14 +2398,12 @@
           "displayNames": {
             "[actual]": "Marktwachstum",
             "[xValue]": "Relativer Marktanteil",
-            "[bubbleSize]": "Marktvolumen Tsd. hl",
-            "[bubbleShare]": "Eigenabsatz Tsd. hl"
+            "[bubbleSize]": "Marktvolumen hl",
+            "[bubbleShare]": "Eigenabsatz hl"
           },
           "formats": {
             "[actual]": "0.0 %",
-            "[xValue]": "0.00",
-            "[bubbleSize]": "#,##0.0,",
-            "[bubbleShare]": "#,##0.0,"
+            "[xValue]": "0.00"
           },
           "objects": {
             "chart": {

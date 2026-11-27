@@ -1,13 +1,15 @@
 // dwg check: eine App-Spec ohne Rayfin-App und ohne Bericht prüfen.
 // Struktur (specProblems), Rollen und Bindungen je Kachel (daxQuery wie in generateAppPages), mit Modell auch die Felder.
 // Hinweise (kein Exit 1): feste Zeitfilter (Jahr, Monat, Datum) in pages[].filters und tiles[].filters, die still in
-// jeder Abfrage stehen; mit --app fremde Schriften in der Rayfin-App (Links zu Schrift-Diensten).
+// jeder Abfrage stehen; mit --app fremde Schriften in der Rayfin-App (Links zu Schrift-Diensten); mit Modell
+// skalierende Kommas im Formatstring gebundener Measures (`#,##0.0,`, die Visuals zeigen sie falsch).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { readModel, resolveField, parseRef } from "../../pbip/lib/tmdl.mjs";
 import { specProblems, filterProblems, checkFields } from "./app.mjs";
 import { foreignFonts } from "./fonts.mjs";
+import { scalingCommaWarning } from "../../templates/lib/formats.mjs";
 
 const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../visuals/dist");
 
@@ -80,6 +82,7 @@ export async function checkSpecFile(spec, { modelDir } = {}) {
     const { daxQuery, ROLES } = await import(pathToFileURL(path.join(DIST, "dwg-visuals.js")).href);
     const model = modelDir ? readModel(modelDir) : null;
     const problems = specProblems(spec);
+    const warnings = [];
     const pages = Array.isArray(spec?.pages) ? spec.pages.filter(p => p && typeof p === "object") : [];
     let tiles = 0;
 
@@ -103,7 +106,10 @@ export async function checkSpecFile(spec, { modelDir } = {}) {
                     filters: [...(page.filters ?? []), ...(tile.filters ?? [])], sortBy: tile.sortBy, showItemsWithNoData: tile.showItemsWithNoData,
                 });
             } catch (e) { problems.push(`${tat}: ${e.message}`); continue; }
-            if (model) { problems.push(...checkFields(tile, model, roles).map(m => `${at}, ${m}`)); }
+            if (model) {
+                problems.push(...checkFields(tile, model, roles).map(m => `${at}, ${m}`));
+                warnings.push(...modelFormatWarnings(tile, model, roles).map(w => `${tat}, ${w}`));
+            }
         }
     }
     const slicers = Array.isArray(spec?.slicers) ? spec.slicers : [];
@@ -114,7 +120,22 @@ export async function checkSpecFile(spec, { modelDir } = {}) {
             }
         }
     }
-    return { pages: pages.length, tiles, problems, warnings: fixedTimeFilterWarnings(spec, model) };
+    return { pages: pages.length, tiles, problems, warnings: [...fixedTimeFilterWarnings(spec, model), ...warnings] };
+}
+
+/** Formatstrings der gebundenen Measures im Modell mit skalierenden Kommas (`#,##0.0,`): das Visual zeigt sie falsch */
+export function modelFormatWarnings(tile, model, roles) {
+    const out = [];
+    for (const [role, refs] of Object.entries(tile.bindings ?? {})) {
+        if (roles.kind?.[role] !== "Measure") { continue; }
+        for (const ref of [].concat(refs).filter(r => typeof r === "string")) {
+            let m;
+            try { m = resolveField(model, ref, "Measure"); } catch { continue; }
+            const w = scalingCommaWarning(model.tables.get(m.table)?.formats?.get(m.name), tile.visual, "model");
+            if (w) { out.push(`Rolle ${role}, '${m.table}'[${m.name}]: ${w}`); }
+        }
+    }
+    return out;
 }
 
 export function formatCheck(r) {

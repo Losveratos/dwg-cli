@@ -140,6 +140,13 @@ Schlüssel `[rolle]`), wie Power BI sie dem Visual mitgibt: `#,##0` zeigt unter 
 8978. Ein Eintrag in `formats` der Kachel geht vor, unter `[rolle]` oder unter dem Measure in jeder Schreibweise
 (`'T'[M]`, `T[M]`, `[M]`). Ohne `--model` gilt nur `formats` der Spec.
 
+**Skalierende Kommas** (`#,##0.0,` in Tausend, `#,##0,,` in Millionen) zeigt ChartKitchen 1.58 falsch: 81 statt 81,5.
+`dwg lint` warnt bei solchen Einträgen in `formats` (`FORMAT_SCALING_COMMA`), `dwg check --model` bei Formatstrings
+gebundener Measures. Ausweg: Formatstring ohne Kommas am Ende und die Einheit dem Visual überlassen (automatisch K/M,
+mit `labels.unitSuffix: false` ohne Kürzel, die Einheit dann in Titel oder Beschreibung) oder die Kennzahl im Modell
+skalieren. `formats` gilt ohnehin nur in der App, Power BI nimmt den Formatstring des Measures. `labels.displayUnits`
+hilft nur, wenn alle Kennzahlen der Kachel dieselbe Einheit haben: es gilt auch für Achsen und Prozentwerte.
+
 **Grenze:** Dynamische Formatstrings (`formatStringDefinition`, DAX je Zelle) wertet die App nicht aus, die Werte
 erscheinen dort ohne Format. `app page --model` meldet solche Measures als Hinweis. Ausweg: ein festes Format im
 Kachelfeld `formats`, z. B. `"[actual]": "#,##0"`.
