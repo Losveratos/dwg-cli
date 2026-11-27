@@ -68,8 +68,10 @@ const CK = {
         stackNormalize: "pct100", stackThickness: "total", stackShareColumn: true, showTotal: true, stackTotalRow: true, sortMode: "ac", stackLegendDirect: true, panelTypeTitles: false },
 };
 // Bewusst nach dem Anwenden geändert (wie templates/test/unit.mjs SHOWCASE_OWN): C24 mit Kacheln je Land (Blatt 10G)
-// braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100)
-const CK_OWN = { C24: ["scatterMaxRadius"] };
+// braucht kleinere Blasen als die eine Fläche des Templates (scatterMaxRadius 100); C14 bis C16 zeigen die acht größten
+// Kategorien und eine Rest-Zeile (topN 8); C10 als Portfolio nach den Blättern 10A/10B: Farbe je Sorte (Serie,
+// scatterColorBy group), Werte in den Blasen statt Größenlegende
+const CK_OWN = { C24: ["scatterMaxRadius"], C14: ["topN"], C15: ["topN"], C16: ["topN"], C10: ["scatterColorBy", "scatterSizeLegend"] };
 // Preset-Schlüssel der Form „scale.refLine“ gehören ins Objekt scale, nicht in chart
 const CK_SCALE = { C18: { refLine: "0", xRefLine: "0" }, C24: { xRefLine: "1" } };
 // zusätzliche Rollen je ChartKitchen-Vorlage (TEMPLATE_NEEDS bzw. Doku „Dazu binden“)
@@ -80,8 +82,8 @@ const CK_NEEDS = { C01: ["series"], C02: ["series"], C03: ["previousYear"], C04:
 // P&L pnlByDatenWG/src/megatable.ts MEGA_PRESETS (1.8.4): Minuend, Wertspalten und Δ-Schalter; „total“ = structureTotal,
 // „keep“ = keepBlockOrder (beide ab 1.8)
 // Dezimalen bewusst abweichend vom Template-Preset: IBCS höchstens 4 Ziffern in Tabellen, deshalb Mio. EUR mit
-// 2 Nachkommastellen (auch T02C in Tsd. hl, damit Monatswerte nicht auf 0,0 fallen) und Δ% einheitlich mit 1 Nachkommastelle; 12G ohne Margenzeilen,
-// damit die EBIT-Zeile in die Kachel passt (IBCS-Prüfung 19.10.2026).
+// 2 Nachkommastellen (auch T02C in Tsd. hl, damit Monatswerte nicht auf 0,0 fallen) und Δ% einheitlich mit 1 Nachkommastelle.
+// 12G zeigt seit Welle 2 (27.11.2026) die Margenzeilen wie das Preset (vorher ausgeschaltet).
 const PNL = {
     T01A: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds noSub total 2/1",
     T01B: "ac py pl min dPyAbs dPyPct dPlAbs dPlPct second thresholds sub total 2/1",
@@ -102,7 +104,7 @@ const PNL = {
     T04D: "fc pl min dPlWaterfall dPlPin sub headline 2/1",
     T04E: "fc py min dPyWaterfall dPyPin sub headline 2/1",
     "12A": "ac py min cascade dPyBar dPyPin sub noPct headline 2/1",
-    "12G": "ac py min cascade dPyBar dPyPin sub noPct fy headline 2/1",
+    "12G": "ac py min cascade dPyBar dPyPin sub fy headline 2/1",
     "12H": "pl py min cascade dPyBar dPyPin sub noPct headline 2/1",
     // 1.7 Bestände: Bilanz (Stand gegen Vorjahresstichtag) und Cashflow-Brücke (Monat | YTD, Kaskaden)
     T05A: "ac py min dPyAbs dPyPct sub 2/1",
@@ -247,6 +249,25 @@ test("roundedZero = plain in jeder Kachel beider Visuals, Scatter ohne Szenario-
             assert.equal(t.objects.chart.scatterTypeTitle, false, `${p.template}/${t.id}: scatterTypeTitle`);
         }
     }
+});
+
+// Welle 2, Paket 1 (27.11.2026): Ellipsen, Margenzeilen, Rest-Zeilen, Plan in der Brücke, Portfolio, C24 ohne doppelte Sorte
+test("Welle 2: Ellipse 12A/12G/12H, marginRel T03A, Plan C17, Top N plus Rest C14 bis C16, Portfolio C10, C24 Sorte nur als Kategorie", () => {
+    const o = id => main(spec.pages.find(p => p.template === id));
+    for (const [id, row] of [["12A", "Logistik"], ["12G", "EBIT"], ["12H", "EBIT"]]) {
+        assert.equal(o(id).objects.columns.highlight, row, `${id}: highlight`);
+        assert.equal(o(id).objects.columns.highlightStyle, "ellipse", `${id}: highlightStyle`);
+        assert.ok(o(id).objects.columns.dPyBar, `${id}: die Ellipse braucht eine Δ-Balkenspalte`);
+    }
+    assert.equal(o("T03A").objects.numbers.marginRel, true);
+    assert.equal(o("C17").bindings.plan, "'Fakten'[Umsatz PL]");
+    assert.deepEqual(["C14", "C15", "C16"].map(id => o(id).objects.chart.topN), [8, 10, 8]);
+    const c10 = o("C10");
+    assert.equal(c10.bindings.series, "'Produkt'[Sorte]");
+    assert.equal(c10.objects.chart.scatterQuadrant, "mean", "C10: Quadranten an den Mittelwerten");
+    assert.equal(c10.objects.chart.scatterValueLabels, true);
+    const c24 = o("C24").bindings;
+    assert.ok(!Object.entries(c24).some(([r, f]) => r !== "category" && f === c24.category), "C24: Kategoriefeld in keiner zweiten Rolle");
 });
 
 test("11A ROI-Baum: Ansichtsvorlage ohne columns.template, Baum über state.uiState, Jahre als Periode, Formel- und KPI-Zeilen", () => {

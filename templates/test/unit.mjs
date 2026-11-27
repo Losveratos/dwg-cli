@@ -108,8 +108,12 @@ ok(`Showcase hat für jedes Template eine Kachel (${tiles.length})`, () => {
 
 // 2 · Einstellungen
 // Bewusste Abweichungen der Showcase-Kacheln vom Template (nach dem Anwenden geändert, wie es ein Autor tut):
-// Nachkommastellen passend zu Mio. EUR, 12G ohne Prozentzeilen, C24 mit Kacheln je Land (Blatt 10G) und kleineren Blasen.
-const SHOWCASE_OWN = { "12G": ["columns.showPctRows"], C24: ["chart.scatterMaxRadius"] };
+// Nachkommastellen passend zu Mio. EUR, C24 mit Kacheln je Land (Blatt 10G) und kleineren Blasen; seit Welle 2 (27.11.2026)
+// C14 bis C16 mit Rest-Zeile (topN) und C10 als Portfolio (Farbe je Sorte, Werte in den Blasen statt Größenlegende).
+const SHOWCASE_OWN = {
+    C24: ["chart.scatterMaxRadius"], C14: ["chart.topN"], C15: ["chart.topN"], C16: ["chart.topN"],
+    C10: ["chart.scatterColorBy", "chart.scatterSizeLegend"],
+};
 ok("Schalter des Templates (chart bzw. columns) stehen so in der Showcase-Kachel", () => {
     const diffs = [];
     for (const { tile, id } of tiles) {
