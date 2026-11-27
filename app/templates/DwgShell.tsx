@@ -759,8 +759,8 @@ interface ShellProps {
 export function DwgShell({ app, connection, isDark, title, subtitle, actions, footer }: ShellProps) {
   const c = palette(isDark);
   const lang: DwgLang = app.lang ?? 'de';
-  const t = uiText(lang);
-  const loc = useMemo<Loc>(() => ({ t: uiText(app.lang), lang: app.lang ?? 'de', locale: app.locale }), [app.lang, app.locale]);
+  const loc = useMemo<Loc>(() => ({ t: uiText(lang), lang, locale: app.locale }), [lang, app.locale]);
+  const t = loc.t;
   const { ref, width } = useWidth();
   const [page, setPage] = useState(() => findPage(app, typeof window === 'undefined' ? '' : window.location.hash));
   const [state, setState] = useState<DwgSlicerState>(() => slicerDefaults(app.slicers, app.columnTypes));

@@ -195,7 +195,12 @@ export function dropOverridden(log: unknown[], prev: VisualObjects, next: Visual
         const props: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(i.properties ?? {})) {
             if (!changed.has(`${i.objectName}\u0000${k}`)) { props[k] = v; }
-            else if (fill && n[i.objectName]?.[k] !== undefined) { props[k] = n[i.objectName]?.[k]; }
+        }
+        // replace ersetzt das ganze Objekt: geänderte Eigenschaften der App (auch neue) bekommen ihren neuen Wert
+        if (fill) {
+            for (const [k, v] of Object.entries(n[i.objectName] ?? {})) {
+                if (changed.has(`${i.objectName}\u0000${k}`) && v !== undefined) { props[k] = v; }
+            }
         }
         return { ...i, properties: props };
     }).filter(i => keepEmpty || Object.keys(i.properties).length > 0);

@@ -2,18 +2,21 @@
 
 ## Unreleased
 
-- **English apps, visual locale and live options per tile (25.11.2026, from the Budapest demo).** The spec gets
+- **English apps, visual locale and live options per tile (27.11.2026, from the Budapest demo).** The spec gets
   `lang` (`de` default, `en`) for all controls of `DwgShell` and `DwgPage` (filter panel and bar, page menu, top bar,
   messages, `aria-label`s; one text table `uiText` in `dwg-page.ts`) and `locale` for the visuals: ChartKitchen and
   P&L render with the host locale `de-DE`, `en-US` (default from `lang`) or the given one; slicer values and chips use it
   too. German stays the default for every other app. Tiles can have `options`: a collapsible panel next to the visual
-  with buttons, each choice merges `set` over `objects` without a new query; the start choice comes from `objects`.
-  The adapter now lets a new value from the app win over what the visual persisted earlier for the same property
-  (`dropOverridden` in `mount.ts`, e.g. rows level chosen in the panel after the P&L toolbar changed it), and the panel
-  follows a level the visual persists itself. PBIP ignores `lang`, `locale` and `options`. New: `specs/budapest-demo.json`,
+  with buttons, each choice merges `set` over `objects` without a new query; the start choice is the most specific
+  choice whose values are all in `objects`. The adapter now lets a new value from the app win over what the visual
+  persisted earlier for the same property (`dropOverridden` in `mount.ts`), and the new handle method `forget(objects)`
+  drops persisted values for a clicked choice even when `objects` stay the same (`DwgVisual` prop `forget`). When the
+  visual persists a property an option controls, the panel shows the matching choice or none. The P&L toolbar keeps its
+  own reader state (`state.uiState`): the panel does not show it, a different choice in the panel wins over it.
+  PBIP ignores `lang`, `locale` and `options`. New: `specs/budapest-demo.json`,
   Budapest demo set for Mini-DAX (`app/test/datasets/budapest`), `app/test/budapest.mjs` (control values) and
-  `app/test/budapest-e2e.mjs` (89 browser checks: English texts, no German words, en-US control values, options panel,
-  P&L toolbar, filter panel, slicer, cross filter), both in `npm test`. Visual code unchanged (ChartKitchen 1.58.0.0,
+  `app/test/budapest-e2e.mjs` (browser checks on all three pages with the model's format strings: English texts, no
+  German words, en-US control values, options panel, P&L toolbar, filter panel, slicer, cross filter), both in `npm test`. Visual code unchanged (ChartKitchen 1.58.0.0,
   P&L 1.8.4.0); the chunk files got new hashes from the rebuild.
 - **Visuals ChartKitchen 1.58.0.0 and P&L 1.8.4.0 (25.11.2026, Kitchen 536970c).** Adapter, template catalog,
   `.pbiviz` (byte-identical with the Kitchen `dist/` packages) and both example reports. New in the catalog: every

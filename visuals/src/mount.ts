@@ -155,6 +155,14 @@ export async function mountVisual(el: HTMLElement, options: MountOptions): Promi
             selection.reset();
             schedule(UPDATE_ALL);
         },
+        forget(objects) {
+            // jede genannte Eigenschaft gilt als von der App neu gesetzt: aus dem Log nehmen, Objekte neu aufbauen
+            const kept = dropOverridden(persistLog, {}, objects ?? {});
+            if (kept === persistLog) { return; }
+            persistLog.splice(0, persistLog.length, ...kept);
+            state.objects = rebaseObjects(base, persistLog);
+            schedule(UPDATE_ALL);
+        },
         get objects() { return JSON.parse(JSON.stringify(state.objects)); },
         get lastRenderMs() { return lastRenderMs; },
         destroy() {

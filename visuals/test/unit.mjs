@@ -196,6 +196,13 @@ test("dropOverridden: neue Wahl der App gewinnt über früher Gespeichertes ders
     assert.equal(o2.toolbar.show, false);
     assert.equal(o2.toolbar.folded, true);
     assert.equal(dropOverridden(log, spec, spec), log, "ohne Änderung unverändert");
+    // forget (Klick auf die geltende Wahl): prev leer, jede genannte Eigenschaft fliegt aus dem Log
+    const forgotten = rebaseObjects(next, dropOverridden(log, {}, { hierarchy: { defaultLevel: 4 } }));
+    assert.equal(forgotten.hierarchy.defaultLevel, 4);
+    assert.equal(forgotten.hierarchy.collapsed, "[\"N-WE\"]");
+    // replace bekommt auch neue Eigenschaften der App (sonst löschte der replace sie beim Neuaufbau)
+    const added = { ...next, toolbar: { show: true, compact: true } };
+    assert.equal(rebaseObjects(added, dropOverridden(log, next, added)).toolbar.compact, true);
 });
 
 console.log(`unit: ${n} Tests grün`);

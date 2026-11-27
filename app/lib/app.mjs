@@ -105,9 +105,14 @@ export function optionProblems(options, where) {
         if (ids.has(o.id)) { problems.push(`${at}: id kommt mehrfach vor.`); }
         ids.add(o.id);
         if (!Array.isArray(o.choices) || !o.choices.length) { problems.push(`${at}: choices fehlt oder ist leer.`); return; }
+        const labels = new Set();
         o.choices.forEach((c, j) => {
             const ok = isObject(c) && typeof c.label === "string" && c.label && isObject(c.set) && Object.values(c.set).every(isObject);
-            if (!ok) { problems.push(`${at}, Wahl ${j + 1}: braucht label und set { "objekt": { "eigenschaft": wert } }.`); }
+            if (!ok) { problems.push(`${at}, Wahl ${j + 1}: braucht label und set { "objekt": { "eigenschaft": wert } }.`); return; }
+            // ein leeres set passte zu allem und setzte nichts
+            if (!Object.values(c.set).some(p => Object.keys(p).length)) { problems.push(`${at}, Wahl „${c.label}“: set setzt keine Eigenschaft.`); }
+            if (labels.has(c.label)) { problems.push(`${at}: Wahl „${c.label}“ kommt mehrfach vor.`); }
+            labels.add(c.label);
         });
     });
     return problems;

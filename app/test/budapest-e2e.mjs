@@ -26,6 +26,14 @@ fs.mkdirSync(path.join(OUT, "harness"), { recursive: true });
 
 // Felder ohne TMDL (das Modell liegt nicht im Repo); die Abfragen prüft budapest.mjs gegen die Kontrollwerte
 const spec = JSON.parse(fs.readFileSync(path.join(ROOT, "specs", "budapest-demo.json"), "utf8"));
+// Formatstrings der Measures, wie `dwg app page --model` sie aus dem Modell an jede Kachel schreibt (alle "#,##0"):
+// so läuft der Test mit denselben Formaten wie die echte App (Einheiten-Option und Kontrollwerte trotz Formatstring)
+for (const page of spec.pages) {
+    for (const tile of page.tiles) {
+        const roles = tile.visual === "pnl" ? ["ac", "py", "pl", "fc"] : ["actual", "plan", "previousYear", "forecast"];
+        tile.formats = Object.fromEntries(roles.filter(r => tile.bindings[r]).map(r => [`[${r}]`, "#,##0"]));
+    }
+}
 const { src: SRC, gen } = await minimalApp(path.join(OUT, "app"), spec, { connector: "budapest" });
 
 const withExt = p => [".tsx", ".ts", ""].map(e => p + e).find(f => fs.existsSync(f)) ?? p;
@@ -98,7 +106,7 @@ async function runPage(pageId) {
         return { id: e.dataset.dwgTile, left: Math.round(r.left), width: Math.round(r.width) };
     }));
 
-    await page.goto(`http://localhost:${server.address().port}/index.html#${pageId}`);
+    await page.goto(`http://localhost:${server.address().port}/index.html#${pageId}`, { timeout: 90000 });
     await settle();
     const ids = await page.$$eval("[data-dwg-tile]", els => els.map(e => e.dataset.dwgTile));
     for (const id of ids) {
@@ -225,40 +233,56 @@ async function runPage(pageId) {
         check("eingeklappt bleibt die Leiste „Options“", /Options/.test(strip), strip);
         await shot("7-pnl-options-collapsed.png");
 
-        // eigene Bedienleiste der P&L (toolbar.foldable): ☰ klappt sie auf und zu
-        const fold = await page.$$(`[data-dwg-tile="${id}"] :is(button, [role=button], g, span, div)`).then(async els => {
-            for (const e of els) { if (await e.evaluate(n => n.childElementCount === 0 && (n.textContent ?? "").trim() === "☰")) { return e; } }
+        // Knopf im Visual selbst (nicht im Optionen-Panel daneben, das auch „All“ hat): Blatt-Element mit genau diesem Text
+        const inVisual = (label, sel = "button, [role=button], g, span, div") => page.$$(`[data-dwg-tile="${id}"] > div:first-child :is(${sel})`).then(async els => {
+            for (const e of els) { if (await e.evaluate((n, l) => n.childElementCount === 0 && (n.textContent ?? "").trim() === l, label)) { return e; } }
             return null;
         });
+        // eigene Bedienleiste der P&L (toolbar.foldable): ☰ klappt sie auf
+        const fold = await inVisual("☰");
         check("Bedienleiste der P&L ist einklappbar (☰ vorhanden)", Boolean(fold));
-        if (fold) {
-            const tb0 = await text();
-            await fold.click();
-            await page.waitForTimeout(700);
-            check("☰ schaltet die Bedienleiste der P&L um", (await text()) !== tb0);
-            await shot("8-pnl-toolbar.png");
-            await fold.click().catch(() => {});
-            await page.waitForTimeout(500);
-        }
         await page.click(`[data-dwg-options-toggle="${id}"]`);
         await page.waitForTimeout(500);
         check("Optionen-Panel öffnet wieder, Wahl erhalten", Boolean(await page.$(`[data-dwg-options="${id}"]`)) && (await state()) === "L2,Numbers,On,On,Million", await state());
+        // nach dem Aufklappen des Panels rendert das Visual neu: Knopf frisch suchen
+        const foldNow = await inVisual("☰");
+        if (foldNow) {
+            const tb0 = await text();
+            await foldNow.click();
+            await page.waitForTimeout(700);
+            check("☰ schaltet die Bedienleiste der P&L um", (await text()) !== tb0);
+            await shot("8-pnl-toolbar.png");
 
-        // Ebene aus der Bedienleiste des Visuals (persistProperties): das Panel zeigt sie, eine neue Wahl im Panel gewinnt
-        const levelBtn = await page.$$(`[data-dwg-tile="${id}"] :is(button, [role=button], span, div, g)`).then(async els => {
-            for (const e of els) { if (await e.evaluate(n => n.childElementCount === 0 && (n.textContent ?? "").trim() === "L1")) { return e; } }
-            return null;
-        });
-        if (levelBtn) {
-            await levelBtn.click();
-            await page.waitForTimeout(800);
-            check("Ebene L1 aus der Bedienleiste: Panel zeigt L1", (await pressed("rows")) === "L1", await pressed("rows"));
-            const rL1 = await rows();
-            await choice("rows", "All");
-            check("danach Zeilen All im Panel: GuV klappt auf (Wahl gewinnt über den gespeicherten Wert)", (await rows()) > rL1 && (await pressed("rows")) === "All");
-            await choice("rows", "L2");
-        } else {
-            console.log("  (Bedienleiste ohne Ebenen-Knopf L1, Prüfung der Rangfolge übersprungen)");
+            // Bedienleiste der P&L: Ebene und Einheit speichert sie als eigenen Leserzustand (state.uiState), nicht als
+            // Formateigenschaft. Das Panel kann ihn nicht anzeigen; eine andere Wahl im Panel ändert die Formatwerte, und
+            // die P&L übernimmt geänderte Formatwerte (Autor gewinnt). Geprüft: Leiste wirkt, danach wirkt das Panel.
+            const level1 = await inVisual("1", "button, [role=button]");
+            check("Bedienleiste der P&L hat den Ebenen-Knopf 1", Boolean(level1));
+            if (level1) {
+                const r2 = await rows();
+                await level1.click();
+                await page.waitForTimeout(800);
+                const r1 = await rows();
+                check("Ebene 1 aus der Bedienleiste klappt die GuV zu, ohne Abfrage", r1 < r2 && (await tileQueries()).length === n0, `${r2} → ${r1}`);
+                await choice("rows", "All");
+                check("danach Zeilen All im Panel: GuV klappt auf (geänderter Formatwert gewinnt über die Leiste)", (await rows()) > r2 && (await pressed("rows")) === "All");
+                await choice("rows", "L2");
+                check("zurück auf L2", (await rows()) === r2, `${await rows()} Textelemente`);
+            }
+            const keur = await inVisual("kEUR", "button, [role=button]");
+            check("Bedienleiste der P&L hat den Einheiten-Knopf kEUR", Boolean(keur));
+            if (keur) {
+                await keur.click();
+                await page.waitForTimeout(800);
+                const tk = flat(await text());
+                check("kEUR aus der Bedienleiste skaliert auf Tausend", /28176\d\d/.test(tk) && !tk.includes(flat("2,817.6")));
+                await shot("9-pnl-toolbar-keur.png");
+                await choice("units", "Thousand");
+                await choice("units", "Million");
+                check("danach Thousand, Million im Panel: wieder Millionen (2,817.6)", flat(await text()).includes(flat("2,817.6")) && (await pressed("units")) === "Million");
+            }
+            await (await inVisual("☰"))?.click().catch(() => {});
+            await page.waitForTimeout(500);
         }
         check("Optionen und Bedienleiste lösen keine Abfrage aus", (await tileQueries()).length === n0);
     }

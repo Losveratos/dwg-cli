@@ -638,17 +638,23 @@ export function formatSlicerValue(v: DaxValue, lang: DwgLang = 'de', locale?: st
 
 /** Startwahl je Option: die erste Wahl, deren Werte schon in `objects` stehen, sonst -1 (keine) */
 export function defaultChoices(options: DwgTileOption[], objects: VisualObjects = {}): number[] {
-  const has = (set: VisualObjects) =>
-    Object.entries(set).every(([o, props]) =>
-      Object.entries(props ?? {}).every(([k, v]) => (objects[o] as Record<string, unknown> | undefined)?.[k] === v)
-    );
-  return options.map((o) => o.choices.findIndex((c) => has(c.set)));
+  const get = (obj: string, k: string) => (objects[obj] as Record<string, unknown> | undefined)?.[k];
+  // Zahl der Eigenschaften einer Wahl, wenn alle in `objects` stehen (Vergleich per JSON, auch für Objektwerte), sonst -1
+  const fit = (set: VisualObjects) => {
+    const props = Object.entries(set).flatMap(([o, p]) => Object.entries(p ?? {}).map(([k, v]) => [o, k, v] as const));
+    if (!props.length) return -1;
+    return props.every(([o, k, v]) => JSON.stringify(get(o, k)) === JSON.stringify(v)) ? props.length : -1;
+  };
+  // passen mehrere Wahlen, gewinnt die genaueste (meiste Eigenschaften), bei Gleichstand die erste
+  return options.map((o) =>
+    o.choices.reduce((best, c, i) => (fit(c.set) > (best < 0 ? -1 : fit(o.choices[best].set)) ? i : best), -1)
+  );
 }
 
 /**
  * Wahl der Optionen nach einem persistProperties des Visuals (z. B. Ebenen-Knopf in der Bedienleiste der P&L): Optionen,
  * deren Eigenschaften sich zwischen `before` und `after` geändert haben, zeigen die Wahl, die jetzt passt. Passt keine,
- * bleibt die bisherige Wahl. Andere Optionen bleiben, wie sie sind.
+ * liefert sie -1 (kein Knopf gedrückt; DwgPage behält dann die bisher angewandte Wahl). Andere Optionen bleiben, wie sie sind.
  */
 export function persistedChoices(options: DwgTileOption[], chosen: number[], before: VisualObjects, after: VisualObjects): number[] {
   const get = (o: VisualObjects, obj: string, k: string) => (o[obj] as Record<string, unknown> | undefined)?.[k];
@@ -660,8 +666,7 @@ export function persistedChoices(options: DwgTileOption[], chosen: number[], bef
     );
   return options.map((opt, i) => {
     if (!touched(opt)) return chosen[i] ?? -1;
-    const m = defaultChoices([opt], after)[0];
-    return m >= 0 ? m : (chosen[i] ?? -1);
+    return defaultChoices([opt], after)[0];
   });
 }
 

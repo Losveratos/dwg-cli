@@ -404,6 +404,8 @@ describe('dwg-page · Sprache und Live-Optionen', () => {
     expect(applyOptions(objects, options, [1, 1]).columns).toEqual({ dPyAbs: false, dPyBar: false, showPY: false, minuend: 'ac' });
     expect(applyOptions(objects, options, [-1, -1])).toEqual(objects);
     const after = { columns: { ...objects.columns, showPY: false, dPyAbs: false, dPyBar: false } };
-    expect(persistedChoices(options, [0, 0], objects, after)).toEqual([0, 1]);
+    // V berührt, aber keine Wahl passt (-1, kein Knopf gedrückt); PY passt zu „Aus“
+    expect(persistedChoices(options, [0, 0], objects, after)).toEqual([-1, 1]);
+    expect(defaultChoices([{ id: 'e', label: 'E', choices: [{ label: 'leer', set: { columns: {} } }] }], objects)).toEqual([-1]);
   });
 });

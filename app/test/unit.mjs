@@ -500,9 +500,11 @@ await test("Sprache, Gebietsschema und Live-Optionen (lang, locale, options): Pr
     const bad = structuredClone(spec);
     bad.lang = "fr";
     bad.locale = "english";
-    bad.pages[0].tiles[0].options = [{ id: "rows", label: "Rows", choices: [] }, { id: "x", label: "X", choices: [{ label: "A", set: { hierarchy: 1 } }] }, { label: "ohne id" }];
+    bad.pages[0].tiles[0].options = [{ id: "rows", label: "Rows", choices: [] }, { id: "x", label: "X", choices: [{ label: "A", set: { hierarchy: 1 } }] }, { label: "ohne id" },
+        { id: "y", label: "Y", choices: [{ label: "B", set: { columns: {} } }, { label: "C", set: { columns: { a: 1 } } }, { label: "C", set: { columns: { a: 2 } } }] }];
     assert.throws(() => checkSpec(bad), e => ["lang „fr“ gibt es nicht (de, en)", "locale „english“", "Option rows: choices fehlt oder ist leer",
-        "Option x, Wahl 1: braucht label und set", "Option 3: braucht id und label"].every(m => e.message.includes(m)), "Meldungen");
+        "Option x, Wahl 1: braucht label und set", "Option 3: braucht id und label", "Option y, Wahl „B“: set setzt keine Eigenschaft",
+        "Option y: Wahl „C“ kommt mehrfach vor"].every(m => e.message.includes(m)), "Meldungen");
     checkSpec({ ...spec, locale: "en-GB" });
     // Texte und Werte der Vorlage dwg-page.ts je Sprache
     const out = path.join(app, "lang.mjs");
@@ -536,10 +538,18 @@ await test("Sprache, Gebietsschema und Live-Optionen (lang, locale, options): Pr
     assert.deepEqual(m.defaultChoices(options, {}), [-1, -1]);
     assert.deepEqual(m.applyOptions(objects, options, [1, 0]), { columns: { dPyAbs: false, dPyBar: true, minuend: "ac" }, hierarchy: { defaultLevel: 1 } });
     assert.deepEqual(m.applyOptions(objects, options, [-1, -1]), objects);
-    // das Visual speichert Ebene 1 (eigene Bedienleiste): nur die Zeilen-Option folgt; Ebene 3 passt zu keiner Wahl: bleibt
+    // das Visual speichert Ebene 1 (eigene Bedienleiste): nur die Zeilen-Option folgt; Ebene 3 passt zu keiner Wahl: -1
     const after = { ...objects, hierarchy: { defaultLevel: 1 } };
     assert.deepEqual(m.persistedChoices(options, [0, 1], objects, after), [0, 0]);
-    assert.deepEqual(m.persistedChoices(options, [0, 1], objects, { ...objects, hierarchy: { defaultLevel: 3 } }), [0, 1]);
+    assert.deepEqual(m.persistedChoices(options, [0, 1], objects, { ...objects, hierarchy: { defaultLevel: 3 } }), [0, -1]);
+    // genaueste Wahl gewinnt, Objektwerte per JSON, leeres set passt nie
+    const nested = [{ id: "c", label: "C", choices: [
+        { label: "leer", set: { columns: {} } }, { label: "A", set: { columns: { a: true } } }, { label: "AB", set: { columns: { a: true, b: true } } },
+        { label: "Farbe", set: { colors: { ac: { solid: { color: "#333" } } } } }] }];
+    assert.deepEqual(m.defaultChoices(nested, { columns: { a: true, b: true } }), [2]);
+    assert.deepEqual(m.defaultChoices(nested, { columns: { a: true } }), [1]);
+    assert.deepEqual(m.defaultChoices(nested, { colors: { ac: { solid: { color: "#333" } } } }), [3]);
+    assert.deepEqual(m.defaultChoices(nested, {}), [-1]);
     assert.deepEqual(m.persistedChoices(options, [1, 1], objects, { ...objects, toolbar: { folded: true } }), [1, 1]);
 });
 

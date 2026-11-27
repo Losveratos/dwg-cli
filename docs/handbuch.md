@@ -114,7 +114,7 @@ npm run test:all
 | `rect` | Position, skaliert auf die Breite; unter 900 px untereinander | Position auf der Seite |
 | `slicers` (Spec) | Filter-Panel links (`DwgShell`), TREATAS in jeder Kachel aller Seiten | Slicer im Filter-Panel je Seite, Sync-Gruppe |
 | `resolution`, `visualHeaders`, `footer` (Spec) | Seite als Ganzes skaliert, Kopfzeilen der Visuals, Fußleiste | Seite 1920 × 1080, Fußtext |
-| `lang`, `locale` (Spec) | Bedienung deutsch (Standard) oder englisch, Visuals in `de-DE` bzw. `en-US` (oder `locale`) | nicht genutzt |
+| `lang`, `locale` (Spec) | Bedienung deutsch (Standard) oder englisch, Visuals in `de-DE` bzw. `en-US` (oder `locale`). Gilt über `DwgShell`; wer `DwgPage` ohne Rahmen einbindet, gibt `lang` und `locale` als Props mit | nicht genutzt |
 | `tiles[].options` | Live-Optionen je Kachel im einklappbaren Panel neben dem Visual (Formatbereich, keine neue Abfrage) | nicht genutzt, nur `objects` |
 | `group`, `template`, `description` (Seite) | Navigation oben, „C03 Name“, Erklärtext im Kopf der Seite | Seitenname „C03 Name“, Kopf-Textfeld |
 

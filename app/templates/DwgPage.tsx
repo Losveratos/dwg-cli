@@ -77,10 +77,18 @@ function friendly(message: string, t: DwgUiText): string {
   return message;
 }
 
+/** Optionen einer Kachel: angewandte und gedrückte Wahl, dazu der letzte Klick (Adapter verwirft dafür Gespeichertes) */
+interface OptionState {
+  applied: number[];
+  shown: number[];
+  forget: { set: VisualObjects; n: number } | null;
+}
+
 interface OptionsPanelProps {
   tile: DwgTileSpec;
-  chosen: number[];
-  setChosen: (next: number[]) => void;
+  /** gedrückte Wahl je Option (-1: keine passt zu dem, was das Visual gerade zeigt) */
+  shown: number[];
+  choose: (option: number, choice: number) => void;
   open: boolean;
   setOpen: (open: boolean) => void;
   c: DwgTileColors;
@@ -89,7 +97,7 @@ interface OptionsPanelProps {
 }
 
 /** Live-Optionen rechts neben dem Visual; eingeklappt bleibt eine schmale Leiste „Optionen“ */
-function OptionsPanel({ tile, chosen, setChosen, open, setOpen, c, k, t }: OptionsPanelProps) {
+function OptionsPanel({ tile, shown, choose, open, setOpen, c, k, t }: OptionsPanelProps) {
   const options = tile.options ?? [];
   if (!open) {
     return (
@@ -165,14 +173,14 @@ function OptionsPanel({ tile, chosen, setChosen, open, setOpen, c, k, t }: Optio
           <p style={{ margin: `0 0 ${5 * k}px`, font: `600 ${12 * k}px/${16 * k}px ${FONT}`, color: c.text }}>{o.label}</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 * k }}>
             {o.choices.map((ch, j) => {
-              const on = chosen[i] === j;
+              const on = shown[i] === j;
               return (
                 <button
                   key={ch.label}
                   type="button"
                   data-choice={ch.label}
                   aria-pressed={on}
-                  onClick={() => setChosen(chosen.map((x, n) => (n === i ? j : x)))}
+                  onClick={() => choose(i, j)}
                   style={{
                     font: `500 ${12 * k}px/${16 * k}px ${FONT}`,
                     padding: `${4 * k}px ${9 * k}px`,
@@ -252,14 +260,25 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
   const displayNames = useMemo(() => ({ ...q.displayNames, ...tile.displayNames }), [q.displayNames, tile.displayNames]);
   // Live-Optionen, Kopfzeilen aus, Kachel füllen: nur Formatbereich-Overrides, keine neue Abfrage. Was das Visual
   // selbst speichert (Bedienleiste, auf- und zugeklappte Zeilen), führt der Adapter darüber (persistProperties);
-  // eine neue Wahl im Optionen-Panel gewinnt für ihre Eigenschaften.
-  const [chosen, setChosen] = useState<number[]>(() => defaultChoices(tile.options ?? [], tile.objects));
+  // eine Wahl im Optionen-Panel gewinnt für ihre Eigenschaften, auch ein erneuter Klick auf die geltende Wahl (forget).
+  // applied: angewandte Wahl je Option (geht in objects); shown: gedrückter Knopf (-1, wenn das Visual selbst einen Wert
+  // gespeichert hat, zu dem keine Wahl passt; applied bleibt dann, damit der gespeicherte Wert nicht verloren geht).
+  const [choices, setChoices] = useState<OptionState>(() => {
+    const start = defaultChoices(tile.options ?? [], tile.objects);
+    return { applied: start, shown: start, forget: null };
+  });
   const [optionsOpen, setOptionsOpen] = useState(true);
   const objects = useMemo(() => {
-    const withOptions = tile.options?.length ? applyOptions(tile.objects, tile.options, chosen) : tile.objects;
+    const withOptions = tile.options?.length ? applyOptions(tile.objects, tile.options, choices.applied) : tile.objects;
     const o = hideHeaders ? withoutHeaders(tile.visual, withOptions) : withOptions;
     return fit ? fitToTile(tile.visual, o) : o;
-  }, [hideHeaders, fit, tile.visual, tile.objects, tile.options, chosen]);
+  }, [hideHeaders, fit, tile.visual, tile.objects, tile.options, choices.applied]);
+  const choose = (option: number, choice: number) =>
+    setChoices((prev) => ({
+      applied: prev.applied.map((x, n) => (n === option ? choice : x)),
+      shown: prev.shown.map((x, n) => (n === option ? choice : x)),
+      forget: { set: tile.options?.[option]?.choices[choice]?.set ?? {}, n: (prev.forget?.n ?? 0) + 1 },
+    }));
   // Speichert das Visual selbst eine Eigenschaft, die eine Option steuert, zeigt das Panel die passende Wahl
   const seen = useRef<VisualObjects>(objects ?? {});
   useEffect(() => {
@@ -269,7 +288,12 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
     ? (next: VisualObjects) => {
         const before = seen.current;
         seen.current = next;
-        setChosen((prev) => persistedChoices(tile.options ?? [], prev, before, next));
+        setChoices((prev) => {
+          const shown = persistedChoices(tile.options ?? [], prev.shown, before, next);
+          const applied = shown.map((x, n) => (x >= 0 ? x : prev.applied[n]));
+          const same = (a: number[], b: number[]) => a.length === b.length && a.every((x, n) => x === b[n]);
+          return same(shown, prev.shown) && same(applied, prev.applied) ? prev : { ...prev, applied, shown };
+        });
       }
     : undefined;
 
@@ -290,6 +314,7 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
             clearToken={clearToken}
             onSelect={(keys) => onSelect(tile.id, keys)}
             onPersist={onPersist}
+            forget={choices.forget}
             onRendered={onNeed && tile.visual === 'pnl' ? measure : undefined}
             onError={(err) => setRenderError({ query: q.query, message: err instanceof Error ? err.message : String(err) })}
           />
@@ -321,7 +346,7 @@ function DwgTile({ tile, page, connection, selection, extraFilters, clearToken, 
         )}
       </div>
       {tile.options?.length ? (
-        <OptionsPanel tile={tile} chosen={chosen} setChosen={setChosen} open={optionsOpen} setOpen={setOptionsOpen} c={c} k={k} t={t} />
+        <OptionsPanel tile={tile} shown={choices.shown} choose={choose} open={optionsOpen} setOpen={setOptionsOpen} c={c} k={k} t={t} />
       ) : null}
     </div>
   );
